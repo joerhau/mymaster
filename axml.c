@@ -80,8 +80,16 @@
 
 /***************** UTILITY FUNCTIONS **************************/
 void myPrintTree(tree *tr) {
-	printf("going to print tree information\n");
+	int model = 0;
 
+	printf("Increased Lieklihood: %f\n", tr->likelihood);
+	printf("Assignment: \n");
+	for (model = 0; model < tr->NumberOfModels; model++)
+		printf("%s\t\t\t", protModels[tr->partitionData[model].protModels]);
+	printf("\n");
+	for (model = 0; model < tr->NumberOfModels; model++)
+		printf("%f\t\t", tr->perPartitionLH[model]);
+	printf("\n");
 }
 
 void myBinFwrite(const void *ptr, size_t size, size_t nmemb)

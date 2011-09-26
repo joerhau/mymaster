@@ -1281,6 +1281,7 @@ extern double evaluateIterative(tree *, boolean writeVector);
 
 extern void *malloc_aligned( size_t size);
 
+extern void myPrintTree(tree *tr);
 extern void myBinFwrite(const void *ptr, size_t size, size_t nmemb);
 extern void myBinFread(void *ptr, size_t size, size_t nmemb);
 
