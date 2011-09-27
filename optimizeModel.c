@@ -2215,7 +2215,6 @@ void modOptJoerg(tree *tr, analdef *adef) {
 
 		if(increased) myPrintTree(tr);
 
-
 		/* if we have tested all available models for partition-idnependent branch length estimates,
 		 just jump out of the endless while-loop */
 

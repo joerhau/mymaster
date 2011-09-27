@@ -56,7 +56,6 @@
 #define defaultz       0.9         /* value of z assigned as starting point */
 #define unlikely       -1.0E300    /* low likelihood for initialization */
 
-
 #define SUMMARIZE_LENGTH -3
 #define SUMMARIZE_LH     -2
 #define NO_BRANCHES      -1
@@ -74,7 +73,6 @@
 
 #define minlikelihood  (1.0/twotothe256)
 #define minusminlikelihood -minlikelihood
-
 
 
 
@@ -958,7 +956,7 @@ typedef  struct  {
   unsigned int vLength;
 
   hashtable *h;
-  
+
 
 } tree;
 
