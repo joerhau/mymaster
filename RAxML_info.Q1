@@ -36,7 +36,7 @@ Fixed Base Frequencies:
 
 RAxML was called as follows:
 
-/home/joerhau/Dropbox/RAxML-Light/raxmlLight-PTHREADS -T 4 -t workin/RAxML_parsimonyTree.START -s workin/prot.phy -m PROTGAMMAWAG -q workin/partitionFile.txt -n Q1 
+/media/data/hauserjg/Dropbox/RAxML-Light/raxmlLight-PTHREADS -T 4 -t work_dir/RAxML_parsimonyTree.START -s work_dir/prot.phy -m PROTGAMMAWAG -q work_dir/partitionFile.txt -n Q1 
 
 
 Memory Saving Option: DISABLED
