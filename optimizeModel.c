@@ -67,8 +67,7 @@ extern volatile double *reductionBuffer;
 /*********************FUNCTIONS FOOR EXACT MODEL OPTIMIZATION UNDER GTRGAMMA ***************************************/
 
 static void setRateModel(tree *tr, int model, double rate, int position) {
-	int states = tr->partitionData[model].states, numRates = (states * states
-			- states) / 2;
+	int states = tr->partitionData[model].states, numRates = (states * states - states) / 2;
 
 	if (tr->partitionData[model].dataType == DNA_DATA
 	)
@@ -84,7 +83,9 @@ static void setRateModel(tree *tr, int model, double rate, int position) {
 		int i, k = tr->partitionData[model].symmetryVector[position];
 
 		assert(
-				tr->partitionData[model].dataType == SECONDARY_DATA || tr->partitionData[model].dataType == SECONDARY_DATA_6 || tr->partitionData[model].dataType == SECONDARY_DATA_7);
+				tr->partitionData[model].dataType == SECONDARY_DATA
+						|| tr->partitionData[model].dataType == SECONDARY_DATA_6
+						|| tr->partitionData[model].dataType == SECONDARY_DATA_7);
 
 		if (k == -1)
 			tr->partitionData[model].substRates[position] = 0.0;
@@ -138,8 +139,8 @@ static linkageList* initLinkageList(int *linkList, tree *tr) {
 }
 
 static linkageList* initLinkageListGTR(tree *tr) {
-	int i, *links = (int*) malloc(sizeof(int) * tr->NumberOfModels), firstAA =
-			tr->NumberOfModels + 2, countGTR = 0, countOtherModel = 0;
+	int i, *links = (int*) malloc(sizeof(int) * tr->NumberOfModels), firstAA = tr->NumberOfModels + 2, countGTR = 0,
+			countOtherModel = 0;
 	linkageList* ll;
 
 	for (i = 0; i < tr->NumberOfModels; i++) {
@@ -156,7 +157,8 @@ static linkageList* initLinkageListGTR(tree *tr) {
 	}
 
 	assert(
-			(countGTR > 0 && countOtherModel == 0) || (countGTR == 0 && countOtherModel > 0) || (countGTR == 0 && countOtherModel == 0));
+			(countGTR > 0 && countOtherModel == 0) || (countGTR == 0 && countOtherModel > 0)
+					|| (countGTR == 0 && countOtherModel == 0));
 
 	if (countGTR == 0) {
 		for (i = 0; i < tr->NumberOfModels; i++)
@@ -203,9 +205,8 @@ static void freeLinkageList(linkageList* ll) {
 #define INVAR_F 1
 #define RATE_F  2
 
-static void evaluateChange(tree *tr, int rateNumber, double *value,
-		double *result, boolean* converged, analdef *adef, int whichFunction,
-		int numberOfModels, linkageList *ll) {
+static void evaluateChange(tree *tr, int rateNumber, double *value, double *result, boolean* converged, analdef *adef,
+		int whichFunction, int numberOfModels, linkageList *ll) {
 	int i, k, pos;
 
 	switch (whichFunction) {
@@ -295,8 +296,7 @@ static void evaluateChange(tree *tr, int rateNumber, double *value,
 					int index = ll->ld[i].partitionList[k];
 					tr->executeModel[index] = TRUE;
 					tr->partitionData[index].alpha = value[i];
-					makeGammaCats(tr->partitionData[index].alpha,
-							tr->partitionData[index].gammaRates, 4);
+					makeGammaCats(tr->partitionData[index].alpha, tr->partitionData[index].gammaRates, 4);
 				}
 			}
 		}
@@ -351,30 +351,23 @@ static void evaluateChange(tree *tr, int rateNumber, double *value,
 
 }
 
-static void brentGeneric(double *ax, double *bx, double *cx, double *fb,
-		double tol, double *xmin, double *result, int numberOfModels,
-		int whichFunction, int rateNumber, analdef *adef, tree *tr,
-		linkageList *ll, double lim_inf, double lim_sup) {
+static void brentGeneric(double *ax, double *bx, double *cx, double *fb, double tol, double *xmin, double *result,
+		int numberOfModels, int whichFunction, int rateNumber, analdef *adef, tree *tr, linkageList *ll, double lim_inf,
+		double lim_sup) {
 	int iter, i;
-	double *a = (double *) malloc(sizeof(double) * numberOfModels), *b =
-			(double *) malloc(sizeof(double) * numberOfModels), *d =
-			(double *) malloc(sizeof(double) * numberOfModels), *etemp =
-			(double *) malloc(sizeof(double) * numberOfModels), *fu =
-			(double *) malloc(sizeof(double) * numberOfModels), *fv =
-			(double *) malloc(sizeof(double) * numberOfModels), *fw =
-			(double *) malloc(sizeof(double) * numberOfModels), *fx =
-			(double *) malloc(sizeof(double) * numberOfModels), *p =
-			(double *) malloc(sizeof(double) * numberOfModels), *q =
-			(double *) malloc(sizeof(double) * numberOfModels), *r =
-			(double *) malloc(sizeof(double) * numberOfModels), *tol1 =
-			(double *) malloc(sizeof(double) * numberOfModels), *tol2 =
-			(double *) malloc(sizeof(double) * numberOfModels), *u =
-			(double *) malloc(sizeof(double) * numberOfModels), *v =
-			(double *) malloc(sizeof(double) * numberOfModels), *w =
-			(double *) malloc(sizeof(double) * numberOfModels), *x =
-			(double *) malloc(sizeof(double) * numberOfModels), *xm =
-			(double *) malloc(sizeof(double) * numberOfModels), *e =
-			(double *) malloc(sizeof(double) * numberOfModels);
+	double *a = (double *) malloc(sizeof(double) * numberOfModels), *b = (double *) malloc(
+			sizeof(double) * numberOfModels), *d = (double *) malloc(sizeof(double) * numberOfModels), *etemp =
+			(double *) malloc(sizeof(double) * numberOfModels), *fu = (double *) malloc(
+			sizeof(double) * numberOfModels), *fv = (double *) malloc(sizeof(double) * numberOfModels), *fw =
+			(double *) malloc(sizeof(double) * numberOfModels), *fx = (double *) malloc(
+			sizeof(double) * numberOfModels), *p = (double *) malloc(sizeof(double) * numberOfModels), *q =
+			(double *) malloc(sizeof(double) * numberOfModels), *r = (double *) malloc(sizeof(double) * numberOfModels),
+			*tol1 = (double *) malloc(sizeof(double) * numberOfModels), *tol2 = (double *) malloc(
+					sizeof(double) * numberOfModels), *u = (double *) malloc(sizeof(double) * numberOfModels), *v =
+					(double *) malloc(sizeof(double) * numberOfModels), *w = (double *) malloc(
+					sizeof(double) * numberOfModels), *x = (double *) malloc(sizeof(double) * numberOfModels), *xm =
+					(double *) malloc(sizeof(double) * numberOfModels), *e = (double *) malloc(
+					sizeof(double) * numberOfModels);
 	boolean *converged = (boolean *) malloc(sizeof(boolean) * numberOfModels);
 	boolean allConverged;
 
@@ -457,13 +450,9 @@ static void brentGeneric(double *ax, double *bx, double *cx, double *fb,
 						q[i] = fabs(q[i]);
 						etemp[i] = e[i];
 						e[i] = d[i];
-						if ((fabs(p[i]) >= fabs(0.5 * q[i] * etemp[i]))
-								|| (p[i] <= q[i] * (a[i] - x[i]))
+						if ((fabs(p[i]) >= fabs(0.5 * q[i] * etemp[i])) || (p[i] <= q[i] * (a[i] - x[i]))
 								|| (p[i] >= q[i] * (b[i] - x[i])))
-							d[i] = BRENT_CGOLD
-									* (e[i] = (
-											x[i] >= xm[i] ?
-													a[i] - x[i] : b[i] - x[i]));
+							d[i] = BRENT_CGOLD * (e[i] = (x[i] >= xm[i] ? a[i] - x[i] : b[i] - x[i]));
 						else {
 							d[i] = p[i] / q[i];
 							u[i] = x[i] + d[i];
@@ -471,22 +460,17 @@ static void brentGeneric(double *ax, double *bx, double *cx, double *fb,
 								d[i] = SIGN(tol1[i], xm[i] - x[i]);
 						}
 					} else {
-						d[i] = BRENT_CGOLD
-								* (e[i] = (
-										x[i] >= xm[i] ?
-												a[i] - x[i] : b[i] - x[i]));
+						d[i] = BRENT_CGOLD * (e[i] = (x[i] >= xm[i] ? a[i] - x[i] : b[i] - x[i]));
 					}
-					u[i] =
-							((fabs(d[i]) >= tol1[i]) ? (x[i] + d[i]): (x[i] +SIGN(tol1[i], d[i])));
-						}
+					u[i] = ((fabs(d[i]) >= tol1[i]) ? (x[i] + d[i]): (x[i] +SIGN(tol1[i], d[i])));
+				}
 
 				if (!converged[i])
 					assert(u[i] >= lim_inf && u[i] <= lim_sup);
 			}
 		}
 
-		evaluateChange(tr, rateNumber, u, fu, converged, adef, whichFunction,
-				numberOfModels, ll);
+		evaluateChange(tr, rateNumber, u, fu, converged, adef, whichFunction, numberOfModels, ll);
 
 		for (i = 0; i < numberOfModels; i++) {
 			if (!converged[i]) {
@@ -552,20 +536,17 @@ static void brentGeneric(double *ax, double *bx, double *cx, double *fb,
 	assert(0);
 }
 
-static int brakGeneric(double *param, double *ax, double *bx, double *cx,
-		double *fa, double *fb, double *fc, double lim_inf, double lim_sup,
-		int numberOfModels, int rateNumber, analdef *adef, int whichFunction,
-		tree *tr, linkageList *ll) {
-	double *ulim = (double *) malloc(sizeof(double) * numberOfModels), *u =
-			(double *) malloc(sizeof(double) * numberOfModels), *r =
-			(double *) malloc(sizeof(double) * numberOfModels), *q =
-			(double *) malloc(sizeof(double) * numberOfModels), *fu =
-			(double *) malloc(sizeof(double) * numberOfModels), *dum =
-			(double *) malloc(sizeof(double) * numberOfModels), *temp =
+static int brakGeneric(double *param, double *ax, double *bx, double *cx, double *fa, double *fb, double *fc,
+		double lim_inf, double lim_sup, int numberOfModels, int rateNumber, analdef *adef, int whichFunction, tree *tr,
+		linkageList *ll) {
+	double *ulim = (double *) malloc(sizeof(double) * numberOfModels), *u = (double *) malloc(
+			sizeof(double) * numberOfModels), *r = (double *) malloc(sizeof(double) * numberOfModels), *q =
+			(double *) malloc(sizeof(double) * numberOfModels), *fu = (double *) malloc(
+			sizeof(double) * numberOfModels), *dum = (double *) malloc(sizeof(double) * numberOfModels), *temp =
 			(double *) malloc(sizeof(double) * numberOfModels);
 
-	int i, *state = (int *) malloc(sizeof(int) * numberOfModels), *endState =
-			(int *) malloc(sizeof(int) * numberOfModels);
+	int i, *state = (int *) malloc(sizeof(int) * numberOfModels), *endState = (int *) malloc(
+			sizeof(int) * numberOfModels);
 
 	boolean *converged = (boolean *) malloc(sizeof(boolean) * numberOfModels);
 	boolean allConverged;
@@ -590,8 +571,7 @@ static int brakGeneric(double *param, double *ax, double *bx, double *cx,
 		assert(param[i] >= lim_inf && param[i] <= lim_sup);
 	}
 
-	evaluateChange(tr, rateNumber, param, fa, converged, adef, whichFunction,
-			numberOfModels, ll);
+	evaluateChange(tr, rateNumber, param, fa, converged, adef, whichFunction, numberOfModels, ll);
 
 	for (i = 0; i < numberOfModels; i++) {
 		param[i] = bx[i];
@@ -603,8 +583,7 @@ static int brakGeneric(double *param, double *ax, double *bx, double *cx,
 		assert(param[i] >= lim_inf && param[i] <= lim_sup);
 	}
 
-	evaluateChange(tr, rateNumber, param, fb, converged, adef, whichFunction,
-			numberOfModels, ll);
+	evaluateChange(tr, rateNumber, param, fb, converged, adef, whichFunction, numberOfModels, ll);
 
 	for (i = 0; i < numberOfModels; i++) {
 		if (fb[i] > fa[i]) {
@@ -624,8 +603,7 @@ static int brakGeneric(double *param, double *ax, double *bx, double *cx,
 		assert(param[i] >= lim_inf && param[i] <= lim_sup);
 	}
 
-	evaluateChange(tr, rateNumber, param, fc, converged, adef, whichFunction,
-			numberOfModels, ll);
+	evaluateChange(tr, rateNumber, param, fc, converged, adef, whichFunction, numberOfModels, ll);
 
 	while (1) {
 		allConverged = TRUE;
@@ -689,12 +667,9 @@ static int brakGeneric(double *param, double *ax, double *bx, double *cx,
 
 						r[i] = (bx[i] - ax[i]) * (fb[i] - fc[i]);
 						q[i] = (bx[i] - cx[i]) * (fb[i] - fa[i]);
-						u[i] =
-								(bx[i])
-										- ((bx[i] - cx[i]) * q[i]
-												- (bx[i] - ax[i]) * r[i])
-												/ (2.0
-														* SIGN(MAX(fabs(q[i]-r[i]),MNBRAK_TINY),q[i]-r[i]));
+						u[i] = (bx[i])
+								- ((bx[i] - cx[i]) * q[i] - (bx[i] - ax[i]) * r[i])
+										/ (2.0 * SIGN(MAX(fabs(q[i]-r[i]),MNBRAK_TINY),q[i]-r[i]));
 
 						ulim[i] = (bx[i]) + MNBRAK_GLIMIT * (cx[i] - bx[i]);
 
@@ -723,8 +698,7 @@ static int brakGeneric(double *param, double *ax, double *bx, double *cx,
 									param[i] = u[i] = lim_inf;
 								endState[i] = 2;
 							} else {
-								if ((u[i] - ulim[i]) * (ulim[i] - cx[i])
-										>= 0.0) {
+								if ((u[i] - ulim[i]) * (ulim[i] - cx[i]) >= 0.0) {
 									u[i] = ulim[i];
 									param[i] = u[i];
 									if (param[i] > lim_sup)
@@ -733,8 +707,7 @@ static int brakGeneric(double *param, double *ax, double *bx, double *cx,
 										param[i] = u[i] = ulim[i] = lim_inf;
 									endState[i] = 0;
 								} else {
-									u[i] = (cx[i])
-											+ MNBRAK_GOLD * (cx[i] - bx[i]);
+									u[i] = (cx[i]) + MNBRAK_GOLD * (cx[i] - bx[i]);
 									param[i] = u[i];
 									endState[i] = 0;
 									if (param[i] > lim_sup)
@@ -759,8 +732,7 @@ static int brakGeneric(double *param, double *ax, double *bx, double *cx,
 			}
 		}
 
-		evaluateChange(tr, rateNumber, param, temp, converged, adef,
-				whichFunction, numberOfModels, ll);
+		evaluateChange(tr, rateNumber, param, temp, converged, adef, whichFunction, numberOfModels, ll);
 
 		for (i = 0; i < numberOfModels; i++) {
 			if (!converged[i]) {
@@ -801,8 +773,7 @@ static int brakGeneric(double *param, double *ax, double *bx, double *cx,
 				case 2:
 					fu[i] = temp[i];
 					if (fu[i] < fc[i]) {
-						SHFT(bx[i], cx[i], u[i],
-								cx[i]+MNBRAK_GOLD*(cx[i]-bx[i]));
+						SHFT(bx[i], cx[i], u[i], cx[i]+MNBRAK_GOLD*(cx[i]-bx[i]));
 						state[i] = 2;
 					} else {
 						state[i] = 0;
@@ -845,18 +816,14 @@ static void optAlpha(tree *tr, double modelEpsilon, linkageList *ll) {
 	int i, k, numberOfModels = ll->entries;
 
 	double lim_inf = ALPHA_MIN, lim_sup = ALPHA_MAX;
-	double *startLH = (double *) malloc(sizeof(double) * numberOfModels),
-			*startAlpha = (double *) malloc(sizeof(double) * numberOfModels),
-			*endAlpha = (double *) malloc(sizeof(double) * numberOfModels),
-			*_a = (double *) malloc(sizeof(double) * numberOfModels), *_b =
-					(double *) malloc(sizeof(double) * numberOfModels), *_c =
-					(double *) malloc(sizeof(double) * numberOfModels), *_fa =
-					(double *) malloc(sizeof(double) * numberOfModels), *_fb =
-					(double *) malloc(sizeof(double) * numberOfModels), *_fc =
-					(double *) malloc(sizeof(double) * numberOfModels),
-			*_param = (double *) malloc(sizeof(double) * numberOfModels),
-			*result = (double *) malloc(sizeof(double) * numberOfModels), *_x =
-					(double *) malloc(sizeof(double) * numberOfModels);
+	double *startLH = (double *) malloc(sizeof(double) * numberOfModels), *startAlpha = (double *) malloc(
+			sizeof(double) * numberOfModels), *endAlpha = (double *) malloc(sizeof(double) * numberOfModels), *_a =
+			(double *) malloc(sizeof(double) * numberOfModels), *_b = (double *) malloc(
+			sizeof(double) * numberOfModels), *_c = (double *) malloc(sizeof(double) * numberOfModels), *_fa =
+			(double *) malloc(sizeof(double) * numberOfModels), *_fb = (double *) malloc(
+			sizeof(double) * numberOfModels), *_fc = (double *) malloc(sizeof(double) * numberOfModels), *_param =
+			(double *) malloc(sizeof(double) * numberOfModels), *result = (double *) malloc(
+			sizeof(double) * numberOfModels), *_x = (double *) malloc(sizeof(double) * numberOfModels);
 
 #if (defined(_USE_PTHREADS) || defined(_FINE_GRAIN_MPI))
 	int revertModel = 0;
@@ -882,14 +849,15 @@ static void optAlpha(tree *tr, double modelEpsilon, linkageList *ll) {
 		for (k = 0; k < ll->ld[i].partitions; k++) {
 			startLH[i] += tr->perPartitionLH[ll->ld[i].partitionList[k]];
 			assert(
-					tr->partitionData[ll->ld[i].partitionList[0]].alpha == tr->partitionData[ll->ld[i].partitionList[k]].alpha);
+					tr->partitionData[ll->ld[i].partitionList[0]].alpha
+							== tr->partitionData[ll->ld[i].partitionList[k]].alpha);
 		}
 	}
 
-	brakGeneric(_param, _a, _b, _c, _fa, _fb, _fc, lim_inf, lim_sup,
-			numberOfModels, -1, (analdef*) NULL, ALPHA_F, tr, ll);
-	brentGeneric(_a, _b, _c, _fb, modelEpsilon, _x, result, numberOfModels,
-			ALPHA_F, -1, (analdef*) NULL, tr, ll, lim_inf, lim_sup);
+	brakGeneric(_param, _a, _b, _c, _fa, _fb, _fc, lim_inf, lim_sup, numberOfModels, -1, (analdef*) NULL, ALPHA_F, tr,
+			ll);
+	brentGeneric(_a, _b, _c, _fb, modelEpsilon, _x, result, numberOfModels, ALPHA_F, -1, (analdef*) NULL, tr, ll,
+			lim_inf, lim_sup);
 
 	for (i = 0; i < numberOfModels; i++)
 		endAlpha[i] = result[i];
@@ -897,12 +865,9 @@ static void optAlpha(tree *tr, double modelEpsilon, linkageList *ll) {
 	for (i = 0; i < numberOfModels; i++) {
 		if (startLH[i] > endAlpha[i]) {
 			for (k = 0; k < ll->ld[i].partitions; k++) {
-				tr->partitionData[ll->ld[i].partitionList[k]].alpha =
-						startAlpha[i];
-				makeGammaCats(
-						tr->partitionData[ll->ld[i].partitionList[k]].alpha,
-						tr->partitionData[ll->ld[i].partitionList[k]].gammaRates,
-						4);
+				tr->partitionData[ll->ld[i].partitionList[k]].alpha = startAlpha[i];
+				makeGammaCats(tr->partitionData[ll->ld[i].partitionList[k]].alpha,
+						tr->partitionData[ll->ld[i].partitionList[k]].gammaRates, 4);
 			}
 #if (defined(_USE_PTHREADS) || defined(_FINE_GRAIN_MPI))
 			revertModel++;
@@ -935,24 +900,20 @@ static void optAlpha(tree *tr, double modelEpsilon, linkageList *ll) {
 
 }
 
-static void optRates(tree *tr, analdef *adef, double modelEpsilon,
-		linkageList *ll, int numberOfModels, int states) {
+static void optRates(tree *tr, analdef *adef, double modelEpsilon, linkageList *ll, int numberOfModels, int states) {
 	int i, k, j, pos, numberOfRates = ((states * states - states) / 2) - 1;
 
 	double lim_inf = RATE_MIN;
 	double lim_sup = RATE_MAX;
 	double *startRates;
-	double *startLH = (double *) malloc(sizeof(double) * numberOfModels),
-			*endLH = (double *) malloc(sizeof(double) * numberOfModels), *_a =
-					(double *) malloc(sizeof(double) * numberOfModels), *_b =
-					(double *) malloc(sizeof(double) * numberOfModels), *_c =
-					(double *) malloc(sizeof(double) * numberOfModels), *_fa =
-					(double *) malloc(sizeof(double) * numberOfModels), *_fb =
-					(double *) malloc(sizeof(double) * numberOfModels), *_fc =
-					(double *) malloc(sizeof(double) * numberOfModels),
-			*_param = (double *) malloc(sizeof(double) * numberOfModels),
-			*result = (double *) malloc(sizeof(double) * numberOfModels), *_x =
-					(double *) malloc(sizeof(double) * numberOfModels);
+	double *startLH = (double *) malloc(sizeof(double) * numberOfModels), *endLH = (double *) malloc(
+			sizeof(double) * numberOfModels), *_a = (double *) malloc(sizeof(double) * numberOfModels), *_b =
+			(double *) malloc(sizeof(double) * numberOfModels), *_c = (double *) malloc(
+			sizeof(double) * numberOfModels), *_fa = (double *) malloc(sizeof(double) * numberOfModels), *_fb =
+			(double *) malloc(sizeof(double) * numberOfModels), *_fc = (double *) malloc(
+			sizeof(double) * numberOfModels), *_param = (double *) malloc(sizeof(double) * numberOfModels), *result =
+			(double *) malloc(sizeof(double) * numberOfModels), *_x = (double *) malloc(
+			sizeof(double) * numberOfModels);
 
 #if (defined(_USE_PTHREADS) || defined(_FINE_GRAIN_MPI))
 	int revertModel = 0;
@@ -960,8 +921,7 @@ static void optRates(tree *tr, analdef *adef, double modelEpsilon,
 
 	assert(states != -1);
 
-	startRates = (double *) malloc(
-			sizeof(double) * numberOfRates * numberOfModels);
+	startRates = (double *) malloc(sizeof(double) * numberOfRates * numberOfModels);
 
 	evaluateGenericInitrav(tr, tr->start);
 	/*
@@ -979,8 +939,7 @@ static void optRates(tree *tr, analdef *adef, double modelEpsilon,
 
 				startLH[pos] += tr->perPartitionLH[index];
 				for (k = 0; k < numberOfRates; k++)
-					startRates[pos * numberOfRates + k] =
-							tr->partitionData[index].substRates[k];
+					startRates[pos * numberOfRates + k] = tr->partitionData[index].substRates[k];
 			}
 			pos++;
 		}
@@ -1010,8 +969,7 @@ static void optRates(tree *tr, analdef *adef, double modelEpsilon,
 
 		assert(pos == numberOfModels);
 
-		brakGeneric(_param, _a, _b, _c, _fa, _fb, _fc, lim_inf, lim_sup,
-				numberOfModels, i, adef, RATE_F, tr, ll);
+		brakGeneric(_param, _a, _b, _c, _fa, _fb, _fc, lim_inf, lim_sup, numberOfModels, i, adef, RATE_F, tr, ll);
 
 		for (k = 0; k < numberOfModels; k++) {
 			assert(_a[k] >= lim_inf && _a[k] <= lim_sup);
@@ -1019,8 +977,8 @@ static void optRates(tree *tr, analdef *adef, double modelEpsilon,
 			assert(_c[k] >= lim_inf && _c[k] <= lim_sup);
 		}
 
-		brentGeneric(_a, _b, _c, _fb, modelEpsilon, _x, result, numberOfModels,
-				RATE_F, i, adef, tr, ll, lim_inf, lim_sup);
+		brentGeneric(_a, _b, _c, _fb, modelEpsilon, _x, result, numberOfModels, RATE_F, i, adef, tr, ll, lim_inf,
+				lim_sup);
 
 		for (k = 0; k < numberOfModels; k++)
 			endLH[k] = result[k];
@@ -1033,8 +991,7 @@ static void optRates(tree *tr, analdef *adef, double modelEpsilon,
 				if (startLH[pos] > endLH[pos]) {
 					for (j = 0; j < ll->ld[k].partitions; j++) {
 						int index = ll->ld[k].partitionList[j];
-						tr->partitionData[index].substRates[i] = startRates[pos
-								* numberOfRates + i];
+						tr->partitionData[index].substRates[i] = startRates[pos * numberOfRates + i];
 						initReversibleGTR(tr, adef, index);
 					}
 #if (defined(_USE_PTHREADS) || defined(_FINE_GRAIN_MPI))
@@ -1090,10 +1047,8 @@ static boolean AAisGTR(tree *tr) {
 	return TRUE;
 }
 
-static void optRatesGeneric(tree *tr, analdef *adef, double modelEpsilon,
-		linkageList *ll) {
-	int i, dnaPartitions = 0, aaPartitions = 0, secondaryPartitions = 0,
-			secondaryModel = -1, states = -1;
+static void optRatesGeneric(tree *tr, analdef *adef, double modelEpsilon, linkageList *ll) {
+	int i, dnaPartitions = 0, aaPartitions = 0, secondaryPartitions = 0, secondaryModel = -1, states = -1;
 
 	/* assumes homogeneous super-partitions, that either contain DNA or AA partitions !*/
 	/* does not check whether AA are all linked */
@@ -1376,14 +1331,12 @@ void optRateCatPthreads(tree *tr, double lower_spacing, double upper_spacing,
 
 #else
 
-static void optRateCatModel(tree *tr, int model, double lower_spacing,
-		double upper_spacing, double *lhs) {
+static void optRateCatModel(tree *tr, int model, double lower_spacing, double upper_spacing, double *lhs) {
 	int lower = tr->partitionData[model].lower;
 	int upper = tr->partitionData[model].upper;
 	int i;
 	for (i = lower; i < upper; i++) {
-		double initialRate, initialLikelihood, leftLH, rightLH, leftRate,
-				rightRate, v;
+		double initialRate, initialLikelihood, leftLH, rightLH, leftRate, rightRate, v;
 		const double epsilon = 0.00001;
 		int k;
 
@@ -1398,13 +1351,11 @@ static void optRateCatModel(tree *tr, int model, double lower_spacing,
 		k = 1;
 
 		while ((initialRate - k * lower_spacing > 0.0001)
-				&& ((v = evaluatePartialGeneric(tr, i,
-						initialRate - k * lower_spacing, model)) > leftLH)
+				&& ((v = evaluatePartialGeneric(tr, i, initialRate - k * lower_spacing, model)) > leftLH)
 				&& (fabs(leftLH - v) > epsilon)) {
 #ifndef WIN32
-			if (isnan(v)
-)
-							assert(0);
+			if (isnan(v))
+				assert(0);
 #endif
 
 			leftLH = v;
@@ -1414,13 +1365,11 @@ static void optRateCatModel(tree *tr, int model, double lower_spacing,
 
 		k = 1;
 
-		while (((v = evaluatePartialGeneric(tr, i,
-				initialRate + k * upper_spacing, model)) > rightLH)
+		while (((v = evaluatePartialGeneric(tr, i, initialRate + k * upper_spacing, model)) > rightLH)
 				&& (fabs(rightLH - v) > epsilon)) {
 #ifndef WIN32
-			if (isnan(v)
-)
-							assert(0);
+			if (isnan(v))
+				assert(0);
 #endif     
 			rightLH = v;
 			rightRate = initialRate + k * upper_spacing;
@@ -1464,8 +1413,7 @@ void updatePerSiteRates(tree *tr) {
 
 #ifdef _SCALE_MEAN_RATE
 		for (model = 0; model < tr->NumberOfModels; model++) {
-			int lower = tr->partitionData[model].lower, upper =
-					tr->partitionData[model].upper;
+			int lower = tr->partitionData[model].lower, upper = tr->partitionData[model].upper;
 
 			int accWgt = 0;
 
@@ -1493,8 +1441,7 @@ void updatePerSiteRates(tree *tr) {
 			for (i = lower, accRat = 0.0; i < upper; i++) {
 				int w = tr->cdta->aliaswgt[i];
 
-				double rate =
-						tr->partitionData[model].perSiteRates[tr->cdta->rateCategory[i]];
+				double rate = tr->partitionData[model].perSiteRates[tr->cdta->rateCategory[i]];
 
 				accRat += w * rate;
 			}
@@ -1507,16 +1454,12 @@ void updatePerSiteRates(tree *tr) {
 		}
 #endif   
 		for (model = 0; model < tr->NumberOfModels; model++) {
-			int counter = 0, lower = tr->partitionData[model].lower, upper =
-					tr->partitionData[model].upper;
+			int counter = 0, lower = tr->partitionData[model].lower, upper = tr->partitionData[model].upper;
 
 			for (i = lower; i < upper; i++) {
 				double w = ((double) tr->cdta->aliaswgt[i]);
 
-				double
-						wtemp,
-						temp =
-								tr->partitionData[model].perSiteRates[tr->cdta->rateCategory[i]];
+				double wtemp, temp = tr->partitionData[model].perSiteRates[tr->cdta->rateCategory[i]];
 
 				wtemp = temp * w;
 
@@ -1585,8 +1528,7 @@ void updatePerSiteRates(tree *tr) {
 		}
 
 		for (model = 0; model < tr->NumberOfModels; model++) {
-			int lower = tr->partitionData[model].lower, upper =
-					tr->partitionData[model].upper, counter;
+			int lower = tr->partitionData[model].lower, upper = tr->partitionData[model].upper, counter;
 
 			for (i = 0; i < tr->NumberOfCategories; i++)
 				tr->partitionData[model].perSiteRates[i] = tr->cdta->patrat[i];
@@ -1622,8 +1564,7 @@ static void optimizeRateCategories(tree *tr, int _maxCategories) {
 		int maxCategories = _maxCategories;
 		double initialLH = tr->likelihood;
 		double *oldRat = (double *) malloc(sizeof(double) * tr->cdta->endsite);
-		double *ratStored = (double *) malloc(
-				sizeof(double) * tr->cdta->endsite);
+		double *ratStored = (double *) malloc(sizeof(double) * tr->cdta->endsite);
 		double *lhs = (double *) malloc(sizeof(double) * tr->cdta->endsite);
 		int *oldCategory = (int *) malloc(sizeof(int) * tr->cdta->endsite);
 		int oldNumber;
@@ -1683,8 +1624,7 @@ static void optimizeRateCategories(tree *tr, int _maxCategories) {
 #endif
 
 		{
-			rateCategorize *rc = (rateCategorize *) malloc(
-					sizeof(rateCategorize) * tr->cdta->endsite);
+			rateCategorize *rc = (rateCategorize *) malloc(sizeof(rateCategorize) * tr->cdta->endsite);
 			int where;
 			int found = 0;
 			for (i = 0; i < tr->cdta->endsite; i++) {
@@ -1701,8 +1641,7 @@ static void optimizeRateCategories(tree *tr, int _maxCategories) {
 				temp = tr->cdta->patrat[i];
 				found = 0;
 				for (k = 0; k < where; k++) {
-					if (temp == rc[k].rate
-							|| (fabs(temp - rc[k].rate) < 0.001)) {
+					if (temp == rc[k].rate || (fabs(temp - rc[k].rate) < 0.001)) {
 						found = 1;
 						rc[k].accumulatedSiteLikelihood += lhs[i];
 						break;
@@ -1838,9 +1777,7 @@ static void printAAmatrix(tree *tr, double epsilon) {
 
 				fclose(gtrFile);
 
-				printBothOpen(
-						"\nPrinted intermediate AA substitution matrix to file %s\n\n",
-						gtrFileName);
+				printBothOpen("\nPrinted intermediate AA substitution matrix to file %s\n\n", gtrFileName);
 
 				break;
 			}
@@ -1858,11 +1795,9 @@ static void autoProtein(tree *tr, analdef *adef) {
 			countAutos++;
 
 	if (countAutos > 0) {
-		int numProteinModels = AUTO, *bestIndex = (int*) malloc(
-				sizeof(int) * tr->NumberOfModels);
+		int numProteinModels = AUTO, *bestIndex = (int*) malloc(sizeof(int) * tr->NumberOfModels);
 
-		double *bestScores = (double*) malloc(
-				sizeof(double) * tr->NumberOfModels);
+		double *bestScores = (double*) malloc(sizeof(double) * tr->NumberOfModels);
 
 		/*printf("Entry: %f\n", tr->likelihood);*/
 
@@ -1910,11 +1845,8 @@ static void autoProtein(tree *tr, analdef *adef) {
 			{
 				tr->partitionData[model].autoProtModels = bestIndex[model];
 				initReversibleGTR(tr, adef, model);
-				printBothOpen(
-						"Partition: %d best-scoring AA model: %s likelihood %f\n",
-						model,
-						protModels[tr->partitionData[model].autoProtModels],
-						bestScores[model]);
+				printBothOpen("Partition: %d best-scoring AA model: %s likelihood %f\n", model,
+						protModels[tr->partitionData[model].autoProtModels], bestScores[model]);
 			}
 		}
 
@@ -1938,8 +1870,7 @@ static void autoProtein(tree *tr, analdef *adef) {
 	}
 }
 
-void modOpt(tree *tr, analdef *adef, boolean resetModel,
-		double likelihoodEpsilon, boolean testGappedImplementation) {
+void modOpt(tree *tr, analdef *adef, boolean resetModel, double likelihoodEpsilon, boolean testGappedImplementation) {
 	int i, model, catOpt = 0;
 	double currentLikelihood, modelEpsilon = 0.0001;
 	linkageList *alphaList;
@@ -2003,7 +1934,6 @@ long randomSeed = 12345;
 
 /* function to simply assign protein substitution models randomly 
  to different partitions */
-
 static void assignProteinModels(tree *tr, analdef *adef) {
 	int model;
 
@@ -2050,19 +1980,21 @@ static void testProteinModels(tree *tr, analdef *adef, int proteinModel) {
 }
 
 void modOptJoerg(tree *tr, analdef *adef) {
-	int modelsTested = 0, i, model, catOpt = 0, tmp, combinations, increased = 0,
+	int modelsTested = 0, i, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 1,
 	// NumberOfModels is number of partitions, thus this reserves memory for the LH of each partition
 	*unlinked = (int *) malloc(sizeof(int) * tr->NumberOfModels),
 	*bestModels = (int *) malloc(sizeof(int) * tr->NumberOfModels);
 
-	double *bestLikelihoods = (double*) malloc(
-			sizeof(double) * tr->NumberOfModels), bestLikelihood = unlikely,
+//	double *partitionBest = (double*) malloc(sizeof(double) * tr->NumberOfModels);
+
+	double *bestLikelihoods = (double*) malloc(sizeof(double) * tr->NumberOfModels),
+			bestLikelihood = unlikely,
 
 	/* important parameter: this is the number of log likelihoo units at which we will
 	 stop trying to further optimize the model parameters */
 
 	likelihoodEpsilon = 5.0, currentLikelihood, modelEpsilon = 0.0001,
-	numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS - 2);
+	numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS);
 
 	linkageList *alphaList;
 
@@ -2085,9 +2017,9 @@ void modOptJoerg(tree *tr, analdef *adef) {
 	tr->start = tr->nodep[1];
 
 	/* start testing protein model assignments */
-	printf("number of partitions: %d, available AA models: %d, resulting combinations: %d\n", tr->NumberOfModels, (int)numberOfAvailableProteinModels, combinations);
+	printf("number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, (int)numberOfAvailableProteinModels, combinations);
 	for(i = 0; i < combinations; i++) {
-		increased = 0;
+		increased = 0; allIncreased = 1;
 		/* we loop over different assignments of models to partitions */
 		/* initially let's just set the branch lengths to their default values */
 
@@ -2189,7 +2121,7 @@ void modOptJoerg(tree *tr, analdef *adef) {
 		/* check convergence criterion */
 		while (fabs(currentLikelihood - tr->likelihood) > likelihoodEpsilon);
 
-//		what exactly is multiBranch for? does it only specify if partitions shall be considered as linked over time or not???
+//		multiBranch only specifies if partitions shall be considered as linked over time
 		if (!tr->multiBranch) {
 			/* once the loop for the current model to partition assignment has converged
 			 print out some stuff. Here the loop will be endless, i.e., we will
@@ -2199,7 +2131,12 @@ void modOptJoerg(tree *tr, analdef *adef) {
 			if (tr->likelihood > bestLikelihood) {
 				bestLikelihood = tr->likelihood;
 				increased = 1;
-			}
+				for (model = 0; model < tr->NumberOfModels; model++) {
+					if (tr->perPartitionLH[model] > bestLikelihoods[model]) {
+						bestLikelihoods[model] = tr->perPartitionLH[model];
+					} else allIncreased = 0;
+				}
+			} else allIncreased = 0;
 		} else {
 			/* print out some stuff in the case branch lengths are estimated independently
 			 for each partition */
@@ -2213,7 +2150,7 @@ void modOptJoerg(tree *tr, analdef *adef) {
 			}
 		}
 
-		if(increased) myPrintTree(tr);
+		myPrintTree(tr, increased, i, allIncreased);
 
 		/* if we have tested all available models for partition-idnependent branch length estimates,
 		 just jump out of the endless while-loop */
@@ -2232,7 +2169,7 @@ void modOptJoerg(tree *tr, analdef *adef) {
 		printf("\n\nAssignment: \n");
 
 		for (model = 0; model < tr->NumberOfModels; model++)
-			printf("%s\t", protModels[bestModels[model]]);
+		printf("%s\t", protModels[bestModels[model]]);
 
 		printf("\n");
 	}

@@ -79,16 +79,16 @@
 
 
 /***************** UTILITY FUNCTIONS **************************/
-void myPrintTree(tree *tr) {
+void myPrintTree(tree *tr, int increased, int run, int allIncreased) {
 	int model = 0;
+	printf("%-5d", run);
+	for (model = 0; model < tr->NumberOfModels; model++)
+		printf("%-10s%-17f", protModels[tr->partitionData[model].protModels], tr->perPartitionLH[model]);
 
-	printf("Increased Lieklihood: %f\n", tr->likelihood);
-	printf("Assignment: \n");
-	for (model = 0; model < tr->NumberOfModels; model++)
-		printf("%s\t\t\t", protModels[tr->partitionData[model].protModels]);
-	printf("\n");
-	for (model = 0; model < tr->NumberOfModels; model++)
-		printf("%f\t\t", tr->perPartitionLH[model]);
+	if(increased) printf("+LH\t%-20f", tr->likelihood);
+	else printf("-LH\t%-20f", tr->likelihood);
+
+	if(allIncreased) printf("\t*");
 	printf("\n");
 }
 
@@ -110,7 +110,6 @@ void myBinFread(void *ptr, size_t size, size_t nmemb)
 
   assert(bytes_read == nmemb);
 }
-
 
 void *malloc_aligned(size_t size) 
 {

@@ -56,7 +56,7 @@
 		<buildTargets>
 			<target name="raxmlLight" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments>-f Makefile.JOERG.gcc</buildArguments>
+				<buildArguments>-f Makefile.JOERG.gcc -j</buildArguments>
 				<buildTarget>raxmlLight</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>false</useDefaultCommand>
@@ -64,7 +64,7 @@
 			</target>
 			<target name="raxmlLight-PTHREADS" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments>-f Makefile.JOERG.PTHREADS.gcc</buildArguments>
+				<buildArguments>-f Makefile.JOERG.PTHREADS.gcc -j</buildArguments>
 				<buildTarget>raxmlLight-PTHREADS</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>false</useDefaultCommand>
@@ -72,7 +72,6 @@
 			</target>
 			<target name="clean" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments/>
 				<buildTarget>clean</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
