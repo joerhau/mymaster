@@ -1,0 +1,42 @@
+
+
+This is RAxML-Light version 1.0.5 released by Alexandros Stamatakis in June 2011.
+
+
+Alignment has 209 distinct alignment patterns
+
+Proportion of gaps and completely undetermined characters in this alignment: 47.54%
+
+RAxML rapid hill-climbing mode
+
+Using 2 distinct models/data partitions with joint branch length optimization
+
+
+All free model parameters will be estimated by RAxML
+GAMMA model of rate heteorgeneity, ML estimate of alpha-parameter
+
+Partition: 0
+Alignment Patterns: 140
+Name: RAxML_result.692_0.aln-gb_gene226.28190-28338
+DataType: AA
+Substitution Matrix: WAG
+Empirical Base Frequencies:
+
+
+
+Partition: 1
+Alignment Patterns: 69
+Name: RAxML_result.765_0.aln-gb_gene159.19843-19915
+DataType: AA
+Substitution Matrix: WAG
+Empirical Base Frequencies:
+
+
+
+
+RAxML was called as follows:
+
+raxmlLight-PTHREADS -T 4 -t RAxML_parsimonyTree.Q1 -s test.phylip -m PROTGAMMAWAG -q test.part -n Q2 
+
+
+Memory Saving Option: DISABLED
