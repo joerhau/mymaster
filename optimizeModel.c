@@ -83,9 +83,7 @@ static void setRateModel(tree *tr, int model, double rate, int position) {
 		int i, k = tr->partitionData[model].symmetryVector[position];
 
 		assert(
-				tr->partitionData[model].dataType == SECONDARY_DATA
-						|| tr->partitionData[model].dataType == SECONDARY_DATA_6
-						|| tr->partitionData[model].dataType == SECONDARY_DATA_7);
+				tr->partitionData[model].dataType == SECONDARY_DATA || tr->partitionData[model].dataType == SECONDARY_DATA_6 || tr->partitionData[model].dataType == SECONDARY_DATA_7);
 
 		if (k == -1)
 			tr->partitionData[model].substRates[position] = 0.0;
@@ -157,8 +155,7 @@ static linkageList* initLinkageListGTR(tree *tr) {
 	}
 
 	assert(
-			(countGTR > 0 && countOtherModel == 0) || (countGTR == 0 && countOtherModel > 0)
-					|| (countGTR == 0 && countOtherModel == 0));
+			(countGTR > 0 && countOtherModel == 0) || (countGTR == 0 && countOtherModel > 0) || (countGTR == 0 && countOtherModel == 0));
 
 	if (countGTR == 0) {
 		for (i = 0; i < tr->NumberOfModels; i++)
@@ -240,7 +237,7 @@ static void evaluateChange(tree *tr, int rateNumber, double *value, double *resu
 			masterBarrier(THREAD_OPT_RATE, tr);
 			if (tr->NumberOfModels == 1) {
 				for (i = 0, result = 0.0; i < NumberOfThreads; i++)
-				result += reductionBuffer[i];
+					result += reductionBuffer[i];
 				tr->perPartitionLH[0] = result;
 			} else {
 				int j;
@@ -250,8 +247,7 @@ static void evaluateChange(tree *tr, int rateNumber, double *value, double *resu
 
 				for (j = 0; j < tr->NumberOfModels; j++) {
 					for (i = 0, partitionResult = 0.0; i < NumberOfThreads; i++)
-					partitionResult += reductionBuffer[i
-					* tr->NumberOfModels + j];
+						partitionResult += reductionBuffer[i * tr->NumberOfModels + j];
 					result += partitionResult;
 					tr->perPartitionLH[j] = partitionResult;
 				}
@@ -307,7 +303,7 @@ static void evaluateChange(tree *tr, int rateNumber, double *value, double *resu
 			masterBarrier(THREAD_OPT_ALPHA, tr);
 			if (tr->NumberOfModels == 1) {
 				for (i = 0, result = 0.0; i < NumberOfThreads; i++)
-				result += reductionBuffer[i];
+					result += reductionBuffer[i];
 				tr->perPartitionLH[0] = result;
 			} else {
 				int j;
@@ -317,8 +313,7 @@ static void evaluateChange(tree *tr, int rateNumber, double *value, double *resu
 
 				for (j = 0; j < tr->NumberOfModels; j++) {
 					for (i = 0, partitionResult = 0.0; i < NumberOfThreads; i++)
-					partitionResult += reductionBuffer[i
-					* tr->NumberOfModels + j];
+						partitionResult += reductionBuffer[i * tr->NumberOfModels + j];
 					result += partitionResult;
 					tr->perPartitionLH[j] = partitionResult;
 				}
@@ -849,8 +844,7 @@ static void optAlpha(tree *tr, double modelEpsilon, linkageList *ll) {
 		for (k = 0; k < ll->ld[i].partitions; k++) {
 			startLH[i] += tr->perPartitionLH[ll->ld[i].partitionList[k]];
 			assert(
-					tr->partitionData[ll->ld[i].partitionList[0]].alpha
-							== tr->partitionData[ll->ld[i].partitionList[k]].alpha);
+					tr->partitionData[ll->ld[i].partitionList[0]].alpha == tr->partitionData[ll->ld[i].partitionList[k]].alpha);
 		}
 	}
 
@@ -877,7 +871,7 @@ static void optAlpha(tree *tr, double modelEpsilon, linkageList *ll) {
 
 #ifdef _USE_PTHREADS
 	if (revertModel > 0)
-	masterBarrier(THREAD_COPY_ALPHA, tr);
+		masterBarrier(THREAD_COPY_ALPHA, tr);
 #endif
 
 #ifdef _FINE_GRAIN_MPI
@@ -1004,7 +998,7 @@ static void optRates(tree *tr, analdef *adef, double modelEpsilon, linkageList *
 
 #ifdef _USE_PTHREADS      
 		if (revertModel > 0)
-		masterBarrier(THREAD_COPY_RATES, tr);
+			masterBarrier(THREAD_COPY_RATES, tr);
 #endif
 #ifdef _FINE_GRAIN_MPI
 		if(revertModel > 0)
@@ -1254,25 +1248,21 @@ static void categorize(tree *tr, rateCategorize *rc) {
 
 #if (defined(_USE_PTHREADS) || defined(_FINE_GRAIN_MPI))
 
-void optRateCatPthreads(tree *tr, double lower_spacing, double upper_spacing,
-		double *lhs, int n, int tid) {
+void optRateCatPthreads(tree *tr, double lower_spacing, double upper_spacing, double *lhs, int n, int tid) {
 	int model, localIndex, i;
 
 	for (model = 0; model < tr->NumberOfModels; model++) {
-		for (i = tr->partitionData[model].lower, localIndex = 0;
-				i < tr->partitionData[model].upper; i++) {
+		for (i = tr->partitionData[model].lower, localIndex = 0; i < tr->partitionData[model].upper; i++) {
 			if (i % n == tid) {
 
-				double initialRate, initialLikelihood, leftLH, rightLH,
-				leftRate, rightRate, v;
+				double initialRate, initialLikelihood, leftLH, rightLH, leftRate, rightRate, v;
 				const double epsilon = 0.00001;
 				int k;
 
 				tr->cdta->patrat[i] = tr->cdta->patratStored[i];
 				initialRate = tr->cdta->patrat[i];
 
-				initialLikelihood = evaluatePartialGeneric(tr, localIndex,
-						initialRate, model); /* i is real i ??? */
+				initialLikelihood = evaluatePartialGeneric(tr, localIndex, initialRate, model); /* i is real i ??? */
 
 				leftLH = rightLH = initialLikelihood;
 				leftRate = rightRate = initialRate;
@@ -1280,13 +1270,12 @@ void optRateCatPthreads(tree *tr, double lower_spacing, double upper_spacing,
 				k = 1;
 
 				while ((initialRate - k * lower_spacing > 0.0001)
-						&& ((v = evaluatePartialGeneric(tr, localIndex,
-												initialRate - k * lower_spacing, model))
+						&& ((v = evaluatePartialGeneric(tr, localIndex, initialRate - k * lower_spacing, model))
 								> leftLH) && (fabs(leftLH - v) > epsilon)) {
 #ifndef WIN32
 					if (isnan(v)
 					)
-					assert(0);
+						assert(0);
 #endif
 
 					leftLH = v;
@@ -1296,13 +1285,12 @@ void optRateCatPthreads(tree *tr, double lower_spacing, double upper_spacing,
 
 				k = 1;
 
-				while (((v = evaluatePartialGeneric(tr, localIndex,
-												initialRate + k * upper_spacing, model)) > rightLH)
+				while (((v = evaluatePartialGeneric(tr, localIndex, initialRate + k * upper_spacing, model)) > rightLH)
 						&& (fabs(rightLH - v) > epsilon)) {
 #ifndef WIN32
 					if (isnan(v)
 					)
-					assert(0);
+						assert(0);
 #endif     
 					rightLH = v;
 					rightRate = initialRate + k * upper_spacing;
@@ -1318,7 +1306,7 @@ void optRateCatPthreads(tree *tr, double lower_spacing, double upper_spacing,
 						lhs[i] = leftLH;
 					}
 				} else
-				lhs[i] = initialLikelihood;
+					lhs[i] = initialLikelihood;
 
 				tr->cdta->patratStored[i] = tr->cdta->patrat[i];
 
@@ -1355,7 +1343,7 @@ static void optRateCatModel(tree *tr, int model, double lower_spacing, double up
 				&& (fabs(leftLH - v) > epsilon)) {
 #ifndef WIN32
 			if (isnan(v))
-				assert(0);
+			assert(0);
 #endif
 
 			leftLH = v;
@@ -1369,7 +1357,7 @@ static void optRateCatModel(tree *tr, int model, double lower_spacing, double up
 				&& (fabs(rightLH - v) > epsilon)) {
 #ifndef WIN32
 			if (isnan(v))
-				assert(0);
+			assert(0);
 #endif     
 			rightLH = v;
 			rightRate = initialRate + k * upper_spacing;
@@ -1385,7 +1373,7 @@ static void optRateCatModel(tree *tr, int model, double lower_spacing, double up
 				lhs[i] = leftLH;
 			}
 		} else
-			lhs[i] = initialLikelihood;
+		lhs[i] = initialLikelihood;
 
 		tr->cdta->patratStored[i] = tr->cdta->patrat[i];
 	}
@@ -1618,7 +1606,7 @@ static void optimizeRateCategories(tree *tr, int _maxCategories) {
 		{
 			int m;
 			for (m = 0; m < tr->NumberOfModels; m++)
-				optRateCatModel(tr, m, lower_spacing, upper_spacing, lhs);
+			optRateCatModel(tr, m, lower_spacing, upper_spacing, lhs);
 		}
 #endif
 #endif
@@ -1950,8 +1938,7 @@ static void assignProteinModels(tree *tr, analdef *adef) {
 //  NumberOfModels actually is the number of partitions the input dataset has
 	for (model = 0; model < tr->NumberOfModels; model++) {
 		/* and initialize the protein susbtitution model for this partition randomly */
-		tr->partitionData[model].protModels = (int) (randum(&randomSeed)
-				* numberOfAvailableProteinModels);
+		tr->partitionData[model].protModels = (int) (randum(&randomSeed) * numberOfAvailableProteinModels);
 
 		/* here we then compute a eigenvector eigenvalue decomposition for the selected substitrution model */
 		/* this needs to be done every time we change the protein substitution model for a partition */
@@ -1979,26 +1966,191 @@ static void testProteinModels(tree *tr, analdef *adef, int proteinModel) {
 	}
 }
 
+
+void optimize(tree *tr, linkageList *alphaList) {
+	double likelihoodEpsilon = 5.0, currentLikelihood, modelEpsilon = 0.0001;
+	/* loop and apply numerical optimization routines
+	 for branch lengths and alpha until the difference
+	 in log likelihood improvement gets smaller than
+	 likelihoodEpsilon log likelihood units.
+	 Note that, the actual pergormance run time depends heavily
+	 on likelihoodEpsilon since this influences the number of inner do while lopp iterations
+	 */
+	do {
+		/* remember the current likelihood */
+		currentLikelihood = tr->likelihood;
+
+		/* entirely re-traverse the tree using Felsensteins pruning algorithm */
+		onlyInitrav(tr, tr->start);
+
+		/* optimize the branch lengths a bit */
+		treeEvaluate(tr, 0.0625);
+
+		switch (tr->rateHetModel) {
+		case GAMMA:
+			/* optimize the alpha shape parameter for each partition individually and independently
+			 using brent's numerical optimization algorithm. For details on the general algorithm
+			 see the book: Numerical recipees in C */
+
+			optAlpha(tr, modelEpsilon, alphaList);
+			/* re-traverse the entire tree using Felsenstein's algorithm */
+
+			onlyInitrav(tr, tr->start);
+
+			/* optimize branch lengths a bit more */
+			treeEvaluate(tr, 0.1);
+			break;
+		default:
+			assert(0);
+			break;
+		}
+	} while (fabs(currentLikelihood - tr->likelihood) > likelihoodEpsilon);
+}
+
+void init(tree *tr) {
+	int model;
+	for (model = 0; model < tr->NumberOfModels; model++) {
+		/* set the alpha shape parameter to its default value */
+		tr->partitionData[model].alpha = 1.0;
+
+		/* initialize the discretization of the GAMMA function --- we use 4 discrete rates
+		 to approximate the integral over GAMMA we actually want to compute */
+		makeGammaCats(tr->partitionData[model].alpha, tr->partitionData[model].gammaRates, 4);
+
+		/* use empirical protein frequencies in contrast to the pre-defined ones that come with the
+		 models. The empirical freqs typically yield better likelihood scores, so let's not worry about this*/
+		tr->partitionData[model].protFreqs = 1;
+	}
+}
+
+
+// exhaustively tests all possible model assignments
+void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, linkageList *alphaList) {
+
+	int i, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 0;
+
+	double bestLikelihood = unlikely, numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS);
+		combinations = (int) pow(numberOfAvailableProteinModels, tr->NumberOfModels);
+
+	printf("number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels, combinations);
+
+	for (i = 0; i < combinations; i++) {
+		increased = 0;
+		allIncreased = 1;
+		/* we loop over different assignments of models to partitions */
+		/* initially let's just set the branch lengths to their default values */
+		resetBranches(tr);
+		init(tr);
+
+		// generating permutations one after an other
+		for (model = 0; model < tr->NumberOfModels; model++) {
+			/* and initialize the protein substitution model for this partition randomly */
+			tr->partitionData[model].protModels = (int) (fmod(i / pow(numberOfAvailableProteinModels, model),
+					numberOfAvailableProteinModels));
+
+			/* here we then compute a eigenvector eigenvalue decomposition for the selected substitrution model */
+			/* this needs to be done every time we change the protein substitution model for a partition */
+			initReversibleGTR(tr, adef, model);
+		}
+
+		/* some parallel stuff, we need to make sure to broadcast
+		 the new model to partition assignment from the master
+		 to all worker processes, nothing to worry about */
+#ifdef _FINE_GRAIN_MPI
+		masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);
+#endif
+
+#ifdef _USE_PTHREADS
+		masterBarrier(THREAD_COPY_INIT_MODEL, tr);
+#endif
+
+		/* now we just compute the likelihood of the tree for the new model
+		 assignment using the default branch length and alpha parameter values */
+		evaluateGenericInitrav(tr, tr->start);
+		optimize(tr, alphaList);
+
+//		likelihood has increased with current assignment, do some stuff to remember
+		if (tr->likelihood > bestLikelihood) {
+			bestLikelihood = tr->likelihood;
+			increased = 1;
+			for (model = 0; model < tr->NumberOfModels; model++) {
+				if (tr->perPartitionLH[model] > bestLikelihoods[model])
+					bestLikelihoods[model] = tr->perPartitionLH[model];
+				else allIncreased = 0;
+			}
+		} else allIncreased = 0;
+
+		myPrintTree(tr, increased, i, allIncreased);
+	}
+
+}
+
+void unlinkedTest(tree *tr, analdef *adef, int *bestModels, double *bestLikelihoods, linkageList *alphaList) {
+	int i, model;
+
+	if(tr->multiBranch) printf("multiBranch is true ...\n");
+	else printf("multiBranch is false ....\n");
+
+	for (i = 0; i < AUTO; i++) {
+		/* we loop over different assignments of models to partitions */
+		/* initially let's just set the branch lengths to their default values */
+		resetBranches(tr);
+		init(tr);
+
+		/*
+		 just a stupid loop for testing all available protein models in RAxML
+		 when branch lengths are unlinked, i.e., estimated separately for each
+		 partition. In this case we don't have the hard optimization problem
+		 as in the case when branch lengths are linked across partitions
+		 This can serve as a means for obtaining an initial assignment of
+		 prot. subst. models to partitions., something like and initial seed. */
+		for (model = 0; model < tr->NumberOfModels; model++) {
+			tr->partitionData[model].protModels = i;
+			initReversibleGTR(tr, adef, model);
+		}
+
+		/* some parallel stuff, we need to make sure to broadcast
+		 the new model to partition assignment from the master
+		 to all worker processes, nothing to worry about */
+#ifdef _FINE_GRAIN_MPI
+		masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);
+#endif
+
+#ifdef _USE_PTHREADS
+		masterBarrier(THREAD_COPY_INIT_MODEL, tr);
+#endif
+
+		/* now we just compute the likelihood of the tree for the new model
+		 assignment using the default branch length and alpha parameter values */
+		evaluateGenericInitrav(tr, tr->start);
+		optimize(tr, alphaList);
+
+		/* print some stuff */
+			for (model = 0; model < tr->NumberOfModels; model++) {
+				printf("%-10s%17f", protModels[i], tr->perPartitionLH[model]);
+				if (tr->perPartitionLH[model] > bestLikelihoods[model]) {
+					printf("*\t");
+					bestModels[model] = i;
+					bestLikelihoods[model] = tr->perPartitionLH[model];
+				} else
+					printf(" \t");
+			}
+			printf("LH %-20f\n",tr->likelihood);
+	}
+}
+
+
 void modOptJoerg(tree *tr, analdef *adef) {
 	int modelsTested = 0, i, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 1,
 	// NumberOfModels is number of partitions, thus this reserves memory for the LH of each partition
-	*unlinked = (int *) malloc(sizeof(int) * tr->NumberOfModels),
-	*bestModels = (int *) malloc(sizeof(int) * tr->NumberOfModels);
+			*unlinked = (int *) malloc(sizeof(int) * tr->NumberOfModels), *bestModels = (int *) malloc(
+					sizeof(int) * tr->NumberOfModels);
 
-//	double *partitionBest = (double*) malloc(sizeof(double) * tr->NumberOfModels);
+	double *bestLikelihoods = (double*) malloc(sizeof(double) * tr->NumberOfModels);
 
-	double *bestLikelihoods = (double*) malloc(sizeof(double) * tr->NumberOfModels),
-			bestLikelihood = unlikely,
-
-	/* important parameter: this is the number of log likelihoo units at which we will
-	 stop trying to further optimize the model parameters */
-
-	likelihoodEpsilon = 5.0, currentLikelihood, modelEpsilon = 0.0001,
-	numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS);
 
 	linkageList *alphaList;
 
-	combinations = (int) pow(numberOfAvailableProteinModels, tr->NumberOfModels);
 
 	for (i = 0; i < tr->NumberOfModels; i++) {
 		/* this unlinked thing here just tells RAxML that the other relevant model
@@ -2016,171 +2168,22 @@ void modOptJoerg(tree *tr, analdef *adef) {
 	 the recursion of the Felsenstein pruning algorithm */
 	tr->start = tr->nodep[1];
 
+//	display model order
+	printf("Order of Models: ");
+	for (i = 0; i < NUM_PROT_MODELS - 2; i++)
+		printf("%s ", protModels[i]);
+	printf("\n\n");
+
 	/* start testing protein model assignments */
-	printf("number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, (int)numberOfAvailableProteinModels, combinations);
-	for(i = 0; i < combinations; i++) {
-		increased = 0; allIncreased = 1;
-		/* we loop over different assignments of models to partitions */
-		/* initially let's just set the branch lengths to their default values */
-
-		resetBranches(tr);
-
-		for (model = 0; model < tr->NumberOfModels; model++) {
-			/* set the alpha shape parameter to its default value */
-			tr->partitionData[model].alpha = 1.0;
-
-			/* initialize the discretization of the GAMMA function --- we use 4 discrete rates
-			 to approximate the integral over GAMMA we actually want to compute */
-
-			makeGammaCats(tr->partitionData[model].alpha, tr->partitionData[model].gammaRates, 4);
-
-			/* use empirical protein frequencies in contrast to the pre-defined ones that come with the
-			 models. The empirical freqs typically yield better likelihood scores, so let's not worry about this
-			 */
-			tr->partitionData[model].protFreqs = 1;
-		}
-
-		/* if we are doing independent per-partition branch length estimates
-		 we just loop once over all available models to determine the
-		 best model for each partition of the data
-		 */
-
-		if (tr->multiBranch) {
-			testProteinModels(tr, adef, modelsTested);
-			printBothOpen("\nAssesing model %s\n", protModels[modelsTested]);
-			modelsTested++;
-		} else {
-			// generating permutations one after an other
-			for (model = 0; model < tr->NumberOfModels; model++) {
-				/* and initialize the protein substitution model for this partition randomly */
-				tr->partitionData[model].protModels = (int) (fmod(i / pow(numberOfAvailableProteinModels, model), numberOfAvailableProteinModels));
-
-				/* here we then compute a eigenvector eigenvalue decomposition for the selected substitrution model */
-				/* this needs to be done every time we change the protein substitution model for a partition */
-				initReversibleGTR(tr, adef, model);
-			}
-
-			/* otherwise we just assign models randomly to partitions */
-//			assignProteinModels(tr, adef);
-		}
-
-		/* some parallel stuff, we need to make sure to broadcast
-		 the new model to partition assignment from the master
-		 to all worker processes, nothing to worry about
-		 */
-
-#ifdef _FINE_GRAIN_MPI
-		masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);
-#endif
-
-#ifdef _USE_PTHREADS
-		masterBarrier(THREAD_COPY_INIT_MODEL, tr);
-#endif
-
-		/* now we just compute the likelihood of the tree for the new model
-		 assignment using the default branch length and alpha parameter values
-		 */
-
-		evaluateGenericInitrav(tr, tr->start);
-
-		/* loop and apply numerical optimization routines
-		 for branch lengths and alpha until the difference
-		 in log likelihood improvement gets smaller than
-		 likelihoodEpsilon log likelihood units.
-		 Note that, the actual pergormance run time depends heavily
-		 on likelihoodEpsilon since this influences the number of inner do while lopp iterations
-		 */
-		do {
-			/* remember the current likelihood */
-			currentLikelihood = tr->likelihood;
-
-			/* entirely re-traverse the tree using Felsensteins pruning algorithm */
-			onlyInitrav(tr, tr->start);
-
-			/* optimize the branch lengths a bit */
-			treeEvaluate(tr, 0.0625);
-
-			switch (tr->rateHetModel) {
-				case GAMMA:
-				/* optimize the alpha shape parameter for each partition individually and independently
-				 using brent's numerical optimization algorithm. For details on the general algorithm
-				 see the book: Numerical recipees in C */
-
-				optAlpha(tr, modelEpsilon, alphaList);
-				/* re-traverse the entire tree using Felsenstein's algorithm */
-
-				onlyInitrav(tr, tr->start);
-
-				/* optimize branch lengths a bit more */
-				treeEvaluate(tr, 0.1);
-				break;
-				default:
-				assert(0);
-			}
-		}
-		/* check convergence criterion */
-		while (fabs(currentLikelihood - tr->likelihood) > likelihoodEpsilon);
-
-//		multiBranch only specifies if partitions shall be considered as linked over time
-		if (!tr->multiBranch) {
-			/* once the loop for the current model to partition assignment has converged
-			 print out some stuff. Here the loop will be endless, i.e., we will
-			 assess random model assignments until somebody kills the
-			 job :-) */
-
-			if (tr->likelihood > bestLikelihood) {
-				bestLikelihood = tr->likelihood;
-				increased = 1;
-				for (model = 0; model < tr->NumberOfModels; model++) {
-					if (tr->perPartitionLH[model] > bestLikelihoods[model]) {
-						bestLikelihoods[model] = tr->perPartitionLH[model];
-					} else allIncreased = 0;
-				}
-			} else allIncreased = 0;
-		} else {
-			/* print out some stuff in the case branch lengths are estimated independently
-			 for each partition */
-			for (model = 0; model < tr->NumberOfModels; model++) {
-				if (tr->perPartitionLH[model] > bestLikelihoods[model]) {
-					bestLikelihoods[model] = tr->perPartitionLH[model];
-					bestModels[model] = modelsTested - 1;
-					printf("multibranch is true right now ...\n");
-//					printf("Partition %d %s\n", model, protModels[bestModels[model]]);
-				}
-			}
-		}
-
-		myPrintTree(tr, increased, i, allIncreased);
-
-		/* if we have tested all available models for partition-idnependent branch length estimates,
-		 just jump out of the endless while-loop */
-
-//		if (modelsTested == AUTO)
-//		break;
-	}
-
-	/*
-	 print some stuff
-	 actually protModels as defined in globalVariables.h just maps the integers
-	 that represent protein substitution models back to their real names.
-	 */
-
-	if (tr->multiBranch) {
-		printf("\n\nAssignment: \n");
-
-		for (model = 0; model < tr->NumberOfModels; model++)
-		printf("%s\t", protModels[bestModels[model]]);
-
-		printf("\n");
-	}
-
-	/* good-bye */
+	if (tr->allCombinations)
+		linkedExhaustive(tr, adef, bestLikelihoods, alphaList);
+	else
+		unlinkedTest(tr, adef, bestModels, bestLikelihoods, alphaList);
 
 	free(unlinked);
 	freeLinkageList(alphaList);
 
 	/* just exit and we are done :-) */
-
 	exit(0);
 }
 

@@ -1,0 +1,60 @@
+Existing Infofile removed
+This is the RAxML Master Pthread
+
+This is RAxML Worker Pthread Number: 1
+
+This is RAxML Worker Pthread Number: 2
+
+This is RAxML Worker Pthread Number: 3
+
+
+This is RAxML-Light version 1.0.5 released by Alexandros Stamatakis in June 2011.
+
+
+Alignment has 369 distinct alignment patterns
+
+Proportion of gaps and completely undetermined characters in this alignment: 1.26%
+
+RAxML rapid hill-climbing mode
+
+Using 1 distinct models/data partitions with joint branch length optimization
+
+
+All free model parameters will be estimated by RAxML
+GAMMA model of rate heteorgeneity, ML estimate of alpha-parameter
+
+Partition: 0
+Alignment Patterns: 369
+Name: p1.1-500
+DataType: AA
+Substitution Matrix: WAG
+Fixed Base Frequencies:
+
+
+
+
+RAxML was called as follows:
+
+raxmlLight-PTHREADS -T 4 -t RAxML_parsimonyTree.START -s test_0.phylip -m PROTGAMMAWAG -q test_0.part -n Q3 
+
+
+Memory Saving Option: DISABLED
+multiBranch is true right now, assuming partitions are time independent
+-5053.295910*
+-5053.180102*
+-5021.220782*
+-5085.768206
+-5018.900906*
+-5016.811808*
+-5039.821514
+-5028.471846
+-5059.764461
+-5159.991808
+-5005.487572*
+-5118.999561
+-5063.731553
+-5066.420359
+-5076.302894
+-5182.918684
+-5020.951572
+-5071.516615

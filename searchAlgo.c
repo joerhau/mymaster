@@ -154,7 +154,8 @@ boolean smooth (tree *tr, nodeptr p)
 	  if (! smooth(tr, q->back))   return FALSE;
 	  q = q->next;
 	}	
-      
+
+//    [JH] check back...
       if(tr->multiBranch)		  
 	newviewGenericMasked(tr, p);	
       else
@@ -2118,6 +2119,24 @@ boolean treeEvaluate (tree *tr, double smoothFactor)       /* Evaluate a user tr
 
   evaluateGeneric(tr, tr->start);   
     
+
+  return TRUE;
+}
+
+
+boolean treeEvaluatePartition (tree *tr, double smoothFactor, int model)       /* Evaluate specific partition of user tree */
+{
+  boolean result;
+
+  if(tr->multiGene)
+    result = smoothTreeMulti(tr, (int)((double)smoothings * smoothFactor));
+  else
+    result = smoothTree(tr, (int)((double)smoothings * smoothFactor));
+
+  assert(result);
+
+  evaluateGeneric(tr, tr->start);
+
 
   return TRUE;
 }

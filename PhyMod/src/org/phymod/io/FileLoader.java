@@ -14,13 +14,15 @@ public class FileLoader {
 
 	public FileLoader(String location) {
 		this.file = new File(location);
-		this.open();
 	}
 
 	public void write(String content) {
 		try {
-			file.delete();
-			file.createNewFile();
+			if(file.exists()) {
+				file.delete();
+				file.createNewFile();
+			} else file.createNewFile(); 
+			
 		    BufferedWriter out = new BufferedWriter(new FileWriter(file));
 	    	out.write(content);
 			out.close();
@@ -32,6 +34,7 @@ public class FileLoader {
 
 	public void open() {
 		try {
+			if(!file.exists()) throw new Exception();
 		    BufferedReader in = new BufferedReader(new FileReader(file));
 		    l = new LinkedList<String>();
 		    String tmp = "";

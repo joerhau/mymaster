@@ -1207,7 +1207,97 @@ void makenewzIterative(tree *tr)
 
 
 
+/* TODO [JH] integrate and test*/
+void execCore(tree *tr, volatile double *_dlnLdlz, volatile double *_d2lnLdlz2)
+{
+  int model, branchIndex;
+  double lz;
 
+  _dlnLdlz[0]   = 0.0;
+  _d2lnLdlz2[0] = 0.0;
+
+  for(model = 0; model < tr->NumberOfModels; model++)
+    {
+       int
+	 width = tr->partitionData[model].width;
+
+      if(tr->executeModel[model] && width > 0)
+	{
+	  int
+	    states = tr->partitionData[model].states;
+
+	  double
+	    *sumBuffer       = (double*)NULL;
+
+
+	  volatile double
+	    dlnLdlz   = 0.0,
+	    d2lnLdlz2 = 0.0;
+
+
+	  sumBuffer = tr->partitionData[model].sumBuffer;
+
+
+	  if(tr->multiBranch)
+	    {
+	      branchIndex = model;
+	      lz = tr->coreLZ[model];
+	      _dlnLdlz[model]   = 0.0;
+	      _d2lnLdlz2[model] = 0.0;
+	    }
+	  else
+	    {
+	      branchIndex = 0;
+	      lz = tr->coreLZ[0];
+	    }
+
+	  switch(tr->partitionData[model].dataType)
+	    {
+
+	    case DNA_DATA:
+	      if(tr->rateHetModel == CAT)
+		coreGTRCAT(width, tr->NumberOfCategories, sumBuffer,
+			   &dlnLdlz, &d2lnLdlz2, tr->partitionData[model].wr, tr->partitionData[model].wr2,
+			   tr->partitionData[model].perSiteRates, tr->partitionData[model].EIGN,  tr->partitionData[model].rateCategory, lz);
+	      else
+		coreGTRGAMMA(width, sumBuffer,
+			     &dlnLdlz, &d2lnLdlz2, tr->partitionData[model].EIGN, tr->partitionData[model].gammaRates, lz,
+			     tr->partitionData[model].wgt);
+
+	      break;
+	    case AA_DATA:
+	      if(tr->rateHetModel == CAT)
+		coreGTRCATPROT(tr->partitionData[model].EIGN, lz, tr->NumberOfCategories,  tr->partitionData[model].perSiteRates,
+			       tr->partitionData[model].rateCategory, width,
+			       tr->partitionData[model].wr, tr->partitionData[model].wr2,
+			       &dlnLdlz, &d2lnLdlz2,
+			       sumBuffer);
+	      else
+		coreGTRGAMMAPROT(tr->partitionData[model].gammaRates, tr->partitionData[model].EIGN,
+				 sumBuffer, width, tr->partitionData[model].wgt,
+				 &dlnLdlz, &d2lnLdlz2, lz);
+	      break;
+	    default:
+	      assert(0);
+	    }
+
+	  _dlnLdlz[branchIndex]   = _dlnLdlz[branchIndex]   + dlnLdlz;
+	  _d2lnLdlz2[branchIndex] = _d2lnLdlz2[branchIndex] + d2lnLdlz2;
+	}
+      else
+	{
+	  if(width == 0 && tr->multiBranch)
+	    {
+	      _dlnLdlz[model]   = 0.0;
+	      _d2lnLdlz2[model] = 0.0;
+	    }
+	}
+    }
+
+}
+
+
+/*
 void execCore(tree *tr, volatile double *_dlnLdlz, volatile double *_d2lnLdlz2)
 {
   int model, branchIndex;
@@ -1284,7 +1374,7 @@ void execCore(tree *tr, volatile double *_dlnLdlz, volatile double *_d2lnLdlz2)
 	}
     }
 
-}
+}*/
 
 
 

@@ -508,7 +508,7 @@ void parsePartitions(analdef *adef, rawdata *rdta, tree *tr)
       assert(0);
        
     parsed:
-      i = i;
+		0;
     }
   
   fclose(f);

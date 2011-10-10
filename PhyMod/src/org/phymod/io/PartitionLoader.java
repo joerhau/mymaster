@@ -9,6 +9,7 @@ public class PartitionLoader extends FileLoader{
 	
 	public PartitionLoader(String location) {
 		super(location);
+		super.open();
 		nrPartitions = l.size();
 		parse();
 	}

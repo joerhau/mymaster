@@ -12,6 +12,7 @@ public class PhylipAlignment extends Alignment {
 	
 	public PhylipAlignment(String location, PartitionLoader part) {
 		alignmentL = new FileLoader(location);
+		alignmentL.open();
 		this.partitionL = part;
 		this.nrPartitions = part.nrPartitions;
 		loadSpecies();

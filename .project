@@ -3,6 +3,7 @@
 	<name>RAxML-Light</name>
 	<comment></comment>
 	<projects>
+		<project>PhyMod</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

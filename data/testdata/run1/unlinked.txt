@@ -1,0 +1,69 @@
+
+This is the RAxML Master Pthread
+
+This is RAxML Worker Pthread Number: 1
+
+This is RAxML Worker Pthread Number: 2
+
+This is RAxML Worker Pthread Number: 3
+
+
+This is RAxML-Light version 1.0.5 released by Alexandros Stamatakis in June 2011.
+
+
+Alignment has 765 distinct alignment patterns
+
+Proportion of gaps and completely undetermined characters in this alignment: 0.78%
+
+RAxML rapid hill-climbing mode
+
+Using 2 distinct models/data partitions with joint branch length optimization
+
+
+All free model parameters will be estimated by RAxML
+GAMMA model of rate heteorgeneity, ML estimate of alpha-parameter
+
+Partition: 0
+Alignment Patterns: 369
+Name: p1
+DataType: AA
+Substitution Matrix: WAG
+Fixed Base Frequencies:
+
+
+
+Partition: 1
+Alignment Patterns: 396
+Name: p2
+DataType: AA
+Substitution Matrix: JTT
+Fixed Base Frequencies:
+
+
+
+
+RAxML was called as follows:
+
+raxmlLight-PTHREADS -T 4 -t RAxML_parsimonyTree.START -s prot.phy -m PROTGAMMAWAG -q partitionFile.txt -l -n Q1 
+
+
+Memory Saving Option: DISABLED
+multiBranch is true right now, assuming partitions are time independent
+DAYHOFF        -5053.276928*	DAYHOFF        -6852.620764*	LH -11905.897692       
+DCMUT          -5053.160651*	DCMUT          -6853.095763 	LH -11906.256415       
+JTT            -5021.206645*	JTT            -6851.683825*	LH -11872.890471       
+MTREV          -5085.768206 	MTREV          -6940.397971 	LH -12026.166176       
+WAG            -5018.880869*	WAG            -6868.332358 	LH -11887.213227       
+RTREV          -5016.801545*	RTREV          -6848.826081*	LH -11865.627626       
+CPREV          -5039.796003 	CPREV          -6888.477016 	LH -11928.273020       
+VT             -5028.455748 	VT             -6905.050687 	LH -11933.506436       
+BLOSUM62       -5059.746865 	BLOSUM62       -6940.500700 	LH -12000.247565       
+MTMAM          -5159.991808 	MTMAM          -6987.443199 	LH -12147.435007       
+LG             -5005.477346*	LG             -6835.959233*	LH -11841.436579       
+MTART          -5118.999561 	MTART          -6909.706907 	LH -12028.706467       
+MTZOA          -5063.731553 	MTZOA          -6873.064613 	LH -11936.796166       
+PMB            -5066.401060 	PMB            -6944.770786 	LH -12011.171846       
+HIVB           -5076.302894 	HIVB           -6898.920781 	LH -11975.223675       
+HIVW           -5182.858610 	HIVW           -7076.218281 	LH -12259.076891       
+JTTDCMUT       -5020.937321 	JTTDCMUT       -6849.942870 	LH -11870.880192       
+FLU            -5071.516615 	FLU            -6860.665397 	LH -11932.182012       
