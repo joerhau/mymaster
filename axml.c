@@ -1136,6 +1136,7 @@ static void getinput(analdef *adef, rawdata *rdta, cruncheddata *cdta, tree *tr)
 		}
 	}
 
+	tr->multiBranch = 0;
 	tr->numBranches = 1;
 
 	if (!adef->readTaxaOnly) {
@@ -3037,7 +3038,7 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr) {
 
 	/********* tr inits end*************/
 
-	while (!bad_opt && ((c = mygetopt(argc, argv, "T:P:R:e:c:f:i:m:t:w:s:n:o:q:G:LlvhMSDB", &optind, &optarg)) != -1)) {
+	while (!bad_opt && ((c = mygetopt(argc, argv, "T:P:R:e:c:f:i:m:t:w:s:n:o:q:G:lvhMSDB", &optind, &optarg)) != -1)) {
 		switch (c) {
 		case 'G': {
 			char byteFileName[1024] = "";
@@ -3109,9 +3110,6 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr) {
 //		added by joerg
 		case 'l':
 			tr->allCombinations = 1;
-			break;
-		case 'L':
-			tr->multiBranch = 1;
 			break;
 
 		case 'c':
@@ -3362,7 +3360,7 @@ static void makeFileNames(void) {
 		if (infoFileExists) {
 //    	  [JH] remove existing infofile
 			remove(infoFileName);
-			printf("Existing Infofile removed");
+//			printf("Existing Infofile removed");
 //	  printf("RAxML output files with the run ID <%s> already exist \n", run_id);
 //	  printf("in directory %s ...... exiting\n", workdir);
 
@@ -4880,7 +4878,7 @@ static void *likelihoodThread(void *tData) {
 	pinToCore(tid);
 #endif
 
-	printf("\nThis is RAxML Worker Pthread Number: %d\n", tid);
+//	printf("\nThis is RAxML Worker Pthread Number: %d\n", tid);
 
 	while (1) {
 		while (myCycle == threadJob)
@@ -4904,7 +4902,7 @@ static void startPthreads(tree *tr) {
 	jobCycle = 0;
 	threadJob = 0;
 
-	printf("\nThis is the RAxML Master Pthread\n");
+//	printf("\nThis is the RAxML Master Pthread\n");
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -5071,9 +5069,10 @@ int main(int argc, char *argv[]) {
 
 	makeMissingData(tr);
 
-	printModelAndProgramInfo(tr, adef, argc, argv);
+//	[JH] reduce output noice
+//	printModelAndProgramInfo(tr, adef, argc, argv);
 
-	printBothOpen("Memory Saving Option: %s\n", (tr->saveMemory == TRUE) ? "ENABLED":"DISABLED");
+//	printBothOpen("Memory Saving Option: %s\n", (tr->saveMemory == TRUE) ? "ENABLED":"DISABLED");
 
 	initModel(tr, rdta, cdta, adef);
 

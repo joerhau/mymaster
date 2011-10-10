@@ -2029,10 +2029,10 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, linkageL
 
 	int i, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 0;
 
-	double bestLikelihood = unlikely, numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS);
+	double bestLikelihood = unlikely, numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS - 2);
 		combinations = (int) pow(numberOfAvailableProteinModels, tr->NumberOfModels);
 
-	printf("number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels, combinations);
+	printf("Exhaustive search, number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels, combinations);
 
 	for (i = 0; i < combinations; i++) {
 		increased = 0;
@@ -2080,32 +2080,36 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, linkageL
 			}
 		} else allIncreased = 0;
 
-		myPrintTree(tr, increased, i, allIncreased);
+		if(increased) myPrintTree(tr, increased, i, allIncreased);
 	}
 
 }
 
-void unlinkedTest(tree *tr, analdef *adef, int *bestModels, double *bestLikelihoods, linkageList *alphaList) {
-	int i, model;
 
-	if(tr->multiBranch) printf("multiBranch is true ...\n");
-	else printf("multiBranch is false ....\n");
 
-	for (i = 0; i < AUTO; i++) {
+void unlinkedTest(tree *tr, analdef *adef, double *bestLikelihoods, linkageList *alphaList) {
+
+	int i, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 0, numberOfAvailableProteinModels = NUM_PROT_MODELS - 2;
+
+	double bestLikelihood = unlikely;
+
+	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels);
+
+	for (i = 0; i < numberOfAvailableProteinModels; i++) {
+		increased = 0;
+		allIncreased = 1;
 		/* we loop over different assignments of models to partitions */
 		/* initially let's just set the branch lengths to their default values */
 		resetBranches(tr);
 		init(tr);
 
-		/*
-		 just a stupid loop for testing all available protein models in RAxML
-		 when branch lengths are unlinked, i.e., estimated separately for each
-		 partition. In this case we don't have the hard optimization problem
-		 as in the case when branch lengths are linked across partitions
-		 This can serve as a means for obtaining an initial assignment of
-		 prot. subst. models to partitions., something like and initial seed. */
+		// generating permutations one after an other
 		for (model = 0; model < tr->NumberOfModels; model++) {
+			/* and initialize the protein substitution model for this partition randomly */
 			tr->partitionData[model].protModels = i;
+
+			/* here we then compute a eigenvector eigenvalue decomposition for the selected substitrution model */
+			/* this needs to be done every time we change the protein substitution model for a partition */
 			initReversibleGTR(tr, adef, model);
 		}
 
@@ -2125,19 +2129,92 @@ void unlinkedTest(tree *tr, analdef *adef, int *bestModels, double *bestLikeliho
 		evaluateGenericInitrav(tr, tr->start);
 		optimize(tr, alphaList);
 
-		/* print some stuff */
+//		likelihood has increased with current assignment, do some stuff to remember
+		if (tr->likelihood > bestLikelihood) {
+			bestLikelihood = tr->likelihood;
+			increased = 1;
 			for (model = 0; model < tr->NumberOfModels; model++) {
-				printf("%-10s%17f", protModels[i], tr->perPartitionLH[model]);
-				if (tr->perPartitionLH[model] > bestLikelihoods[model]) {
-					printf("*\t");
-					bestModels[model] = i;
+				if (tr->perPartitionLH[model] > bestLikelihoods[model])
 					bestLikelihoods[model] = tr->perPartitionLH[model];
-				} else
-					printf(" \t");
+				else allIncreased = 0;
 			}
-			printf("LH %-20f\n",tr->likelihood);
+		} else allIncreased = 0;
+
+		myPrintTree(tr, increased, i, allIncreased);
 	}
+
 }
+
+
+//void unlinkedTest(tree *tr, analdef *adef, int *bestModels, double *bestLikelihoods, linkageList *alphaList) {
+//	int i, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 0;
+//
+//	double bestLikelihood = unlikely, numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS - 2);
+//		combinations = (int) pow(numberOfAvailableProteinModels, tr->NumberOfModels);
+//
+//
+//
+//	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels);
+//
+//	for (i = 0; i < AUTO; i++) {
+//		/* we loop over different assignments of models to partitions */
+//		/* initially let's just set the branch lengths to their default values */
+//		resetBranches(tr);
+//		init(tr);
+//
+//		/*
+//		 just a stupid loop for testing all available protein models in RAxML
+//		 when branch lengths are unlinked, i.e., estimated separately for each
+//		 partition. In this case we don't have the hard optimization problem
+//		 as in the case when branch lengths are linked across partitions
+//		 This can serve as a means for obtaining an initial assignment of
+//		 prot. subst. models to partitions., something like and initial seed. */
+//		for (model = 0; model < tr->NumberOfModels; model++) {
+//			tr->partitionData[model].protModels = i;
+//			initReversibleGTR(tr, adef, model);
+//		}
+//
+//		/* some parallel stuff, we need to make sure to broadcast
+//		 the new model to partition assignment from the master
+//		 to all worker processes, nothing to worry about */
+//#ifdef _FINE_GRAIN_MPI
+//		masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);
+//#endif
+//
+//#ifdef _USE_PTHREADS
+//		masterBarrier(THREAD_COPY_INIT_MODEL, tr);
+//#endif
+//
+//		/* now we just compute the likelihood of the tree for the new model
+//		 assignment using the default branch length and alpha parameter values */
+//		evaluateGenericInitrav(tr, tr->start);
+//		optimize(tr, alphaList);
+//
+//
+//		if (tr->likelihood > bestLikelihood) {
+//			bestLikelihood = tr->likelihood;
+//			increased = 1;
+//			for (model = 0; model < tr->NumberOfModels; model++) {
+//				if (tr->perPartitionLH[model] > bestLikelihoods[model])
+//					bestLikelihoods[model] = tr->perPartitionLH[model];
+//				else allIncreased = 0;
+//			}
+//		} else allIncreased = 0;
+//
+//		myPrintTree(tr, increased, i, allIncreased);
+//		/* print some stuff */
+////			for (model = 0; model < tr->NumberOfModels; model++) {
+////				printf("%-10s%17f", protModels[i], tr->perPartitionLH[model]);
+////				if (tr->perPartitionLH[model] > bestLikelihoods[model]) {
+////					printf("*\t");
+////					bestModels[model] = i;
+////					bestLikelihoods[model] = tr->perPartitionLH[model];
+////				} else
+////					printf(" \t");
+////			}
+////			printf("LH %-20f\n",tr->likelihood);
+//	}
+//}
 
 
 void modOptJoerg(tree *tr, analdef *adef) {
@@ -2169,16 +2246,21 @@ void modOptJoerg(tree *tr, analdef *adef) {
 	tr->start = tr->nodep[1];
 
 //	display model order
-	printf("Order of Models: ");
-	for (i = 0; i < NUM_PROT_MODELS - 2; i++)
-		printf("%s ", protModels[i]);
-	printf("\n\n");
+//	printf("Order of Models: ");
+//	for (i = 0; i < NUM_PROT_MODELS - 2; i++)
+//		printf("%s ", protModels[i]);
+//	printf("\n\n");
+
+	if(tr->multiBranch) printf("Per Partition Branch Lengths estimated ...\n");
+	else printf("Joint Branch Lengths estimates....\n");
+
+
 
 	/* start testing protein model assignments */
 	if (tr->allCombinations)
 		linkedExhaustive(tr, adef, bestLikelihoods, alphaList);
 	else
-		unlinkedTest(tr, adef, bestModels, bestLikelihoods, alphaList);
+		unlinkedTest(tr, adef, bestLikelihoods, alphaList);
 
 	free(unlinked);
 	freeLinkageList(alphaList);
