@@ -1916,66 +1916,15 @@ void modOpt(tree *tr, analdef *adef, boolean resetModel, double likelihoodEpsilo
 
 #ifdef _JOERG
 
-/* initialize a random seed for random number generator */
-
-long randomSeed = 12345;
-
-/* function to simply assign protein substitution models randomly 
- to different partitions */
-static void assignProteinModels(tree *tr, analdef *adef) {
-	int model;
-
-	/*
-	 the numbetr of classic fixed-rates protein substitution models in RAxML
-	 is NUM_PROT_MODELS - 2. I won't go into the details now why this is so.
-	 the constant NUM_PROT_MODELS is defined in axml.h
-	 */
-
-	double numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS - 2);
-
-	/* now we just loop over the number of partitions/genes in our input dataset */
-
-//  NumberOfModels actually is the number of partitions the input dataset has
-	for (model = 0; model < tr->NumberOfModels; model++) {
-		/* and initialize the protein susbtitution model for this partition randomly */
-		tr->partitionData[model].protModels = (int) (randum(&randomSeed) * numberOfAvailableProteinModels);
-
-		/* here we then compute a eigenvector eigenvalue decomposition for the selected substitrution model */
-		/* this needs to be done every time we change the protein substitution model for a partition */
-		initReversibleGTR(tr, adef, model);
-	}
-}
-
-static void testProteinModels(tree *tr, analdef *adef, int proteinModel) {
-	int model;
-
-	assert(proteinModel < AUTO);
-
-	/*
-	 just a stupid loop for testing all available protein models in RAxML
-	 when branch lengths are unlinked, i.e., estimated separately for each
-	 partition. In this case we don't have the hard optimization problem
-	 as in the case when branch lengths are linked across partitions
-	 This can serve as a means for obtaining an initial assignment of
-	 prot. subst. models to partitions., something like and initial seed.
-	 */
-
-	for (model = 0; model < tr->NumberOfModels; model++) {
-		tr->partitionData[model].protModels = proteinModel;
-		initReversibleGTR(tr, adef, model);
-	}
-}
 
 
+/* loop and apply numerical optimization routines for branch lengths and alpha until the difference
+ in log likelihood improvement gets smaller than likelihoodEpsilon log likelihood units.
+ Note that, the actual pergormance run time depends heavily on likelihoodEpsilon since this influences
+ the number of inner do while lopp iterations */
 void optimize(tree *tr, linkageList *alphaList) {
 	double likelihoodEpsilon = 5.0, currentLikelihood, modelEpsilon = 0.0001;
-	/* loop and apply numerical optimization routines
-	 for branch lengths and alpha until the difference
-	 in log likelihood improvement gets smaller than
-	 likelihoodEpsilon log likelihood units.
-	 Note that, the actual pergormance run time depends heavily
-	 on likelihoodEpsilon since this influences the number of inner do while lopp iterations
-	 */
+
 	do {
 		/* remember the current likelihood */
 		currentLikelihood = tr->likelihood;
@@ -2025,7 +1974,7 @@ void init(tree *tr) {
 
 
 // exhaustively tests all possible model assignments
-void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, linkageList *alphaList) {
+void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, int *bestModels, linkageList *alphaList, FILE *f) {
 
 	int i, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 0;
 
@@ -2034,9 +1983,8 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, linkageL
 
 	printf("Exhaustive search, number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels, combinations);
 
-	for (i = 0; i < combinations; i++) {
-		increased = 0;
-		allIncreased = 1;
+//	for (i = 0; i < combinations; i++) {
+	for (i = 0; i < 10; i++) {
 		/* we loop over different assignments of models to partitions */
 		/* initially let's just set the branch lengths to their default values */
 		resetBranches(tr);
@@ -2069,35 +2017,47 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, linkageL
 		evaluateGenericInitrav(tr, tr->start);
 		optimize(tr, alphaList);
 
-//		likelihood has increased with current assignment, do some stuff to remember
+		for (model = 0; model < tr->NumberOfModels; model++) {
+			fprintf(f, "%10s %12f", protModels[tr->partitionData[model].protModels], tr->perPartitionLH[model]);
+			if (tr->perPartitionLH[model] > bestLikelihoods[model]) {
+				fprintf(f, "+");
+			} else fprintf(f, " ");
+		}
+
+		fprintf(f, "   %12f", tr->likelihood);
+
+		if(tr->likelihood > bestLikelihood) {
+			for(model = 0; model < tr->NumberOfModels; model++) {
+				bestLikelihoods[model] = tr->perPartitionLH[model];
+				bestModels[model] = tr->partitionData[model].protModels;
+			}
+		}
+
+		//	likelihood has increased with current assignment, do some stuff to remember
 		if (tr->likelihood > bestLikelihood) {
 			bestLikelihood = tr->likelihood;
-			increased = 1;
-			for (model = 0; model < tr->NumberOfModels; model++) {
-				if (tr->perPartitionLH[model] > bestLikelihoods[model])
-					bestLikelihoods[model] = tr->perPartitionLH[model];
-				else allIncreased = 0;
-			}
-		} else allIncreased = 0;
-
-		if(increased) myPrintTree(tr, increased, i, allIncreased);
+			fprintf(f, "+\n");
+		} else fprintf(f, " \n");
 	}
 
+	bestLikelihood = 0;
+	printf("best Assignment: \n");
+	for (model = 0; model < tr->NumberOfModels; model++) {
+		bestLikelihood += bestLikelihoods[model];
+		printf("%10s %12f ", protModels[bestModels[model]], bestLikelihoods[model]);
+	}
+	printf("   %12f\n", bestLikelihood);
 }
 
+void unlinkedTest(tree *tr, analdef *adef, double *bestLikelihoods, int *bestModels, linkageList *alphaList, FILE *f) {
 
-
-void unlinkedTest(tree *tr, analdef *adef, double *bestLikelihoods, linkageList *alphaList) {
-
-	int i, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 0, numberOfAvailableProteinModels = NUM_PROT_MODELS - 2;
+	int i, model, catOpt = 0, tmp, combinations, numberOfAvailableProteinModels = NUM_PROT_MODELS - 2;
 
 	double bestLikelihood = unlikely;
 
 	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels);
 
 	for (i = 0; i < numberOfAvailableProteinModels; i++) {
-		increased = 0;
-		allIncreased = 1;
 		/* we loop over different assignments of models to partitions */
 		/* initially let's just set the branch lengths to their default values */
 		resetBranches(tr);
@@ -2129,105 +2089,42 @@ void unlinkedTest(tree *tr, analdef *adef, double *bestLikelihoods, linkageList 
 		evaluateGenericInitrav(tr, tr->start);
 		optimize(tr, alphaList);
 
-//		likelihood has increased with current assignment, do some stuff to remember
+		for (model = 0; model < tr->NumberOfModels; model++) {
+			fprintf(f, "%10s %12f", protModels[tr->partitionData[model].protModels], tr->perPartitionLH[model]);
+			if (tr->perPartitionLH[model] > bestLikelihoods[model]) {
+				fprintf(f, "+");
+				bestLikelihoods[model] = tr->perPartitionLH[model];
+				bestModels[model] = tr->partitionData[model].protModels;
+			} else fprintf(f, " ");
+		}
+		fprintf(f, "   %12f", tr->likelihood);
+		//		likelihood has increased with current assignment, do some stuff to remember
 		if (tr->likelihood > bestLikelihood) {
 			bestLikelihood = tr->likelihood;
-			increased = 1;
-			for (model = 0; model < tr->NumberOfModels; model++) {
-				if (tr->perPartitionLH[model] > bestLikelihoods[model])
-					bestLikelihoods[model] = tr->perPartitionLH[model];
-				else allIncreased = 0;
-			}
-		} else allIncreased = 0;
-
-		myPrintTree(tr, increased, i, allIncreased);
+			fprintf(f, "+\n");
+		} else fprintf(f, " \n");
 	}
 
+	bestLikelihood = 0;
+	printf("best Assignment: \n");
+	for (model = 0; model < tr->NumberOfModels; model++) {
+		bestLikelihood += bestLikelihoods[model];
+		printf("%10s %12f ", protModels[bestModels[model]], bestLikelihoods[model]);
+	}
+	printf("   %12f\n", bestLikelihood);
 }
-
-
-//void unlinkedTest(tree *tr, analdef *adef, int *bestModels, double *bestLikelihoods, linkageList *alphaList) {
-//	int i, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 0;
-//
-//	double bestLikelihood = unlikely, numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS - 2);
-//		combinations = (int) pow(numberOfAvailableProteinModels, tr->NumberOfModels);
-//
-//
-//
-//	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels);
-//
-//	for (i = 0; i < AUTO; i++) {
-//		/* we loop over different assignments of models to partitions */
-//		/* initially let's just set the branch lengths to their default values */
-//		resetBranches(tr);
-//		init(tr);
-//
-//		/*
-//		 just a stupid loop for testing all available protein models in RAxML
-//		 when branch lengths are unlinked, i.e., estimated separately for each
-//		 partition. In this case we don't have the hard optimization problem
-//		 as in the case when branch lengths are linked across partitions
-//		 This can serve as a means for obtaining an initial assignment of
-//		 prot. subst. models to partitions., something like and initial seed. */
-//		for (model = 0; model < tr->NumberOfModels; model++) {
-//			tr->partitionData[model].protModels = i;
-//			initReversibleGTR(tr, adef, model);
-//		}
-//
-//		/* some parallel stuff, we need to make sure to broadcast
-//		 the new model to partition assignment from the master
-//		 to all worker processes, nothing to worry about */
-//#ifdef _FINE_GRAIN_MPI
-//		masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);
-//#endif
-//
-//#ifdef _USE_PTHREADS
-//		masterBarrier(THREAD_COPY_INIT_MODEL, tr);
-//#endif
-//
-//		/* now we just compute the likelihood of the tree for the new model
-//		 assignment using the default branch length and alpha parameter values */
-//		evaluateGenericInitrav(tr, tr->start);
-//		optimize(tr, alphaList);
-//
-//
-//		if (tr->likelihood > bestLikelihood) {
-//			bestLikelihood = tr->likelihood;
-//			increased = 1;
-//			for (model = 0; model < tr->NumberOfModels; model++) {
-//				if (tr->perPartitionLH[model] > bestLikelihoods[model])
-//					bestLikelihoods[model] = tr->perPartitionLH[model];
-//				else allIncreased = 0;
-//			}
-//		} else allIncreased = 0;
-//
-//		myPrintTree(tr, increased, i, allIncreased);
-//		/* print some stuff */
-////			for (model = 0; model < tr->NumberOfModels; model++) {
-////				printf("%-10s%17f", protModels[i], tr->perPartitionLH[model]);
-////				if (tr->perPartitionLH[model] > bestLikelihoods[model]) {
-////					printf("*\t");
-////					bestModels[model] = i;
-////					bestLikelihoods[model] = tr->perPartitionLH[model];
-////				} else
-////					printf(" \t");
-////			}
-////			printf("LH %-20f\n",tr->likelihood);
-//	}
-//}
-
 
 void modOptJoerg(tree *tr, analdef *adef) {
 	int modelsTested = 0, i, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 1,
 	// NumberOfModels is number of partitions, thus this reserves memory for the LH of each partition
-			*unlinked = (int *) malloc(sizeof(int) * tr->NumberOfModels), *bestModels = (int *) malloc(
-					sizeof(int) * tr->NumberOfModels);
+			*unlinked = (int *) malloc(sizeof(int) * tr->NumberOfModels),
+			*bestModels = (int *) malloc(sizeof(int) * tr->NumberOfModels);
 
 	double *bestLikelihoods = (double*) malloc(sizeof(double) * tr->NumberOfModels);
 
-
 	linkageList *alphaList;
 
+	FILE *f = myfopen("RAxML_modelAssignment", "w");
 
 	for (i = 0; i < tr->NumberOfModels; i++) {
 		/* this unlinked thing here just tells RAxML that the other relevant model
@@ -2257,11 +2154,15 @@ void modOptJoerg(tree *tr, analdef *adef) {
 
 
 	/* start testing protein model assignments */
-	if (tr->allCombinations)
-		linkedExhaustive(tr, adef, bestLikelihoods, alphaList);
-	else
-		unlinkedTest(tr, adef, bestLikelihoods, alphaList);
+	if (tr->allCombinations) {
+		printf("%d partitions, exhaustive\n", tr->NumberOfModels);
+		linkedExhaustive(tr, adef, bestLikelihoods, bestModels, alphaList, f);
+	} else {
+		printf("%d partitions, unlinked\n", tr->NumberOfModels, f);
+		unlinkedTest(tr, adef, bestLikelihoods, bestModels, alphaList, f);
+	}
 
+	fclose(f);
 	free(unlinked);
 	freeLinkageList(alphaList);
 

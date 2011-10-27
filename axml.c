@@ -77,20 +77,22 @@
 #define _PORTABLE_PTHREADS
 
 /***************** UTILITY FUNCTIONS **************************/
-void myPrintTree(tree *tr, int increased, int run, int allIncreased) {
-	int model = 0;
-	printf("%-5d", run);
-	for (model = 0; model < tr->NumberOfModels; model++)
-		printf("%-10s%-17f", protModels[tr->partitionData[model].protModels], tr->perPartitionLH[model]);
-
-	if (increased)
-		printf("+LH %-20f", tr->likelihood);
-	else
-		printf("-LH %-20f", tr->likelihood);
-
-	if (allIncreased)
-		printf("\t*");
-	printf("\n");
+void myPrintModelAssignment(tree *tr, int increased, int run, int allIncreased) {
+//	FILE *f = myfopen(proteinModelInfoFile, "ab");
+//	int model = 0;
+//	fprintf(f, "%-5d", run);
+//	for (model = 0; model < tr->NumberOfModels; model++)
+//		fprintf(f, "%-10s%-17f", protModels[tr->partitionData[model].protModels], tr->perPartitionLH[model]);
+//
+//	if (increased)
+//		fprintf(f, "+LH %-20f", tr->likelihood);
+//	else
+//		fprintf(f,"-LH %-20f", tr->likelihood);
+//
+//	if (allIncreased)
+//		fprintf(f,"\t*");
+//	fprintf(f,"\n");
+//	fclose(f);
 }
 
 void myBinFwrite(const void *ptr, size_t size, size_t nmemb) {
@@ -3327,12 +3329,15 @@ static void makeFileNames(void) {
 	strcat(lengthFileNameModel, "RAxML_treeLengthModel.");
 	strcat(perSiteLLsFileName, "RAxML_perSiteLLs.");
 	strcat(binaryCheckpointName, "RAxML_binaryCheckpoint.");
+	//[JH] add model results file here
+	strcat(proteinModelInfoFile, "RAxML_modelAssignment.");
 
 	strcat(permFileName, run_id);
 	strcat(resultFileName, run_id);
 	strcat(logFileName, run_id);
 	strcat(checkpointFileName, run_id);
 	strcat(infoFileName, run_id);
+	strcat(proteinModelInfoFile, run_id);
 	strcat(randomFileName, run_id);
 	strcat(bootstrapFileName, run_id);
 	strcat(bipartitionsFileName, run_id);

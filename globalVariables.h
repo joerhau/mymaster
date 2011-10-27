@@ -52,6 +52,7 @@ char run_id[128] = "",
   seq_file[1024] = "", 
   tree_file[1024]="", 
   weightFileName[1024] = "", 
+  // partitioning file (contains model assignment to use)
   modelFileName[1024] = "", 
   excludeFileName[1024] = "",
   bootStrapFile[1024] = "", 
@@ -59,6 +60,7 @@ char run_id[128] = "",
   resultFileName[1024] = "", 
   logFileName[1024] = "", 
   checkpointFileName[1024] = "", 
+  // overall RAxML Info file
   infoFileName[1024] = "", 
   randomFileName[1024] = "",   
   bootstrapFileName[1024] = "", 
@@ -69,7 +71,10 @@ char run_id[128] = "",
   perSiteLLsFileName[1024] = "", 
   lengthFileName[1024] = "", 
   lengthFileNameModel[1024] = "",
+  // specify costum protein substitution model
   proteinModelFileName[1024] = "",
+  // file to write model test results to
+  proteinModelInfoFile[1024] = "",
   secondaryStructureFileName[1024] = "",
   binaryCheckpointName[1024] = "",
   binaryCheckpointInputName[1024] = "";
