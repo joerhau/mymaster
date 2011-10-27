@@ -1983,8 +1983,8 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, int *bes
 
 	printf("Exhaustive search, number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels, combinations);
 
-//	for (i = 0; i < combinations; i++) {
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < combinations; i++) {
+//	for (i = 0; i < 10; i++) {
 		/* we loop over different assignments of models to partitions */
 		/* initially let's just set the branch lengths to their default values */
 		resetBranches(tr);
