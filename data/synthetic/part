@@ -1,2 +1,10 @@
-WAG, p1 = 1-500
-WAG, p2 = 501 - 1000
+BLOSUM, part1 = 1 - 356
+JTT, part2 = 357 - 740
+CPREV45, part3 = 741 - 1155
+WAG, part4 = 1156 - 1387
+CPREV45, part5 = 1388 - 1741
+CPREV45, part6 = 1742 - 2187
+CPREV45, part7 = 2188 - 2424
+JTT, part8 = 2425 - 2727
+PAM, part9 = 2728 - 2957
+MTREV, part10 = 2958 - 3250

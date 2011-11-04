@@ -1,0 +1,18 @@
+some strange thing causes an assertion to fail with model MTMAM for the extracted test data
+
+Per Partition Branch Lengths estimated ...
+3 partitions, unlinked
+Simple Test, number of partitions: 3, available AA models: 18
+
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+raxmlLight-PTHREADS: evaluateGenericSpecial.c:973: evaluateIterative: Assertion `partitionLikelihood < 0.0' failed.
+

@@ -32,6 +32,15 @@ public class Species {
 		length += s.partitions[source].data.length();
 	}
 	
+	public void addPartition(Partition part) {
+		Partition[] ps = new Partition[this.partitions.length + 1];
+		for(int i=0; i < this.partitions.length; i++)
+			ps[i] = this.partitions[i];
+		ps[this.partitions.length] = part;
+		this.partitions = ps;
+		this.length++;
+	}
+	
 	public String toString() {
 		return name;
 	}
