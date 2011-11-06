@@ -41,7 +41,7 @@ done
  
 
 #	glue together phylip files contained in this folder
-#PhyMod --glue .
+phymod --glue .
 
 #compute parsimony start tree
 
