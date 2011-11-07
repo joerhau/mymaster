@@ -1,0 +1,68 @@
+
+
+This is RAxML version 7.2.8 released by Alexandros Stamatakis in October 2010.
+
+With greatly appreciated code contributions by:
+Andre Aberer (TUM)
+Simon Berger (TUM)
+John Cazes (TACC)
+Michael Ott (TUM)
+Nick Pattengale (UNM)
+Wayne Pfeiffer (SDSC)
+Akifumi S. Tanabe (Univ. Tsukuba)
+
+
+Alignment has 881 distinct alignment patterns
+
+Proportion of gaps and completely undetermined characters in this alignment: 45.29%
+
+RAxML rapid hill-climbing mode
+
+Using 3 distinct models/data partitions with joint branch length optimization
+
+
+Executing 1 inferences on the original alignment using 1 distinct randomized MP trees
+
+All free model parameters will be estimated by RAxML
+GAMMA model of rate heteorgeneity, ML estimate of alpha-parameter
+
+GAMMA Model parameters will be estimated up to an accuracy of 0.1000000000 Log Likelihood units
+
+Partition: 0
+Alignment Patterns: 240
+Name: gene11976g.31124-31364
+DataType: AA
+Substitution Matrix: LG
+Fixed Base Frequencies:
+
+
+
+Partition: 1
+Alignment Patterns: 498
+Name: gene11829g.9323-9832
+DataType: AA
+Substitution Matrix: LG
+Fixed Base Frequencies:
+
+
+
+Partition: 2
+Alignment Patterns: 143
+Name: gene11754g.6611-6754
+DataType: AA
+Substitution Matrix: LG
+Fixed Base Frequencies:
+
+
+
+
+RAxML was called as follows:
+
+raxmlHPC-PTHREADS -T 4 -s test.phylip -m PROTGAMMAWAG -q unlinked.part -n unlinked 
+
+
+Testing which likelihood implementation to use
+Standard Implementation full tree traversal time: 2.639415
+Subtree Equality Vectors for gap columns full tree traversal time: 2.319439
+... using standard implementation
+

@@ -12,13 +12,13 @@ Wayne Pfeiffer (SDSC)
 Akifumi S. Tanabe (Univ. Tsukuba)
 
 
-Alignment has 209 distinct alignment patterns
+Alignment has 170 distinct alignment patterns
 
-Proportion of gaps and completely undetermined characters in this alignment: 47.54%
+Proportion of gaps and completely undetermined characters in this alignment: 0.00%
 
 RAxML rapid hill-climbing mode
 
-Using 2 distinct models/data partitions with joint branch length optimization
+Using 1 distinct models/data partitions with joint branch length optimization
 
 
 Executing 1 inferences on the original alignment using 1 distinct randomized MP trees
@@ -29,26 +29,17 @@ GAMMA model of rate heteorgeneity, ML estimate of alpha-parameter
 GAMMA Model parameters will be estimated up to an accuracy of 0.1000000000 Log Likelihood units
 
 Partition: 0
-Alignment Patterns: 140
-Name: RAxML_result.692_0.aln-gb_gene226.28190-28338
+Alignment Patterns: 170
+Name: No Name Provided
 DataType: AA
 Substitution Matrix: WAG
-Empirical Base Frequencies:
-
-
-
-Partition: 1
-Alignment Patterns: 69
-Name: RAxML_result.765_0.aln-gb_gene159.19843-19915
-DataType: AA
-Substitution Matrix: WAG
-Empirical Base Frequencies:
+Fixed Base Frequencies:
 
 
 
 
 RAxML was called as follows:
 
-raxmlHPC-PTHREADS -y -T 4 -s test.phylip -m PROTGAMMAWAG -q test.part -n Q1 
+raxmlHPC-PTHREADS -y -T 4 -s synthetic.phy -m PROTGAMMAWAG -n start 
 
 

@@ -9,14 +9,10 @@ NUM_CORES=48
 MIN_LENGTH=150
 MAX_LENGTH=500
 declare -a models lengths
-
-PARTFILE=part
+raxmlHPC="raxmlHPC-PTHREADS -T "$NUM_CORES
+raxmlLight="raxmlLight-PTHREADS -T "$NUM_CORES
 
 #simulate n independent partitions with seqgen
-
-touch $PARTFILE
-cat /dev/null > $PARTFILE
-
 for i in `seq 1 $1`;
 do
 	lengths[$i]=$(($RANDOM % ($MAX_LENGTH-$MIN_LENGTH) + $MIN_LENGTH))
@@ -26,17 +22,14 @@ done
 pos=1
 for i in `seq 01 $1`;
 do
-#	echo seq-gen -l${lengths[$i]} -m${SEQGEN_MODELS[${models[$i]}]} $TREEFILE
 	printf -v var %02d $i
 	echo $var
 	seq-gen -l${lengths[$i]} -m${SEQGEN_MODELS[${models[$i]}]} $TREEFILE > $var.phy
 	echo "${SEQGEN_MODELS[${models[$i]}]}, part${i} = 1 - ${lengths[$i]}" > $var.part
 	s=$pos
-#	echo ${lengths[$i]}
 	pos=$(($pos + ${lengths[$i]}))
 	e=$pos
 	pos=$((pos + 1))
-	echo "${SEQGEN_MODELS[${models[$i]}]}, part${i} = ${s} - ${e}" >> $PARTFILE
 done
  
 
@@ -44,20 +37,24 @@ done
 phymod --glue .
 
 #compute parsimony start tree
-
+#$raxmlHPC -y -s synthetic.phy -m PROTGAMMAWAG -n start
 
 #compute model assignments using different search strategies
 #exhaustive
-#raxmlLight-PTHREADS -T $NUM_CORES -t RAxML_parsimonyTree.START -s $1.phy -m PROTGAMMAWAG -q $1.part -n exhaustive -l
+$raxmlLight -t RAxML_parsimonyTree.start -s synthetic.phy -m PROTGAMMAWAG -q synthetic.part -n exhaustive -l
 #unlinked
-#raxmlLight-PTHREADS -T $NUM_CORES -t RAxML_parsimonyTree.START -s $1.phy -m PROTGAMMAWAG -q $1.part -n unlinked -M
+$raxmlLight -t RAxML_parsimonyTree.start -s synthetic.phy -m PROTGAMMAWAG -q synthetic.part -n unlinked -M
 
 
 #	check if correct mapping of models was determined (if so, good, but chek the rest anyway)
+#	create partition files assigning optimal models to corresponding partitions with phymod
 #phymod
+
 #	finally compute the tree for each modelassignment
-#raxml hpc
+$raxmlHPC -s test.phy -m PROTGAMMAWAG -q unlinked.part -n unlinked
+
 #	integrate trees into one file to pas to raxml again for Robinson-Foulds distance
 
 #afterwards, compare the trees to each other, plus the true tree
-#raxml -f r -z [Treefile]
+$raxmlHPC -f r -z trees -m PROTGAMMAWAG -n treecomp
+

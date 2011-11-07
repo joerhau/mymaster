@@ -1,0 +1,42 @@
+#!/bin/bash
+
+#try to implement all raxml models for seq-gen and update number of models
+NUM_MODELS=18
+NUM_CORES=4
+RAXML_MODELS=(DAYHOFF DCMUT JTT MTREV WAG RTREV CPREV VT BLOSUM62 MTMAM LG MTART MTZOA PMB HIVB HIVW JTTDCMUT FLU GTR)
+NAME="test"
+raxmlHPC="raxmlHPC-PTHREADS -T "$NUM_CORES
+raxmlLight="raxmlLight-PTHREADS -T "$NUM_CORES
+NUM_PART=3
+NUM_SPEC=10
+
+#	extract partitions of initial alignment data
+phymod -m $NUM_PART -s $NUM_SPEC -d -n $NAME $1.phy $1.part
+
+#compute parsimony start tree
+$raxmlHPC -y -s $NAME.phy -m PROTGAMMAWAG -n start
+
+#compute model assignments using different search strategies
+#unlinked
+$raxmlLight -t RAxML_parsimonyTree.start -s $NAME.phy -m PROTGAMMAWAG -q $NAME.part -n unlinked -M
+mv RAxML_modelAssignment unlinked
+#exhaustive
+$raxmlLight -t RAxML_parsimonyTree.start -s $NAME.phy -m PROTGAMMAWAG -q $NAME.part -n exhaustive -l
+mv RAxML_modelAssignment exhaustive
+
+#	create partition files assigning optimal models to corresponding partitions with phymod
+#phymod
+
+#	finally compute the tree for each modelassignment
+$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q unlinked.part -n unlinked
+$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q linked.part -n linked
+
+
+#	integrate trees into one file to pass to raxml for Robinson-Foulds distance
+touch trees
+cat /dev/null > trees
+cat RAxML_bestTree.unlinked >> trees
+cat RAxML_bestTree.linked >> trees
+
+#afterwards, compare the trees to each other, plus the true tree
+$raxmlHPC -f r -z trees -m PROTGAMMAWAG -n comptrees
