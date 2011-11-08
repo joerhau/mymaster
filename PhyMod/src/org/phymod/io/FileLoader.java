@@ -38,7 +38,6 @@ public class FileLoader {
 
 	public void open() {
 		try {
-			if(!file.exists()) throw new Exception();
 		    BufferedReader in = new BufferedReader(new FileReader(file));
 		    l = new LinkedList<String>();
 		    String tmp = "";

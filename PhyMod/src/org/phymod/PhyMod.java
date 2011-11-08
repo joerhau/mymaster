@@ -39,7 +39,6 @@ public class PhyMod {
 					glue = true;
 					break;
 				} else if (args[i].substring(2,8).equals("assign")) {
-					System.out.println("going to create a new partition file using optimal model assignment");
 					assignmentFile = new File(args[++i]);
 					part = new PartitionLoader(args[++i]);
 					assign = true;
@@ -108,8 +107,8 @@ public class PhyMod {
 				for(int i = 0; i < l.l.size(); i++) {
 					part.models[i] = l.l.get(i);
 				}
-				int lastDot = assignmentFile.getCanonicalPath().lastIndexOf(".");
-				FileLoader write = new FileLoader(assignmentFile.getCanonicalPath().substring(0, lastDot) + ".part");
+				System.out.println("going to create " + assignmentFile.getCanonicalPath() + ".part" + " using optimal model assignment");
+				FileLoader write = new FileLoader(assignmentFile.getCanonicalPath() + ".part");
 				write.write(part.toString());
 			}
 		}
