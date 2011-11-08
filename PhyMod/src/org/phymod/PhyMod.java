@@ -7,6 +7,7 @@ import java.util.Random;
 
 import org.apache.commons.io.comparator.NameFileComparator;
 
+import org.phymod.io.FileLoader;
 import org.phymod.io.PHYFilter;
 import org.phymod.io.PartitionLoader;
 
@@ -21,6 +22,7 @@ public class PhyMod {
 		boolean m = true;
 		boolean s = false;
 		boolean glue = false;
+		boolean assign = false;
 		int scount = 0;
 		String tmp = "";
 		String outfile = "";
@@ -28,11 +30,7 @@ public class PhyMod {
 		int[] r;
 		File glueFolder = null;
 		PhylipAlignment[] toGlue;
-		
-		if(args.length < 2) { 
-			printHelp();
-			System.exit(1);
-		}
+		File assignmentFile = null;
 		
 		for(int i = 0; i < args.length; i++) {
 			if(args[i].substring(0,2).equals("--")) {
@@ -40,11 +38,20 @@ public class PhyMod {
 					glueFolder = new File(args[++i]);
 					glue = true;
 					break;
+				} else if (args[i].substring(2,8).equals("assign")) {
+					System.out.println("going to create a new partition file using optimal model assignment");
+					assignmentFile = new File(args[++i]);
+					part = new PartitionLoader(args[++i]);
+					assign = true;
 				}
 			}
 			else if(args[i].substring(0,1).equals("-")) {
 //				chose random partitions
-				if(args[i].substring(1,2).equals("m")) {
+				if(args[i].substring(1,2).equals("h")) {
+					printHelp();
+					System.exit(1);
+				}
+				else if(args[i].substring(1,2).equals("m")) {
 					count = Integer.parseInt(args[++i]);
 					m = true;
 				}
@@ -65,7 +72,7 @@ public class PhyMod {
 			}
 			else {
 				part = new PartitionLoader(args[i]);
-				phy = new PhylipAlignment(args[i++], part);
+				phy = new PhylipAlignment(args[++i], part);
 			}
 		}
 		
@@ -94,6 +101,18 @@ public class PhyMod {
 			System.out.println("writing files " + glueFolder.getCanonicalPath() + "/synthetic.*");
 			out.toFile(glueFolder.getCanonicalPath() + "/synthetic");
 		}
+		else if(assign && part != null) {
+			FileLoader l = new FileLoader(assignmentFile);
+			l.open();
+			if(part.models.length == l.l.size()) {
+				for(int i = 0; i < l.l.size(); i++) {
+					part.models[i] = l.l.get(i);
+				}
+				int lastDot = assignmentFile.getCanonicalPath().lastIndexOf(".");
+				FileLoader write = new FileLoader(assignmentFile.getCanonicalPath().substring(0, lastDot) + ".part");
+				write.write(part.toString());
+			}
+		}
 		else {
 			if(p) {
 				String[] str = tmp.split(",");
@@ -113,6 +132,7 @@ public class PhyMod {
 				for(int i = 0; i < r.length; i++)
 					r[i] = i;
 			}
+			
 			if(s) out = extract(r, createRandSpec(scount));
 			else out = extract(r);
 			
@@ -199,7 +219,7 @@ public class PhyMod {
 				for(int i = 0; i < r.length; i++)
 					str += phy.spec[j].partitions[r[i]].data;
 				
-				if(str.replaceAll("-", "").equals("")) {
+				if(str.replaceAll("-", "").equals("") || str.replaceAll("X", "").equals("")) {
 					redo = true;
 					break;
 				}
@@ -217,7 +237,7 @@ public class PhyMod {
 		System.out.println("\t-d\tFind combination, so that (1) there are no duplicates and (2) there are no");
 		System.out.println("\t\tundetermined species.\n");
 		System.out.println("\t-n\tSpecify names of outputfiles.\n");
-		System.out.println("\t\t\"-n test\":\tOutput will be written to \"test.phylip\" and \"test.part\".\n");
+		System.out.println("\t\t\"-n test\":\tOutput will be written to \"test.phy\" and \"test.part\".\n");
 		System.out.println("\t-p\tSpecify partitions to extract.\n");
 		System.out.println("\t\t\"-p 0,5,1\":\tPartitions 0, 5 and 1 will be included in output in exactly that order.\n");
 		System.out.println("\t-s\tSpecify number of Species to extract. Species will be randomly chosen\n");

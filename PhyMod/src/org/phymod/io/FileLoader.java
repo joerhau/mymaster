@@ -10,10 +10,14 @@ import java.util.LinkedList;
 public class FileLoader {
 
 	public LinkedList<String> l;
-	private File file;
+	public File file;
 
 	public FileLoader(String location) {
 		this.file = new File(location);
+	}
+	
+	public FileLoader(File f) {
+		this.file = f;
 	}
 
 	public void write(String content) {

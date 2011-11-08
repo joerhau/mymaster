@@ -5,13 +5,14 @@ NUM_MODELS=18
 NUM_CORES=4
 RAXML_MODELS=(DAYHOFF DCMUT JTT MTREV WAG RTREV CPREV VT BLOSUM62 MTMAM LG MTART MTZOA PMB HIVB HIVW JTTDCMUT FLU GTR)
 NAME="test"
+IN="SOS"
 raxmlHPC="raxmlHPC-PTHREADS -T "$NUM_CORES
 raxmlLight="raxmlLight-PTHREADS -T "$NUM_CORES
 NUM_PART=3
 NUM_SPEC=10
 
 #	extract partitions of initial alignment data
-phymod -m $NUM_PART -s $NUM_SPEC -d -n $NAME $1.phy $1.part
+phymod -m $NUM_PART -s $NUM_SPEC -d -n $NAME $IN.part $IN.phy
 
 #compute parsimony start tree
 $raxmlHPC -y -s $NAME.phy -m PROTGAMMAWAG -n start
@@ -25,11 +26,12 @@ $raxmlLight -t RAxML_parsimonyTree.start -s $NAME.phy -m PROTGAMMAWAG -q $NAME.p
 mv RAxML_modelAssignment exhaustive
 
 #	create partition files assigning optimal models to corresponding partitions with phymod
-#phymod
+phymod --assign unlinked.models $NAME.part
+phymod --assign linked.models $NAME.part
 
 #	finally compute the tree for each modelassignment
-$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q unlinked.part -n unlinked
-$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q linked.part -n linked
+$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q unlinked.part.opt -n unlinked
+$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q linked.part.opt -n linked
 
 
 #	integrate trees into one file to pass to raxml for Robinson-Foulds distance

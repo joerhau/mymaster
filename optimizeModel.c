@@ -2047,6 +2047,12 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, int *bes
 		printf("%10s %12f ", protModels[bestModels[model]], bestLikelihoods[model]);
 	}
 	printf("   %12f\n", bestLikelihood);
+
+	FILE *opt = myfopen("linked.models", "w");
+	for (model = 0; model < tr->NumberOfModels; model++) {
+		fprintf(opt, "%s\n", protModels[bestModels[model]]);
+	}
+	fclose(opt);
 }
 
 void unlinkedTest(tree *tr, analdef *adef, double *bestLikelihoods, int *bestModels, linkageList *alphaList, FILE *f) {
@@ -2106,12 +2112,19 @@ void unlinkedTest(tree *tr, analdef *adef, double *bestLikelihoods, int *bestMod
 	}
 
 	bestLikelihood = 0;
+
 	printf("best Assignment: \n");
 	for (model = 0; model < tr->NumberOfModels; model++) {
 		bestLikelihood += bestLikelihoods[model];
 		printf("%10s %12f ", protModels[bestModels[model]], bestLikelihoods[model]);
 	}
 	printf("   %12f\n", bestLikelihood);
+
+	FILE *opt = myfopen("unlinked.models", "w");
+	for (model = 0; model < tr->NumberOfModels; model++) {
+		fprintf(opt, "%s\n", protModels[bestModels[model]]);
+	}
+	fclose(opt);
 }
 
 void modOptJoerg(tree *tr, analdef *adef) {

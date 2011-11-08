@@ -34,6 +34,6 @@ public class PartitionLoader extends FileLoader{
 		for(int i = 0; i < nrPartitions; i++) {
 			s += models[i] + ", " + names[i] + " = " + start[i] + "-" + end[i] + "\n";
 		}
-		return "Folling partitions have ben parsed: \n" + s;
+		return s;
 	}
 }

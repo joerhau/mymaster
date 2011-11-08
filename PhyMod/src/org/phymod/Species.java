@@ -10,12 +10,11 @@ public class Species {
 	public Species(String name, int length) {
 		this.name = name;
 		this.partitions = new Partition[length];
-		
 	}
 	
-	public Species(String string, String string2, PartitionLoader part) {
-		this.name = string;
-		initPartitions(part, string2);
+	public Species(String name, String data, PartitionLoader part) {
+		this.name = name;
+		initPartitions(part, data);
 	}
 
 	public void initPartitions(PartitionLoader p, String data) {
