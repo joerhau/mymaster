@@ -8,37 +8,41 @@ NAME="test"
 IN="SOS"
 raxmlHPC="raxmlHPC-PTHREADS -T "$NUM_CORES
 raxmlLight="raxmlLight-PTHREADS -T "$NUM_CORES
-NUM_PART=3
+NUM_PART=2
 NUM_SPEC=10
+
+NAME=$1
 
 #	extract partitions of initial alignment data
 phymod -m $NUM_PART -s $NUM_SPEC -d -n $NAME $IN.part $IN.phy
 
 #compute parsimony start tree
-$raxmlHPC -y -s $NAME.phy -m PROTGAMMAWAG -n start
+$raxmlHPC -y -s $NAME.phy -m PROTGAMMAWAG -n start_$NAME
 
 #compute model assignments using different search strategies
 #unlinked
-$raxmlLight -t RAxML_parsimonyTree.start -s $NAME.phy -m PROTGAMMAWAG -q $NAME.part -n unlinked -M
-mv RAxML_modelAssignment unlinked
+$raxmlLight -t RAxML_parsimonyTree.start_$NAME -s $NAME.phy -m PROTGAMMAWAG -q $NAME.part -n unlinked_$NAME -M
+mv RAxML_modelAssignment unlinked_$NAME
+mv unlinked.models unlinked_models_$NAME
 #exhaustive
-$raxmlLight -t RAxML_parsimonyTree.start -s $NAME.phy -m PROTGAMMAWAG -q $NAME.part -n exhaustive -l
-mv RAxML_modelAssignment exhaustive
+$raxmlLight -t RAxML_parsimonyTree.start_$NAME -s $NAME.phy -m PROTGAMMAWAG -q $NAME.part -n linked_$NAME -l
+mv RAxML_modelAssignment linked_$NAME
+mv linked.models linked_models_$NAME
 
 #	create partition files assigning optimal models to corresponding partitions with phymod
-phymod --assign unlinked.models $NAME.part
-phymod --assign linked.models $NAME.part
+phymod --assign unlinked_models_$NAME $NAME.part
+phymod --assign linked_models_$NAME $NAME.part
 
 #	finally compute the tree for each modelassignment
-$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q unlinked.part.opt -n unlinked
-$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q linked.part.opt -n linked
+$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q unlinked_models_$NAME.part -n unlinked_$NAME
+$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q linked_models_$NAME.part -n linked_$NAME
 
 
 #	integrate trees into one file to pass to raxml for Robinson-Foulds distance
-touch trees
-cat /dev/null > trees
-cat RAxML_bestTree.unlinked >> trees
-cat RAxML_bestTree.linked >> trees
+touch trees_$NAME
+cat /dev/null > trees_$NAME
+cat RAxML_bestTree.unlinked_$NAME >> trees_$NAME
+cat RAxML_bestTree.linked_$NAME >> trees_$NAME
 
 #afterwards, compare the trees to each other, plus the true tree
-$raxmlHPC -f r -z trees -m PROTGAMMAWAG -n comptrees
+$raxmlHPC -f r -z trees_$NAME -m PROTGAMMAWAG -n comptrees_$NAME

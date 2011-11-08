@@ -1,0 +1,60 @@
+#!/bin/bash
+
+#try to implement all raxml models for seq-gen and update number of models
+NUM_MODELS=7
+RAXML_MODELS=(DAYHOFF DCMUT JTT MTREV WAG RTREV CPREV VT BLOSUM62 MTMAM LG MTART MTZOA PMB HIVB HIVW JTTDCMUT FLU GTR)
+SEQGEN_MODELS=(JTT WAG PAM BLOSUM MTREV CPREV45 MTART)
+TREEFILE=example.tree
+NUM_CORES=48
+MIN_LENGTH=150
+MAX_LENGTH=500
+declare -a models lengths
+raxmlHPC="raxmlHPC-PTHREADS -T "$NUM_CORES
+raxmlLight="raxmlLight-PTHREADS -T "$NUM_CORES
+
+#simulate n independent partitions with seqgen
+for i in `seq 1 $1`;
+do
+	lengths[$i]=$(($RANDOM % ($MAX_LENGTH-$MIN_LENGTH) + $MIN_LENGTH))
+	models[$i]=$(($RANDOM % $NUM_MODELS))
+done
+
+pos=1
+for i in `seq 01 $1`;
+do
+	printf -v var %02d $i
+	echo $var
+	seq-gen -l${lengths[$i]} -m${SEQGEN_MODELS[${models[$i]}]} $TREEFILE > $var.phy
+	echo "${SEQGEN_MODELS[${models[$i]}]}, part${i} = 1 - ${lengths[$i]}" > $var.part
+	s=$pos
+	pos=$(($pos + ${lengths[$i]}))
+	e=$pos
+	pos=$((pos + 1))
+done
+ 
+
+#	glue together phylip files contained in this folder
+phymod --glue .
+
+#compute parsimony start tree
+#$raxmlHPC -y -s synthetic.phy -m PROTGAMMAWAG -n start
+
+#compute model assignments using different search strategies
+#exhaustive
+$raxmlLight -t RAxML_parsimonyTree.start -s synthetic.phy -m PROTGAMMAWAG -q synthetic.part -n exhaustive -l
+#unlinked
+$raxmlLight -t RAxML_parsimonyTree.start -s synthetic.phy -m PROTGAMMAWAG -q synthetic.part -n unlinked -M
+
+
+#	check if correct mapping of models was determined (if so, good, but chek the rest anyway)
+#	create partition files assigning optimal models to corresponding partitions with phymod
+#phymod
+
+#	finally compute the tree for each modelassignment
+$raxmlHPC -s test.phy -m PROTGAMMAWAG -q unlinked.part -n unlinked
+
+#	integrate trees into one file to pas to raxml again for Robinson-Foulds distance
+
+#afterwards, compare the trees to each other, plus the true tree
+$raxmlHPC -f r -z trees -m PROTGAMMAWAG -n treecomp
+
