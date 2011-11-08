@@ -3,7 +3,6 @@
 *.o
 raxmlLight-PTHREADS
 PhyMod/bin/
-data/MeuetalMBE2010
 /raxmlLight
 oldCode.c
 *.swp

@@ -1,0 +1,94 @@
+IMPORTANT WARNING: Alignment column 14 contains only undetermined values which will be treated as missing data
+IMPORTANT WARNING: Alignment column 27 contains only undetermined values which will be treated as missing data
+IMPORTANT WARNING: Alignment column 37 contains only undetermined values which will be treated as missing data
+IMPORTANT WARNING: Alignment column 54 contains only undetermined values which will be treated as missing data
+IMPORTANT WARNING: Alignment column 100 contains only undetermined values which will be treated as missing data
+IMPORTANT WARNING: Alignment column 121 contains only undetermined values which will be treated as missing data
+IMPORTANT WARNING: Alignment column 290 contains only undetermined values which will be treated as missing data
+
+IMPORTANT WARNING
+Found 7 columns that contain only undetermined values which will be treated as missing data.
+Normally these columns should be excluded from the analysis.
+
+
+Just in case you might need it, a mixed model file with 
+model assignments for undetermined columns removed is printed to file unlinked_models_4.part.reduced
+An alignment file with undetermined columns removed has already
+been printed to file 4.phy.reduced
+
+
+This is RAxML version 7.2.8 released by Alexandros Stamatakis in October 2010.
+
+With greatly appreciated code contributions by:
+Andre Aberer (TUM)
+Simon Berger (TUM)
+John Cazes (TACC)
+Michael Ott (TUM)
+Nick Pattengale (UNM)
+Wayne Pfeiffer (SDSC)
+Akifumi S. Tanabe (Univ. Tsukuba)
+
+
+Alignment has 430 distinct alignment patterns
+
+Proportion of gaps and completely undetermined characters in this alignment: 21.27%
+
+RAxML rapid hill-climbing mode
+
+Using 2 distinct models/data partitions with joint branch length optimization
+
+
+Executing 1 inferences on the original alignment using 1 distinct randomized MP trees
+
+All free model parameters will be estimated by RAxML
+GAMMA model of rate heteorgeneity, ML estimate of alpha-parameter
+
+GAMMA Model parameters will be estimated up to an accuracy of 0.1000000000 Log Likelihood units
+
+Partition: 0
+Alignment Patterns: 99
+Name: gene11778g.17259-17379
+DataType: AA
+Substitution Matrix: JTTDCMUT
+Fixed Base Frequencies:
+
+
+
+Partition: 1
+Alignment Patterns: 331
+Name: gene12081g.8341-8709
+DataType: AA
+Substitution Matrix: WAG
+Fixed Base Frequencies:
+
+
+
+
+RAxML was called as follows:
+
+raxmlHPC-PTHREADS -T 4 -s 4.phy -m PROTGAMMAWAG -q unlinked_models_4.part -n unlinked_4 
+
+
+Testing which likelihood implementation to use
+Standard Implementation full tree traversal time: 0.147564
+Subtree Equality Vectors for gap columns full tree traversal time: 0.066796
+... using SEV-based implementation
+
+Inference[0]: Time 16.084017 GAMMA-based likelihood -5472.982189, best rearrangement setting 5
+alpha[0]: 2.481137 alpha[1]: 1.214673 
+
+
+Conducting final model optimizations on all 1 trees under GAMMA-based models ....
+
+Inference[0] final GAMMA-based Likelihood: -5472.982136 tree written to file /home/joerhau/Dropbox/RAxML-Light/data/MeuetalMBE2010/RAxML_result.unlinked_4
+
+
+Starting final GAMMA-based thorough Optimization on tree 0 likelihood -5472.982136 .... 
+
+Final GAMMA-based Score of best tree -5472.982136
+
+Program execution info written to /home/joerhau/Dropbox/RAxML-Light/data/MeuetalMBE2010/RAxML_info.unlinked_4
+Best-scoring ML tree written to: /home/joerhau/Dropbox/RAxML-Light/data/MeuetalMBE2010/RAxML_bestTree.unlinked_4
+
+Overall execution time: 22.906883 secs or 0.006363 hours or 0.000265 days
+

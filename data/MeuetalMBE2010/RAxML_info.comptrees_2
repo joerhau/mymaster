@@ -1,0 +1,32 @@
+
+
+This is RAxML version 7.2.8 released by Alexandros Stamatakis in October 2010.
+
+With greatly appreciated code contributions by:
+Andre Aberer (TUM)
+Simon Berger (TUM)
+John Cazes (TACC)
+Michael Ott (TUM)
+Nick Pattengale (UNM)
+Wayne Pfeiffer (SDSC)
+Akifumi S. Tanabe (Univ. Tsukuba)
+
+
+RAxML computation of RF distances for all pairs of trees in a set of trees
+
+
+RAxML was called as follows:
+
+raxmlHPC-PTHREADS -T 4 -f r -z trees_2 -m PROTGAMMAWAG -n comptrees_2 
+
+
+
+
+Found 2 trees in File trees_2
+
+
+
+Average relative RF in this set: 0.000000
+
+File containing all 1 pair-wise RF distances written to file /home/joerhau/Dropbox/RAxML-Light/data/MeuetalMBE2010/RAxML_RF-Distances.comptrees_2
+
