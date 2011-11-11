@@ -10,6 +10,10 @@
 
 export PATH=${HOME}/bin:${PATH}
 
+. /etc/profile.d/modules.sh
+
+module load hydra
+
 mkdir twopartitions
 cd twopartitions
 for i in `seq 1 5`;
