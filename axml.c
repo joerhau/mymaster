@@ -5074,10 +5074,9 @@ int main(int argc, char *argv[]) {
 
 	makeMissingData(tr);
 
-//	[JH] reduce output noice
-//	printModelAndProgramInfo(tr, adef, argc, argv);
+	printModelAndProgramInfo(tr, adef, argc, argv);
 
-//	printBothOpen("Memory Saving Option: %s\n", (tr->saveMemory == TRUE) ? "ENABLED":"DISABLED");
+	printBothOpen("Memory Saving Option: %s\n", (tr->saveMemory == TRUE) ? "ENABLED":"DISABLED");
 
 	initModel(tr, rdta, cdta, adef);
 

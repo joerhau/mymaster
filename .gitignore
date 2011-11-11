@@ -2,7 +2,7 @@
 /scripted.sh
 *.o
 raxmlLight-PTHREADS
-PhyMod/bin/
+PhyMod/
 /raxmlLight
 oldCode.c
 *.swp

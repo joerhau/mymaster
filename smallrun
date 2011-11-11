@@ -1,0 +1,23 @@
+#!/bin/bash
+#$ -S /bin/bash
+#$ -cwd
+#$ -j y
+#$ -pe mvapich 16
+#$ -binding linear:16
+#$ -q standard.q
+
+# source module
+
+export PATH=${HOME}/bin:${PATH}
+
+mkdir twopartitions
+cd twopartitions
+for i in `seq 1 5`;
+do
+    mkdir $i
+    cd $i
+    run_subset
+    cd ..
+#       mv RAxML_RF-Distances.comptrees $i.distances
+#       ./clean
+done

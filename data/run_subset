@@ -5,13 +5,13 @@ NUM_MODELS=18
 NUM_CORES=4
 RAXML_MODELS=(DAYHOFF DCMUT JTT MTREV WAG RTREV CPREV VT BLOSUM62 MTMAM LG MTART MTZOA PMB HIVB HIVW JTTDCMUT FLU GTR)
 NAME="test"
-IN="SOS"
+IN="/home/joerhau/Dropbox/RAxML-Light/data/MeuetalMBE2010/SOS"
 raxmlHPC="raxmlHPC-PTHREADS -T "$NUM_CORES
 raxmlLight="raxmlLight-PTHREADS -T "$NUM_CORES
 NUM_PART=2
 NUM_SPEC=10
 
-NAME=$1
+#NAME=$1
 
 #	extract partitions of initial alignment data
 phymod -m $NUM_PART -s $NUM_SPEC -d -n $NAME $IN.part $IN.phy
@@ -21,11 +21,11 @@ $raxmlHPC -y -s $NAME.phy -m PROTGAMMAWAG -n start_$NAME
 
 #compute model assignments using different search strategies
 #unlinked
-$raxmlLight -t RAxML_parsimonyTree.start_$NAME -s $NAME.phy -m PROTGAMMAWAG -q $NAME.part -n unlinked_$NAME -M
+$raxmlLight -t RAxML_parsimonyTree.start_$NAME -s $NAME.phy -m PROTGAMMAWAG -q $NAME.part -n models_unlinked_$NAME -M
 mv RAxML_modelAssignment unlinked_$NAME
 mv unlinked.models unlinked_models_$NAME
 #exhaustive
-$raxmlLight -t RAxML_parsimonyTree.start_$NAME -s $NAME.phy -m PROTGAMMAWAG -q $NAME.part -n linked_$NAME -l
+$raxmlLight -t RAxML_parsimonyTree.start_$NAME -s $NAME.phy -m PROTGAMMAWAG -q $NAME.part -n models_linked_$NAME -l
 mv RAxML_modelAssignment linked_$NAME
 mv linked.models linked_models_$NAME
 
