@@ -1983,21 +1983,21 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, int *bes
 
 	printf("Exhaustive search, number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels, combinations);
 
-//	for (i = 0; i < combinations; i++) {
-	for (i = 0; i < 1; i++) {
+	for (i = 0; i < combinations; i++) {
+//	for (i = 0; i < 1; i++) {
 		/* we loop over different assignments of models to partitions */
 		/* initially let's just set the branch lengths to their default values */
 		resetBranches(tr);
 		init(tr);
 
-		tr->partitionData[0].protModels = 12;
-		tr->partitionData[1].protModels = 10;
-		tr->partitionData[2].protModels = 4;
+//		tr->partitionData[0].protModels = 12;
+//		tr->partitionData[1].protModels = 10;
+//		tr->partitionData[2].protModels = 4;
 
 		// generating permutations one after an other
 		for (model = 0; model < tr->NumberOfModels; model++) {
 			/* and initialize the protein substitution model for this partition randomly */
-//			tr->partitionData[model].protModels = (int) (fmod(i / pow(numberOfAvailableProteinModels, model), numberOfAvailableProteinModels));
+			tr->partitionData[model].protModels = (int) (fmod(i / pow(numberOfAvailableProteinModels, model), numberOfAvailableProteinModels));
 
 			/* here we then compute a eigenvector eigenvalue decomposition for the selected substitrution model */
 			/* this needs to be done every time we change the protein substitution model for a partition */
