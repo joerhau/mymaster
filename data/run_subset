@@ -5,7 +5,7 @@ NUM_MODELS=18
 NUM_CORES=4
 RAXML_MODELS=(DAYHOFF DCMUT JTT MTREV WAG RTREV CPREV VT BLOSUM62 MTMAM LG MTART MTZOA PMB HIVB HIVW JTTDCMUT FLU GTR)
 NAME="test"
-IN="/home/joerhau/Dropbox/RAxML-Light/data/MeuetalMBE2010/SOS"
+IN=$HOME"/RAxML-Light/data/MeuetalMBE2010/SOS"
 raxmlHPC="raxmlHPC-PTHREADS -T "$NUM_CORES
 raxmlLight="raxmlLight-PTHREADS -T "$NUM_CORES
 NUM_PART=2
@@ -34,8 +34,8 @@ phymod --assign unlinked_models_$NAME $NAME.part
 phymod --assign linked_models_$NAME $NAME.part
 
 #	finally compute the tree for each modelassignment
-$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q unlinked_models_$NAME.part -n unlinked_$NAME
-$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q linked_models_$NAME.part -n linked_$NAME
+$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q unlinked_models_$NAME.part -n unlinked_$NAME -p 65498
+$raxmlHPC -s $NAME.phy -m PROTGAMMAWAG -q linked_models_$NAME.part -n linked_$NAME -p 65498
 
 
 #	integrate trees into one file to pass to raxml for Robinson-Foulds distance
