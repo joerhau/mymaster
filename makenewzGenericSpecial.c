@@ -1206,8 +1206,6 @@ void makenewzIterative(tree *tr)
 
 
 
-
-/* TODO [JH] integrate and test*/
 void execCore(tree *tr, volatile double *_dlnLdlz, volatile double *_d2lnLdlz2)
 {
   int model, branchIndex;

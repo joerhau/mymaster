@@ -1127,8 +1127,6 @@ double evaluateGeneric(tree *tr, nodeptr p) {
 
 				for(j = 0; j < tr->NumberOfModels; j++)
 				{
-					// [JH] skip partitions not randomly chosen to test
-//		  printf("run: %d, \n",j);
 					for(i = 0, partitionResult = 0.0; i < NumberOfThreads; i++)
 					partitionResult += reductionBuffer[i * tr->NumberOfModels + j];
 					result += partitionResult;

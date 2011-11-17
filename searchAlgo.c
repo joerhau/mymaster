@@ -83,17 +83,6 @@ boolean initrav (tree *tr, nodeptr p)
   return TRUE;
 } 
 
-
-
-
-
-
-
-
-
-
-
-
 boolean update(tree *tr, nodeptr p)
 {       
   nodeptr  q; 
@@ -154,8 +143,6 @@ boolean smooth (tree *tr, nodeptr p)
 	  if (! smooth(tr, q->back))   return FALSE;
 	  q = q->next;
 	}	
-
-//    [JH] check back...
       if(tr->multiBranch)		  
 	newviewGenericMasked(tr, p);	
       else

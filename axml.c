@@ -3109,7 +3109,7 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr) {
 			printREADME();
 			errorExit(0);
 
-//		added by joerg
+// [JH] temporarily added to switch between model search strategies
 		case 'l':
 			tr->allCombinations = 1;
 			break;
@@ -3329,7 +3329,7 @@ static void makeFileNames(void) {
 	strcat(lengthFileNameModel, "RAxML_treeLengthModel.");
 	strcat(perSiteLLsFileName, "RAxML_perSiteLLs.");
 	strcat(binaryCheckpointName, "RAxML_binaryCheckpoint.");
-	//[JH] add model results file here
+	// [JH] add model results file here
 	strcat(proteinModelInfoFile, "RAxML_modelAssignment.");
 
 	strcat(permFileName, run_id);
@@ -3363,7 +3363,7 @@ static void makeFileNames(void) {
 		infoFileExists = filexists(infoFileName);
 
 		if (infoFileExists) {
-//    	  [JH] remove existing infofile
+// [JH] remove existing infofile
 			remove(infoFileName);
 //			printf("Existing Infofile removed");
 //	  printf("RAxML output files with the run ID <%s> already exist \n", run_id);
@@ -4375,11 +4375,9 @@ static void threadFixModelIndices(tree *tr, tree *localTree, int tid, int n) {
 
 		localTree->partitionData[model].gapVectorLength = ((int) width / 32) + 1;
 
-//[JH]      printf("s1\n");
 
 		memset(localTree->partitionData[model].gapVector, 0, localTree->partitionData[model].initialGapVectorSize);
 
-//[JH]      printf("s2\n");
 
 		if (localTree->saveMemory) {
 			for (j = 1; j <= (size_t) (localTree->mxtips); j++)
