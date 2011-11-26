@@ -450,8 +450,7 @@ void putWAG(double *ext_initialRates)
 
 }
 
-static void initProtMat(double f[20], int proteinMatrix, double *ext_initialRates, 
-			boolean userProteinModel, double *externalAAMatrix)
+static void initProtMat(double f[20], int proteinMatrix, double *ext_initialRates, int model, tree *tr)
 { 
   double q[20][20];
   double daa[400], max, temp;
@@ -459,14 +458,7 @@ static void initProtMat(double f[20], int proteinMatrix, double *ext_initialRate
   double *initialRates = ext_initialRates;
   double scaler;
 
-  if(userProteinModel)
-    {          
-      assert(externalAAMatrix);
-      memcpy(daa, externalAAMatrix,         400 * sizeof(double));
-      memcpy(f,   &(externalAAMatrix[400]), 20  * sizeof(double));      
-    }
-  else
-    {
+  {
       switch(proteinMatrix)
 	{
 	case DAYHOFF:
@@ -706,14 +698,18 @@ static void initProtMat(double f[20], int proteinMatrix, double *ext_initialRate
 	  break;
 	case WAG:
 	  {
-	    daa[ 1*20+ 0] =  55.15710;
-	    daa[ 2*20+ 0] =  50.98480; daa[ 2*20+ 1] =  63.53460;
+	    daa[ 1*20+ 0] =  55.15710; daa[ 2*20+ 0] =  50.98480; daa[ 2*20+ 1] =  63.53460; 
 	    daa[ 3*20+ 0] =  73.89980; daa[ 3*20+ 1] =  14.73040; daa[ 3*20+ 2] = 542.94200; 
-	    daa[ 4*20+ 0] = 102.70400; daa[ 4*20+ 1] =  52.81910; daa[ 4*20+ 2] =  26.52560; daa[ 4*20+ 3] =   3.02949;
-	    daa[ 5*20+ 0] =  90.85980; daa[ 5*20+ 1] = 303.55000; daa[ 5*20+ 2] = 154.36400; daa[ 5*20+ 3] =  61.67830; daa[ 5*20+ 4] =   9.88179;
-	    daa[ 6*20+ 0] = 158.28500; daa[ 6*20+ 1] =  43.91570; daa[ 6*20+ 2] =  94.71980; daa[ 6*20+ 3] = 617.41600; daa[ 6*20+ 4] =   2.13520; daa[ 6*20+ 5] = 546.94700;
-	    daa[ 7*20+ 0] = 141.67200; daa[ 7*20+ 1] =  58.46650; daa[ 7*20+ 2] = 112.55600; daa[ 7*20+ 3] =  86.55840; daa[ 7*20+ 4] =  30.66740; daa[ 7*20+ 5] =  33.00520; daa[ 7*20+ 6] =  56.77170;
-	    daa[ 8*20+ 0] =  31.69540; daa[ 8*20+ 1] = 213.71500; daa[ 8*20+ 2] = 395.62900; daa[ 8*20+ 3] =  93.06760; daa[ 8*20+ 4] =  24.89720; daa[ 8*20+ 5] = 429.41100; daa[ 8*20+ 6] =  57.00250; daa[ 8*20+ 7] =  24.94100;
+	    daa[ 4*20+ 0] = 102.70400; daa[ 4*20+ 1] =  52.81910; daa[ 4*20+ 2] =  26.52560; 
+	    daa[ 4*20+ 3] =   3.02949; daa[ 5*20+ 0] =  90.85980; daa[ 5*20+ 1] = 303.55000; 
+	    daa[ 5*20+ 2] = 154.36400; daa[ 5*20+ 3] =  61.67830; daa[ 5*20+ 4] =   9.88179; 
+	    daa[ 6*20+ 0] = 158.28500; daa[ 6*20+ 1] =  43.91570; daa[ 6*20+ 2] =  94.71980; 
+	    daa[ 6*20+ 3] = 617.41600; daa[ 6*20+ 4] =   2.13520; daa[ 6*20+ 5] = 546.94700; 
+	    daa[ 7*20+ 0] = 141.67200; daa[ 7*20+ 1] =  58.46650; daa[ 7*20+ 2] = 112.55600; 
+	    daa[ 7*20+ 3] =  86.55840; daa[ 7*20+ 4] =  30.66740; daa[ 7*20+ 5] =  33.00520; 
+	    daa[ 7*20+ 6] =  56.77170; daa[ 8*20+ 0] =  31.69540; daa[ 8*20+ 1] = 213.71500; 
+	    daa[ 8*20+ 2] = 395.62900; daa[ 8*20+ 3] =  93.06760; daa[ 8*20+ 4] =  24.89720; 
+	    daa[ 8*20+ 5] = 429.41100; daa[ 8*20+ 6] =  57.00250; daa[ 8*20+ 7] =  24.94100; 
 	    daa[ 9*20+ 0] =  19.33350; daa[ 9*20+ 1] =  18.69790; daa[ 9*20+ 2] =  55.42360; 
 	    daa[ 9*20+ 3] =   3.94370; daa[ 9*20+ 4] =  17.01350; daa[ 9*20+ 5] =  11.39170; 
 	    daa[ 9*20+ 6] =  12.73950; daa[ 9*20+ 7] =   3.04501; daa[ 9*20+ 8] =  13.81900; 
@@ -2891,11 +2887,7 @@ static void initProtMat(double f[20], int proteinMatrix, double *ext_initialRate
 	    f[18]	=	0.0315	;
 	    f[19]	=	0.0632	;
 	  }
-	  break;
-	case GTR:	  
-	  assert(0);
-	case AUTO:
-	  assert(0);
+	  break;     
 	default: 
 	  assert(0);
 	}
@@ -2976,6 +2968,7 @@ static void initProtMat(double f[20], int proteinMatrix, double *ext_initialRate
     }             
 }
 
+          
 static void updateFracChange(tree *tr)
 {   
   if(tr->NumberOfModels == 1)    
@@ -3184,10 +3177,7 @@ static void initGeneric(const int n, const unsigned int *valueVector, int valueV
 			double *frequencies,
 			double *ext_initialRates,
 			double *tipVector,
-			int model, 
-			boolean useFloat,
-			float *EV_FLOAT, 
-			float *tipVector_FLOAT)
+			int model)
 {
   double 
     **r, 
@@ -3224,7 +3214,6 @@ static void initGeneric(const int n, const unsigned int *valueVector, int valueV
   d       = (double*)malloc(n * sizeof(double));
   invfreq = (double*)malloc(n * sizeof(double));
   EIGN    = (double*)malloc(n * sizeof(double));
-
   
   for(l = 0; l < n; l++)		 
     f[l] = frequencies[l];	
@@ -3402,7 +3391,7 @@ void initReversibleGTR(tree *tr, analdef *adef, int model)
    case SECONDARY_DATA_7: 
    case SECONDARY_DATA:
    case DNA_DATA:
-   case BINARY_DATA:
+   case BINARY_DATA:    
      initGeneric(states, 
 		 getBitVector(tr->partitionData[model].dataType), 
 		 getUndetermined(tr->partitionData[model].dataType) + 1, 
@@ -3413,10 +3402,7 @@ void initReversibleGTR(tree *tr, analdef *adef, int model)
 		 frequencies, 
 		 ext_initialRates,
 		 tipVector, 
-		 model, 
-		 FALSE, 
-		 (float*)NULL, 
-		 (float*)NULL);
+		 model);    
      break;   
    case AA_DATA:
      if(tr->partitionData[model].protModels != GTR)           
@@ -3426,11 +3412,10 @@ void initReversibleGTR(tree *tr, analdef *adef, int model)
 
 	 
 	 if(tr->partitionData[model].protModels == AUTO)
-	   initProtMat(f, tr->partitionData[model].autoProtModels, ext_initialRates, adef->userProteinModel, 
-		       adef->externalAAMatrix);
+	   initProtMat(f, tr->partitionData[model].autoProtModels, ext_initialRates, model, tr);
 	 else	  
-	   initProtMat(f, tr->partitionData[model].protModels, ext_initialRates, adef->userProteinModel, 
-		       adef->externalAAMatrix); 		   
+	   initProtMat(f, tr->partitionData[model].protModels, ext_initialRates, model, 
+		       tr); 		   
 	 
 	 if(adef->protEmpiricalFreqs && tr->NumberOfModels == 1)
 	   assert(tr->partitionData[model].protFreqs);
@@ -3446,7 +3431,7 @@ void initReversibleGTR(tree *tr, analdef *adef, int model)
      initGeneric(states, bitVectorAA, 23, fracchanges,
 		 ext_EIGN, EV, EI, frequencies, ext_initialRates,
 		 tipVector, 
-		 model, FALSE, (float*)NULL, (float*)NULL);                   
+		 model);                   
      break;  
    default:
      assert(0);
@@ -3991,7 +3976,8 @@ void initModel(tree *tr, rawdata *rdta, cruncheddata *cdta, analdef *adef)
   optimizeRateCategoryInvocations = 1;      
   tr->numberOfInvariableColumns = 0;
   tr->weightOfInvariableColumns = 0;	 
-  tr->NumberOfCategories = 1;   
+    
+  
   
   for (j = 0; j < tr->cdta->endsite; j++) 
     {
@@ -4000,20 +3986,19 @@ void initModel(tree *tr, rawdata *rdta, cruncheddata *cdta, analdef *adef)
       tr->cdta->rateCategory[j] = 0;           
     } 
 
+  for(model = 0; model < tr->NumberOfModels; model++)
+    {            
+      tr->partitionData[model].numberOfCategories = 1;           
+      tr->partitionData[model].perSiteRates[0] = 1.0; 
+    }
+  
  
-  updatePerSiteRates(tr);
+  
+  updatePerSiteRates(tr, FALSE);
  
-   
   setupSecondaryStructureSymmetries(tr);
   
-
-  
-
- 
-
   initRateMatrix(tr); 
-   
-
 
   if(adef->readBinaryFile)
     {
@@ -4026,22 +4011,55 @@ void initModel(tree *tr, rawdata *rdta, cruncheddata *cdta, analdef *adef)
     }
 #ifndef _FINE_GRAIN_MPI
   else
-    {
+    {      
       baseFrequenciesGTR(rdta, cdta, tr);  
     }
 #endif
- 
+  
   for(model = 0; model < tr->NumberOfModels; model++)
     {
       tr->partitionData[model].alpha = 1.0;    
       if(tr->partitionData[model].protModels == AUTO)
 	tr->partitionData[model].autoProtModels = WAG; /* initialize by WAG per default */
-            
+      
       initReversibleGTR(tr, adef, model);               
-      makeGammaCats(tr->partitionData[model].alpha, tr->partitionData[model].gammaRates, 4); 
-    }   
-                		         
-                 
+      
+      makeGammaCats(tr->partitionData[model].alpha, tr->partitionData[model].gammaRates, 4);     
+    }                   		       
+  
+   if(tr->estimatePerSiteAA)
+    {
+      int i;
+      
+      for(i = 0; i < NUM_PROT_MODELS - 2; i++)
+	{
+	  double 
+	    f[20];
+	  int 
+	    l;
+	  
+	  /*printf("Initializing prot model with model-based freqs: %s\n", protModels[i]);*/
+
+	  initProtMat(f, i, tr->siteProtModel[i].substRates, 0, tr);
+	  
+	  for(l = 0; l < 20; l++)		
+	    tr->siteProtModel[i].frequencies[l] = f[l];
+
+	  initGeneric(20, 
+		      bitVectorAA, 
+		      23, 
+		      tr->siteProtModel[i].fracchange,
+		      tr->siteProtModel[i].EIGN, 
+		      tr->siteProtModel[i].EV, 
+		      tr->siteProtModel[i].EI, 
+		      tr->siteProtModel[i].frequencies, 
+		      tr->siteProtModel[i].substRates,
+		      tr->siteProtModel[i].tipVector, 
+		      0); 
+	}
+
+    }
+
   if(tr->NumberOfModels > 1)
     {
       tr->fracchange = 0;
@@ -4050,14 +4068,19 @@ void initModel(tree *tr, rawdata *rdta, cruncheddata *cdta, analdef *adef)
       
       tr->fracchange /= ((double)tr->NumberOfModels);
     }  
-
+  
 #ifdef _FINE_GRAIN_MPI
   masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);  
 #endif
 
+ 
+
 #ifdef _USE_PTHREADS
   masterBarrier(THREAD_COPY_INIT_MODEL, tr);   
 #endif
+
+ 
+
 }
 
 

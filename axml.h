@@ -31,7 +31,12 @@
 
 #include <assert.h>
 #include <stdint.h>
-#include <stdio.h>
+
+#ifdef __AVX
+#define BYTE_ALIGNMENT 32
+#else
+#define BYTE_ALIGNMENT 16
+#endif
 
 #ifdef _USE_PTHREADS
 
@@ -56,6 +61,7 @@
 #define defaultz       0.9         /* value of z assigned as starting point */
 #define unlikely       -1.0E300    /* low likelihood for initialization */
 
+
 #define SUMMARIZE_LENGTH -3
 #define SUMMARIZE_LH     -2
 #define NO_BRANCHES      -1
@@ -76,6 +82,7 @@
 
 
 
+
 /* 18446744073709551616.0 */
 
 /*4294967296.0*/
@@ -85,12 +92,9 @@
 /*  2**64 (exactly)  */
 /* 4294967296 2**32 */
 
-
-
-
 #define badRear         -1
 
-#define NUM_BRANCHES     3
+#define NUM_BRANCHES     2
 
 #define TRUE             1
 #define FALSE            0
@@ -561,10 +565,9 @@ typedef struct {
   int     mxtips;
   int             **expVector;
   double          **xVector;
-  int             *xSpaceVector;
+  size_t           *xSpaceVector;
  
   unsigned char            **yVector;
-  parsimonyVector **pVector;
   char   *partitionName;
   double *sumBuffer;
  
@@ -601,6 +604,7 @@ typedef struct {
 
   unsigned int    *globalScaler;
   double          *globalScalerDouble;
+  int    *perSiteAAModel;
   int    *wgt;
  
   int    *rateCategory;
@@ -615,7 +619,7 @@ typedef struct {
   double *gapColumn;
 
   size_t initialGapVectorSize;
-
+  int    numberOfCategories;
 } pInfo;
 
 
@@ -690,10 +694,26 @@ typedef struct {
 } checkPointState;
 
 
+typedef struct {
+  double EIGN[19] __attribute__ ((aligned (BYTE_ALIGNMENT)));             
+  double EV[400] __attribute__ ((aligned (BYTE_ALIGNMENT)));                
+  double EI[380] __attribute__ ((aligned (BYTE_ALIGNMENT)));
+  double substRates[190];        
+  double frequencies[20] ;      
+  double tipVector[460] __attribute__ ((aligned (BYTE_ALIGNMENT)));
+  double fracchange[1];
+  double left[1600] __attribute__ ((aligned (BYTE_ALIGNMENT)));
+  double right[1600] __attribute__ ((aligned (BYTE_ALIGNMENT)));
+} siteAAModels;
+
 typedef  struct  {
   boolean useGappedImplementation;
   boolean saveMemory;
   
+  siteAAModels siteProtModel[2 * (NUM_PROT_MODELS - 2)];
+
+  boolean estimatePerSiteAA;
+
   int    *resample;
 
   int numberOfBranches;
@@ -701,15 +721,17 @@ typedef  struct  {
   int    *inserts;
   int    branchCounter;
 
+ 
+
 #if (defined(_USE_PTHREADS) || (_FINE_GRAIN_MPI))
   /*
     do we need this stuff ?
   */
   /*unsigned int **bitVectors;
     hashtable *h;*/
- 
+  boolean    manyPartitions;
     
-   
+  int *partitionAssignment;   
 
   double *temporaryVector;
   parsimonyVector *temporaryParsimonyVector;
@@ -730,9 +752,8 @@ typedef  struct  {
   double *contiguousWR2;
   
   
-  int *expArray;
-  unsigned char *y_ptr;
-  double *likelihoodArray;
+ 
+  unsigned char *y_ptr; 
  
   double *wrPtr;
   double *wr2Ptr;
@@ -869,8 +890,7 @@ typedef  struct  {
   int              numberOfSecondaryColumns;
   boolean          searchConvergenceCriterion;
   int              ntips;
-  int              nextnode;
-  int              NumberOfCategories;
+  int              nextnode;  
   int              NumberOfModels;
   int              parsimonyLength;
   
@@ -956,13 +976,17 @@ typedef  struct  {
   unsigned int vLength;
 
   hashtable *h;
-
-  int allCombinations;
+  
 
 } tree;
 
 
 /***************************************************************/
+
+typedef struct {
+  int partitionNumber;
+  int partitionLength;
+} partitionType;
 
 typedef struct
 {
@@ -1109,6 +1133,10 @@ typedef struct
 } partitionLengths;
 
 /****************************** FUNCTIONS ****************************************************/
+
+#if (defined(_USE_PTHREADS) || (_FINE_GRAIN_MPI))
+boolean isThisMyPartition(tree *localTree, int tid, int model, int numberOfThreads);
+#endif
 
 extern void computePlacementBias(tree *tr, analdef *adef);
 
@@ -1280,7 +1308,6 @@ extern double evaluateIterative(tree *, boolean writeVector);
 
 extern void *malloc_aligned( size_t size);
 
-extern void myPrintModelAssignment(tree *tr, int inccreased,  int run, int allIncreased);
 extern void myBinFwrite(const void *ptr, size_t size, size_t nmemb);
 extern void myBinFread(void *ptr, size_t size, size_t nmemb);
 
@@ -1376,7 +1403,7 @@ extern void computeRogueTaxaEPA(tree *tr);
 
 extern int *permutationSH(tree *tr, int nBootstrap, long _randomSeed);
 
-extern void updatePerSiteRates(tree *tr);
+extern void updatePerSiteRates(tree *tr, boolean scaleRates);
 
 extern void restart(tree *tr, analdef *adef);
 
@@ -1458,6 +1485,7 @@ extern void testInsertThoroughIterative(tree *tr, int branchNumber, boolean boot
 #define THREAD_PREPARE_BIPS_FOR_PRINT       39
 #define THREAD_MRE_COMPUTE                  40
 #define THREAD_BROADCAST_RATE               41
+#define THREAD_OPTIMIZE_PER_SITE_AA         42
 
 /*
 
@@ -1516,7 +1544,8 @@ void allocNodex(tree *tr, int tid, int n);
 #define THREAD_NEWVIEW_MASKED  10
 #define THREAD_OPT_ALPHA       11
 #define THREAD_COPY_ALPHA      12
-#define EXIT_GRACEFULLY        13
+#define THREAD_OPTIMIZE_PER_SITE_AA 13
+#define EXIT_GRACEFULLY        14
 
 
 
@@ -1539,5 +1568,29 @@ extern void startFineGrainMpi(tree *tr, analdef *adef);
 MPI_Datatype traversalDescriptor;
 MPI_Datatype jobDescriptor;
 
+
+#endif
+
+
+#ifdef __AVX
+void newviewGTRCAT_AVX(int tipCase,  double *EV,  int *cptr,
+			   double *x1_start, double *x2_start,  double *x3_start, double *tipVector,
+			   int *ex3, unsigned char *tipX1, unsigned char *tipX2,
+		       int n,  double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
+
+
+void newviewGenericCATPROT_AVX(int tipCase, double *extEV,
+			       int *cptr,
+			       double *x1, double *x2, double *x3, double *tipVector,
+			       int *ex3, unsigned char *tipX1, unsigned char *tipX2,
+			       int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
+
+
+void newviewGTRGAMMA_AVX(int tipCase,
+			 double *x1_start, double *x2_start, double *x3_start,
+			 double *EV, double *tipVector,
+			 int *ex3, unsigned char *tipX1, unsigned char *tipX2,
+			 const int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling
+			 );
 
 #endif
