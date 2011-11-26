@@ -46,6 +46,7 @@ public class FileLoader {
 			}
 			in.close();
 		} catch (Exception e) {
+			System.out.println("File " + file.getAbsolutePath() + "does not exist ...");
 			e.printStackTrace();
 		}
 	}
