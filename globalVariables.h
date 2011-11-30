@@ -73,6 +73,8 @@ char run_id[128] = "",
   secondaryStructureFileName[1024] = "",
   binaryCheckpointName[1024] = "",
   binaryCheckpointInputName[1024] = "";
+// [JH] file to write model test results to
+proteinModelInfoFile[1024] = "";
 
 char *protModels[NUM_PROT_MODELS] = {"DAYHOFF", "DCMUT", "JTT", "MTREV", "WAG", "RTREV", "CPREV", "VT", "BLOSUM62", "MTMAM", "LG", "MTART", "MTZOA", "PMB", 
 				     "HIVB", "HIVW", "JTTDCMUT", "FLU", "AUTO","GTR"};

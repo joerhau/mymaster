@@ -1,20 +1,19 @@
 package org.phymod.io;
 
-public class PartitionLoader extends FileLoader{
+public class PhylipPartitionLoader extends FileLoader{
 	public int nrPartitions;
 	public String[] names;
 	public String[] models;
 	public int[] start;
 	public int[] end;
 	
-	public PartitionLoader(String location) {
+	public PhylipPartitionLoader(String location) {
 		super(location);
-		super.open();
-		nrPartitions = l.size();
-		parse();
 	}
 	
-	private void parse() {
+	public void parse() {
+		super.open();
+		nrPartitions = l.size();
 		names = new String[nrPartitions];
 		models = new String[nrPartitions];
 		start = new int[nrPartitions];

@@ -4,12 +4,17 @@ public class AAModel {
 	private double[] f = new double[20];
 	private double[] daa = new double[400];
 	private double[][] q = new double[20][20];
-	private static double AA_SCALE = 10.0;
+	private static double AA_SCALE = 1.0;
 	public Models model;
 
 	public AAModel(String m) {
 		model = Models.valueOf(m);
 		initProtMat(m);
+	}
+	
+	public AAModel(Models m) {
+		model = m;
+		initProtMat(m.name());
 	}
 	
 	public static double dist(AAModel a, AAModel b) {
@@ -23,13 +28,13 @@ public class AAModel {
 	}
 	
 	public String toString() {
-		DecimalFormat dd = new DecimalFormat("#00.00");
+		DecimalFormat dd = new DecimalFormat("#0000.00");
 		DecimalFormat d = new DecimalFormat("#0.00");
 		String s = model.toString() + ":\n";
 			for(int i = 0; i < q.length - 1; i++) {
-				int j = 1;
+				int j = 0;
 				for(; j <= i; j++)
-					s += "          ";
+					s += "        ";
 				for(; j < q[i].length; j++)
 					s+= dd.format(q[i][j]) + " ";
 				s += "\n";
@@ -3932,8 +3937,8 @@ public class AAModel {
 				if (temp > max)
 					max = temp;
 			}
-
-		double scaler = AA_SCALE / max;
+		
+		double scaler = AA_SCALE / q[18][19];
 
 		/* SCALING HAS BEEN RE-INTRODUCED TO RESOLVE NUMERICAL PROBLEMS */
 

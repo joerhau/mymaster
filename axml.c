@@ -81,6 +81,25 @@
 /***************** UTILITY FUNCTIONS **************************/
 
 
+void myPrintModelAssignment(tree *tr, int increased, int run, int allIncreased) {
+//  FILE *f = myfopen(proteinModelInfoFile, "ab");
+//  int model = 0;
+//  fprintf(f, "%-5d", run);
+//  for (model = 0; model < tr->NumberOfModels; model++)
+//      fprintf(f, "%-10s%-17f", protModels[tr->partitionData[model].protModels], tr->perPartitionLH[model]);
+//
+//  if (increased)
+//      fprintf(f, "+LH %-20f", tr->likelihood);
+//  else
+//      fprintf(f,"-LH %-20f", tr->likelihood);
+//
+//  if (allIncreased)
+//      fprintf(f,"\t*");
+//  fprintf(f,"\n");
+//  fclose(f);
+}
+
+
 void myBinFwrite(const void *ptr, size_t size, size_t nmemb)
 { 
   size_t  
@@ -3560,6 +3579,8 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
   tr->useGappedImplementation = FALSE;
   tr->saveMemory = FALSE;
   tr->estimatePerSiteAA = FALSE;
+  // [JH]
+  tr->allCombinations = FALSE;
 
 #if (defined(_USE_PTHREADS) || (_FINE_GRAIN_MPI))
   tr->manyPartitions = FALSE;
@@ -3655,9 +3676,9 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 	errorExit(0);
      
 // [JH] temporarily added to switch between model search strategies
-		case 'l':
-			tr->allCombinations = 1;
-			break;
+	case 'l':
+		tr->allCombinations = TRUE;
+		break;
 
       case 'c':
 	sscanf(optarg, "%d", &adef->categories);
@@ -3923,6 +3944,9 @@ static void makeFileNames(void)
   strcat(lengthFileNameModel,  run_id);
   strcat(perSiteLLsFileName,   run_id);  
   strcat(binaryCheckpointName, run_id);
+  // [JH]
+  strcat(proteinModelInfoFile, run_id);
+
   
 
 #ifdef _WAYNE_MPI  

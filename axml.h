@@ -977,6 +977,8 @@ typedef  struct  {
 
   hashtable *h;
   
+  // [JH]
+  int allCombinations;
 
 } tree;
 

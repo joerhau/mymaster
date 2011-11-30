@@ -2517,41 +2517,28 @@ void init(tree *tr) {
 // exhaustively tests all possible model assignments
 void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, int *bestModels, linkageList *alphaList, FILE *f) {
 
-	int i, j, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 0;
+	int i, j, model, catOpt = 0, tmp, increased = 0, allIncreased = 0,
+			numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS - 2),
+			combinations = (int) pow(numberOfAvailableProteinModels, tr->NumberOfModels),
+			testSteps = (int *) malloc(tr->NumberOfModels * combinations * sizeof(int));
 
-	double bestLikelihood = unlikely, numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS - 2);
-		combinations = (int) pow(numberOfAvailableProteinModels, tr->NumberOfModels);
+	double bestLikelihood = unlikely,
+			testResults = (double *) malloc(tr->NumberOfModels * combinations * sizeof(double));
 
 	printf("Exhaustive search, number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels, combinations);
 
 	for (i = 0; i < combinations; i++) {
 //	for (i = 0; i < 1; i++) {
-		/* we loop over different assignments of models to partitions */
-		/* initially let's just set the branch lengths to their default values */
 		resetBranches(tr);
 		init(tr);
 
-//		tr->partitionData[0].protModels = 12;
-//		tr->partitionData[1].protModels = 10;
-//		tr->partitionData[2].protModels = 4;
-
-		// generating permutations one after an other
+		// update models
 		for (model = 0; model < tr->NumberOfModels; model++) {
-			/* and initialize the protein substitution model for this partition randomly */
 			tr->partitionData[model].protModels = (int) (fmod(i / pow(numberOfAvailableProteinModels, model), numberOfAvailableProteinModels));
-
-			/* here we then compute a eigenvector eigenvalue decomposition for the selected substitrution model */
-			/* this needs to be done every time we change the protein substitution model for a partition */
-			tr->partitionData[model].protFreqs = 0;
+			if(!adef->protEmpiricalFreqs)	tr->partitionData[model].protFreqs = 0;
 			initReversibleGTR(tr, adef, model);
-//			printf("model: %d\n", model);
-//			for(j = 0; j < 20; j++)
-//				printf("%f\n", tr->partitionData[model].frequencies[j]);
 		}
 
-		/* some parallel stuff, we need to make sure to broadcast
-		 the new model to partition assignment from the master
-		 to all worker processes, nothing to worry about */
 #ifdef _FINE_GRAIN_MPI
 		masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);
 #endif
@@ -2560,8 +2547,6 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, int *bes
 		masterBarrier(THREAD_COPY_INIT_MODEL, tr);
 #endif
 
-		/* now we just compute the likelihoo of the tree for the new model
-		 assignment using the default branch length and alpha parameter values */
 		evaluateGenericInitrav(tr, tr->start);
 		optimize(tr, alphaList);
 
@@ -2596,6 +2581,7 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, int *bes
 	}
 	printf("   %12f\n", bestLikelihood);
 
+	// create file containing the names of the best suiting models
 	FILE *opt = myfopen("linked.models", "w");
 	for (model = 0; model < tr->NumberOfModels; model++) {
 		fprintf(opt, "%s\n", protModels[bestModels[model]]);
@@ -2605,31 +2591,24 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, int *bes
 
 void unlinkedTest(tree *tr, analdef *adef, double *bestLikelihoods, int *bestModels, linkageList *alphaList, FILE *f) {
 
-	int i, model, catOpt = 0, tmp, combinations, numberOfAvailableProteinModels = NUM_PROT_MODELS - 2;
+	int i, model, catOpt = 0, tmp, combinations, numberOfAvailableProteinModels = NUM_PROT_MODELS - 2,
+			testSteps = (int *) malloc(tr->NumberOfModels * numberOfAvailableProteinModels * sizeof(int));
 
-	double bestLikelihood = unlikely;
+	double bestLikelihood = unlikely, testResults = (double *) malloc(tr->NumberOfModels * numberOfAvailableProteinModels * sizeof(double));
 
 	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels);
 
 	for (i = 0; i < numberOfAvailableProteinModels; i++) {
-		/* we loop over different assignments of models to partitions */
-		/* initially let's just set the branch lengths to their default values */
 		resetBranches(tr);
 		init(tr);
 
-		// generating permutations one after an other
+		// update models
 		for (model = 0; model < tr->NumberOfModels; model++) {
-			/* and initialize the protein substitution model for this partition randomly */
 			tr->partitionData[model].protModels = i;
-
-			/* here we then compute a eigenvector eigenvalue decomposition for the selected substitrution model */
-			/* this needs to be done every time we change the protein substitution model for a partition */
+			if(!adef->protEmpiricalFreqs)	tr->partitionData[model].protFreqs = 0;
 			initReversibleGTR(tr, adef, model);
 		}
 
-		/* some parallel stuff, we need to make sure to broadcast
-		 the new model to partition assignment from the master
-		 to all worker processes, nothing to worry about */
 #ifdef _FINE_GRAIN_MPI
 		masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);
 #endif
@@ -2638,8 +2617,6 @@ void unlinkedTest(tree *tr, analdef *adef, double *bestLikelihoods, int *bestMod
 		masterBarrier(THREAD_COPY_INIT_MODEL, tr);
 #endif
 
-		/* now we just compute the likelihood of the tree for the new model
-		 assignment using the default branch length and alpha parameter values */
 		evaluateGenericInitrav(tr, tr->start);
 		optimize(tr, alphaList);
 
@@ -2677,7 +2654,6 @@ void unlinkedTest(tree *tr, analdef *adef, double *bestLikelihoods, int *bestMod
 
 void modOptJoerg(tree *tr, analdef *adef) {
 	int modelsTested = 0, i, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 1,
-	// NumberOfModels is number of partitions, thus this reserves memory for the LH of each partition
 			*unlinked = (int *) malloc(sizeof(int) * tr->NumberOfModels),
 			*bestModels = (int *) malloc(sizeof(int) * tr->NumberOfModels);
 
@@ -2703,16 +2679,8 @@ void modOptJoerg(tree *tr, analdef *adef) {
 	 the recursion of the Felsenstein pruning algorithm */
 	tr->start = tr->nodep[1];
 
-//	display model order
-//	printf("Order of Models: ");
-//	for (i = 0; i < NUM_PROT_MODELS - 2; i++)
-//		printf("%s ", protModels[i]);
-//	printf("\n\n");
-
 	if(tr->multiBranch) printf("Per Partition Branch Lengths estimated ...\n");
 	else printf("Joint Branch Lengths estimates....\n");
-
-
 
 	/* start testing protein model assignments */
 	if (tr->allCombinations) {
@@ -2726,9 +2694,6 @@ void modOptJoerg(tree *tr, analdef *adef) {
 	fclose(f);
 	free(unlinked);
 	freeLinkageList(alphaList);
-
-	/* just exit and we are done :-) */
-//	exit(0);
 }
 
 #endif

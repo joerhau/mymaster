@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.util.LinkedList;
 
 public class FileLoader {
-
 	public LinkedList<String> l;
 	public File file;
 
@@ -32,11 +31,11 @@ public class FileLoader {
 			out.close();
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("Could nor open " + file.getAbsolutePath());
 		}
 	}
 
-	public void open() {
+	public LinkedList<String> open() {
 		try {
 		    BufferedReader in = new BufferedReader(new FileReader(file));
 		    l = new LinkedList<String>();
@@ -46,16 +45,13 @@ public class FileLoader {
 			}
 			in.close();
 		} catch (Exception e) {
-			System.out.println("File " + file.getAbsolutePath() + "does not exist ...");
-			e.printStackTrace();
+			System.out.println("Could not open " + file.getAbsolutePath());
 		}
-	}
-
-	public void append() {
-
+		
+		return l;
 	}
 	
-	public String get(int i) {
+	public String line(int i) {
 		return l.get(i);
 	}
 	
