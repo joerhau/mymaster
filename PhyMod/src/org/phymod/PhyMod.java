@@ -31,12 +31,14 @@ public class PhyMod {
 	 */
 	private static void parseArgs(String[] args) {
 		Command c ;
-		if(args[0].equalsIgnoreCase("--glue"))
+		if(args[0].equalsIgnoreCase("--glue") || args[0].equalsIgnoreCase("glue"))
 			c = Command.GLUE;
-		else if(args[0].equalsIgnoreCase("--assign"))
+		else if(args[0].equalsIgnoreCase("--assign") || args[0].equalsIgnoreCase("assign"))
 			c = Command.ASSIGN;
-		else if(args[0].equalsIgnoreCase("extract"))
+		else if(args[0].equalsIgnoreCase("--extract") || args[0].equalsIgnoreCase("extract"))
 			c=Command.EXTRACT;
+		else if(args[0].equalsIgnoreCase("--remove") || args[0].equalsIgnoreCase("remove"))
+			c=Command.REMOVE;
 		else
 			c = Command.valueOf(args[0]);
 		
@@ -59,6 +61,10 @@ public class PhyMod {
 			File f = new File(args[1]);
 			glue(f);
 		} break;
+		
+		case REMOVE: {
+			
+		} break;
 		default: {
 			System.out.println("Unknown Command passed");
 			System.exit(0);
@@ -78,7 +84,7 @@ public class PhyMod {
 		int[] r;
 		
 		Alignment phy = new PhylipLoader(args[args.length - 1], args[args.length - 2]).getAlignment();
-		String workdir = new File(args[args.length - 1]).getParentFile().getPath();
+		String workdir = new File(new File(args[args.length - 1]).getAbsolutePath()).getParent();
 		
 		for(int i = 1; i < args.length; i++) {
 			if(args[i].substring(0,1).equals("-")) {

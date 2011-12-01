@@ -72,7 +72,7 @@ char run_id[128] = "",
   proteinModelFileName[1024] = "",
   secondaryStructureFileName[1024] = "",
   binaryCheckpointName[1024] = "",
-  binaryCheckpointInputName[1024] = "";
+  binaryCheckpointInputName[1024] = "",
 // [JH] file to write model test results to
 proteinModelInfoFile[1024] = "";
 

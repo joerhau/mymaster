@@ -2519,11 +2519,11 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, int *bes
 
 	int i, j, model, catOpt = 0, tmp, increased = 0, allIncreased = 0,
 			numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS - 2),
-			combinations = (int) pow(numberOfAvailableProteinModels, tr->NumberOfModels),
-			testSteps = (int *) malloc(tr->NumberOfModels * combinations * sizeof(int));
+			combinations = (int) pow(numberOfAvailableProteinModels, tr->NumberOfModels);
+//			testSteps = (int *) malloc(tr->NumberOfModels * combinations * sizeof(int));
 
-	double bestLikelihood = unlikely,
-			testResults = (double *) malloc(tr->NumberOfModels * combinations * sizeof(double));
+	double bestLikelihood = unlikely;
+//			testResults = (double *) malloc(tr->NumberOfModels * combinations * sizeof(double));
 
 	printf("Exhaustive search, number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels, combinations);
 
@@ -2591,10 +2591,11 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, int *bes
 
 void unlinkedTest(tree *tr, analdef *adef, double *bestLikelihoods, int *bestModels, linkageList *alphaList, FILE *f) {
 
-	int i, model, catOpt = 0, tmp, combinations, numberOfAvailableProteinModels = NUM_PROT_MODELS - 2,
-			testSteps = (int *) malloc(tr->NumberOfModels * numberOfAvailableProteinModels * sizeof(int));
+	int i, model, catOpt = 0, tmp, combinations, numberOfAvailableProteinModels = NUM_PROT_MODELS - 2;
+//			testSteps = (int *) malloc(tr->NumberOfModels * numberOfAvailableProteinModels * sizeof(int));
 
-	double bestLikelihood = unlikely, testResults = (double *) malloc(tr->NumberOfModels * numberOfAvailableProteinModels * sizeof(double));
+	double bestLikelihood = unlikely;
+//	testResults = (double *) malloc(tr->NumberOfModels * numberOfAvailableProteinModels * sizeof(double));
 
 	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels);
 
