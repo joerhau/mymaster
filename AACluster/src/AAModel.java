@@ -4,7 +4,7 @@ public class AAModel {
 	private double[] f = new double[20];
 	private double[] daa = new double[400];
 	private double[][] q = new double[20][20];
-	private static double AA_SCALE = 1.0;
+	private static double AA_SCALE = 10;
 	public Models model;
 
 	public AAModel(String m) {
@@ -20,11 +20,137 @@ public class AAModel {
 	public static double dist(AAModel a, AAModel b) {
 		double ssum = 0;
 		for(int i = 0; i < a.q.length; i++) {
-			for(int j = 0; j < a.q[i].length; j++) {
+			for(int j = i + 1; j < a.q[i].length; j++) {
 				ssum += Math.pow(a.q[i][j] - b.q[i][j], 2);
 			}
 		}
 		return Math.sqrt(ssum);
+	}
+	
+	public AAModel scaleMax() {
+		return this.scaleMax(AA_SCALE);
+	}
+	
+	public AAModel scaleMax(double c) {
+		double max = 0;
+
+		if(AACluster.VVV) System.out.println(this.toString());
+		
+		for (int i = 0; i < 19; i++)
+			for (int j = i + 1; j < 20; j++)
+				if (this.q[i][j] > max)
+					max = this.q[i][j];
+		
+		double scaler =  AA_SCALE / max;
+		
+		for (int i = 0; i < 19; i++)
+			for (int j = i + 1; j < 20; j++)
+				this.q[i][j] *= scaler;
+		
+		if(AACluster.VVV) System.out.println(this.toString());
+		
+		return this;
+	}
+	
+        public AAModel scaleOneFLess() {
+                return this.scaleOneFLess(AA_SCALE);
+        }
+
+        public AAModel scaleOneFLess(double c) {
+                double qii[] = new double[f.length];
+                double scale = 0;
+
+                if(AACluster.VVV) System.out.println(this.toString());
+
+                for(int i = 0; i < f.length; i++) {
+                        for(int a = 0; a < i; a++)
+                                qii[i] += this.q[a][i];
+                        for(int a = i + 1; a < f.length; a++)
+                                qii[i] += this.q[i][a];
+
+                        qii[i] *= -1;
+                }
+
+                for (int i = 0; i < 20; i++) {
+                        scale += (1 / -qii[i]);
+                }
+
+                for (int i = 0; i < 20; i++)
+                        for (int j = 0; j < 20; j++)
+                                this.q[i][j] *= c * scale;
+
+                if(AACluster.VVV) System.out.println(this.toString());
+
+                return this;
+        }
+
+
+	public AAModel scaleOne() {
+		return this.scaleOne(AA_SCALE);
+	}
+	
+	public AAModel scaleOne(double c) {
+		double qii[] = new double[f.length];
+		double scale = 0;
+		
+		if(AACluster.VVV) System.out.println(this.toString());
+		
+		for(int i = 0; i < f.length; i++) {
+			for(int a = 0; a < i; a++)
+				qii[i] += this.q[a][i];
+			for(int a = i + 1; a < f.length; a++)
+				qii[i] += this.q[i][a];
+			
+			qii[i] *= -1;
+		}
+		
+		for (int i = 0; i < 20; i++) {
+			scale += (1 / -qii[i]) * this.f[i];
+		}
+		
+		for (int i = 0; i < 20; i++)
+			for (int j = 0; j < 20; j++)
+				this.q[i][j] *= c * scale;
+		
+		if(AACluster.VVV) System.out.println(this.toString());
+		
+		return this;
+	}
+	
+	public AAModel scaleOcc() {
+		return this.scaleOcc(AA_SCALE);
+	}
+	
+	public AAModel scaleOcc(double c) {
+		double sum[][] = new double[f.length][f.length];
+		
+		if(AACluster.VVV) System.out.println(this.toString());
+		
+		for (int i = 0; i < f.length; i++)
+			for(int j = 0; j < f.length; j++) {
+				sum[i][j] = 0;
+				for(int a = i + 1; a < f.length; a++)
+					sum[i][j] += this.q[i][a];
+				
+				for(int a = 0; a < i - 1; a++)
+					sum[i][j] += this.q[a][i];
+				
+				for(int a = j + 1; a < f.length; a++)
+					sum[i][j] += this.q[j][a];
+				
+				for(int a = 0; a < j - 1; a++)
+					sum[i][j] += this.q[a][j];
+				
+				sum[i][j] -= this.q[i][j];
+			}
+
+		for (int i = 0; i < 20; i++)
+			for (int j = 0; j < 20; j++)
+				this.q[i][j] = c * this.q[i][j] / sum[i][j];
+		
+		if(AACluster.VVV) System.out.println(this.toString());
+		
+		return this;
 	}
 	
 	public String toString() {
@@ -3929,25 +4055,10 @@ public class AAModel {
 			for (int j = 0; j < i; j++)
 				daa[j * 20 + i] = daa[i * 20 + j];
 
-		double max = 0, temp;
-
 		for (int i = 0; i < 19; i++)
-			for (int j = i + 1; j < 20; j++) {
-				q[i][j] = temp = daa[i * 20 + j];
-				if (temp > max)
-					max = temp;
-			}
+			for (int j = i + 1; j < 20; j++) 
+				q[i][j] = daa[i * 20 + j];
 		
-		double scaler = AA_SCALE / q[18][19];
-
-		/* SCALING HAS BEEN RE-INTRODUCED TO RESOLVE NUMERICAL PROBLEMS */
-
-		for (int i = 0; i < 19; i++) {
-			for (int j = i + 1; j < 20; j++) {
-
-				q[i][j] *= scaler;
-
-			}
-		}
+		if(AACluster.VVV) this.toString();
 	}
 }
