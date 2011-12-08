@@ -9,7 +9,7 @@ public class AACluster {
 	 * @param args none
 	 */
 	public static void main(String[] args) {
-		double[][] d1, d2, d3, d4;
+		double[][] d1, d2, d3;
 		AAModel a, b;
 		
 		if(VV) {
@@ -50,23 +50,15 @@ public class AACluster {
 			}
 		}
 	
-//		d4 = new double[m.length][m.length];
-//               for(int i = 0; i < m.length; i++) {
-//                        a = new AAModel(m[i]).scaleOneFLess(1);
-//                        for(int j = 0; j < m.length; j++) {
-//                                b = new AAModel(m[j]).scaleOneFLess(1);
-//                               d4[i][j] = AAModel.dist(a, b);
-//                        }
-//                }
-	
 		System.out.println("Scaled by maximum: ");
+		d1 = scaleByMax(d1, 100);
 		printDistMat(d1);
 		System.out.println("Scaled by number of occurence of AAs: ");
+		d2 = scaleByMax(d2, 100);
 		printDistMat(d2);
 		System.out.println("Scaled to one subst. per time step: ");
+		d3 = scaleByMax(d3, 100);
 		printDistMat(d3);
-//		System.out.println("Scaled to one disregarding AA Frequencies: ");
-//		printDistMat(d4);
 		
 //		System.out.println("DAYHOFF - DCMUT: " + AAModel.dist(new AAModel("DAYHOFF").scaleMax(), new AAModel("DCMUT").scaleMax()));
 //		System.out.println("JTT - JTTDCMUT: " + AAModel.dist(new AAModel("JTT").scaleMax(), new AAModel("JTTDCMUT").scaleMax()));
@@ -93,4 +85,38 @@ public class AACluster {
 		}
 		System.out.println(s);
 	}
+	
+	/**
+	 * scales all entries in mat so that there are only values between 0 and 1
+	 * 
+	 * @param mat
+	 * @return
+	 */
+	public static double[][] scaleByMax(double[][] mat, double scaler) {
+		double max = 0;
+		
+		for (int i = 0; i < mat.length; i++)
+			for (int j = 0; j < mat.length; j++)
+				if (mat[i][j] > max)
+					max = mat[i][j];
+		
+		double s =  scaler / max;
+		
+		for (int i = 0; i < mat.length; i++)
+			for (int j = 0; j < mat.length; j++)
+				mat[i][j] *= s;
+		return mat;
+	}
+	
+	public static double dist(double[][] a, double[][] b) {
+		double ssum = 0;
+		for(int i = 0; i < a.length; i++) {
+			for(int j = i + 1; j < a[i].length; j++) {
+				ssum += Math.pow(a[i][j] - b[i][j], 2);
+			}
+		}
+		return Math.sqrt(ssum);
+	}
+	
+
 }

@@ -26,7 +26,7 @@ public class AAModel {
 		}
 		return Math.sqrt(ssum);
 	}
-	
+		
 	public AAModel scaleMax() {
 		return this.scaleMax(AA_SCALE);
 	}

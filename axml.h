@@ -94,7 +94,7 @@
 
 #define badRear         -1
 
-#define NUM_BRANCHES     1
+#define NUM_BRANCHES     129
 
 #define TRUE             1
 #define FALSE            0
