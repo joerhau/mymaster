@@ -63,8 +63,8 @@ public class Alignment {
 		int start = 1;
 		
 		for(int j = 0; j < taxa.get(0).partitions.length; j++) {
-			int end = start + taxa.get(j).partitions[j].data.length() - 1;
-			s += taxa.get(j).partitions[j].model + ", " + taxa.get(j).partitions[j].name + " = " + start + "-" + end + "\n";
+			int end = start + taxa.get(0).partitions[j].data.length() - 1;
+			s += taxa.get(0).partitions[j].model + ", " + taxa.get(0).partitions[j].name + " = " + start + "-" + end + "\n";
 			start = end + 1;
 		}
 		return s;
