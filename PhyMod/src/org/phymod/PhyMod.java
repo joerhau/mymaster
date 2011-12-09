@@ -37,8 +37,6 @@ public class PhyMod {
 			c = Command.ASSIGN;
 		else if(args[0].equalsIgnoreCase("--extract") || args[0].equalsIgnoreCase("extract"))
 			c=Command.EXTRACT;
-		else if(args[0].equalsIgnoreCase("--remove") || args[0].equalsIgnoreCase("remove"))
-			c=Command.REMOVE;
 		else
 			c = Command.valueOf(args[0]);
 		
@@ -60,10 +58,6 @@ public class PhyMod {
 			}
 			File f = new File(args[1]);
 			glue(f);
-		} break;
-		
-		case REMOVE: {
-			
 		} break;
 		default: {
 			System.out.println("Unknown Command passed");
@@ -196,6 +190,8 @@ public class PhyMod {
 		System.out.println("\t\t\"-p 0,5,1\":\tPartitions 0, 5 and 1 will be included in output in exactly that order.\n");
 		System.out.println("\t-s\tSpecify number of Species to extract. Species will be randomly chosen");
 		System.out.println("\t\t\"-s scount\":\tNumber of Speciees.\n");
+		System.out.println("\t-r\tSpecify Partition to remove");
+		System.out.println("\t\t\"-r partition_number\":\tThis partition will be deleted from the input alignment.\n");
 		
 		System.out.println("\tGLUE <Folder>");
 		System.out.println("\tConcatenating all phy file within the given directory into a new large file.\n");

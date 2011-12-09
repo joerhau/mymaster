@@ -1,0 +1,93 @@
+********************************************************************************
+INDELible V1.03 by Will Fletcher : Simulation began at: Thu Dec  8 20:44:14 2011
+********************************************************************************
+  This dataset contains 12 partitions as follows:
+
+	Length	From	To	Model	Partition
+	100	1	100	m1	1
+	100	101	200	m2	2
+	100	201	300	m3	3
+	100	301	400	m4	4
+	100	401	500	m6	5
+	100	501	600	m7	6
+	100	601	700	m8	7
+	100	701	800	m9	8
+	100	801	900	m10	9
+	100	901	1000	m11	10
+	100	1001	1100	m12	11
+	100	1101	1200	m13	12
+
+  * Block 1 was completed in 1.25 seconds.
+
+********************************************************************************
+
+  * Simulation completed. Whole batch took: 1.26 seconds.
+
+INDELible V1.03 Simulations completed at: Thu Dec  8 20:44:16 2011
+
+********************************************************************************
+
+
+ Original Control File 
+
+-----------------------
+
+
+[TYPE] AMINOACID 1             
+
+// All 13 usable models
+[MODEL] m1                      
+  [submodel]    JTT
+[MODEL] m2                      
+  [submodel]    JTT-dcmut
+[MODEL] m3                      
+  [submodel]    Dayhoff
+[MODEL] m4                      
+  [submodel]    Dayhoff-dcmut
+[MODEL] m5                      
+  [submodel]    WAG
+[MODEL] m6                      
+  [submodel]    Blosum
+[MODEL] m7                      
+  [submodel]    LG
+[MODEL] m8
+  [submodel]    6
+[MODEL] m9
+  [submodel]    7
+[MODEL] m10
+  [submodel]    8
+[MODEL] m11
+  [submodel]    9
+[MODEL] m12
+  [submodel]    10
+[MODEL] m13
+  [submodel]    11
+  
+//This will generate a random tree, with seed 123456, note if you do not change the seed, the tree topolgy will always be the same, just the branch length will change. Decrease the "sample-rate " to get a more difficult tree. Note this tree will be write into a seperate file, you must open the file to copy and paste this tree out. You can also replace this part with your own tree.  
+[TREE]     t1   
+  [unrooted] 50 10 5 0.1 0.34  // ntaxa birth death sample-rate mut
+  [seed] 123456   
+
+[PARTITIONS] Pname1                 // Single partition
+  [t1 m5 1000]
+
+[PARTITIONS] Pname2                 // this block contains multiple partitions
+  [t1 m1 100]                       // tree t1, model m1, root length 100
+  [t1 m2 100]                       // tree t1, model m2, root length 200
+  [t1 m3 100]
+  [t1 m4 100]
+  [t1 m6 100]
+  [t1 m7 100]
+  [t1 m8 100]
+  [t1 m9 100]
+  [t1 m10 100]
+  [t1 m11 100]
+  [t1 m12 100]
+  [t1 m13 100]
+
+
+
+
+[EVOLVE]     
+  //Pname1  1  Sre1wag           // 1 replicates generated from partition Pname1
+  Pname2  1  Sre4           // 1 replicates generated from partition Pname2
