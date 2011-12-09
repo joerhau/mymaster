@@ -72,10 +72,11 @@ public class PhyMod {
 		boolean p = false;
 		boolean m = true;
 		boolean s = false;
+		boolean r = false;
 		int scount = 0;
 		String tmp = "";
 		String outfile = "";
-		int[] r;
+		int[] reduce, remove;
 		
 		Alignment phy = new PhylipLoader(args[args.length - 1], args[args.length - 2]).getAlignment();
 		String workdir = new File(new File(args[args.length - 1]).getAbsolutePath()).getParent();
@@ -97,6 +98,10 @@ public class PhyMod {
 					s = true;
 					scount = Integer.parseInt(args[++i]);
 				}
+				else if(args[i].substring(1,2).equals("r")) {
+					r = true;
+					tmp = args[++i];
+				}
 //				name given
 				else if(args[i].substring(1,2).equals("n")) outfile = args[++i];
 //				do until no duplicates and non-determined species
@@ -107,13 +112,30 @@ public class PhyMod {
 		// partitions to extract specified
 		if(p) {
 			String[] str = tmp.split(",");
-			r = new int[str.length];
+			reduce = new int[str.length];
 			for(int i = 0; i < str.length; i++)
 				if(str[i].replaceAll(",", "") != "")
-					r[i] = Integer.parseInt(str[i].replaceAll(",", ""));
+					reduce[i] = Integer.parseInt(str[i].replaceAll(",", ""));
 			
-			phy.reduceToPartitions(r);
+			phy.reduceToPartitions(reduce);
+		// remove the followong partitions
+		} else if (r) {
+			String[] str = tmp.split(",");
+			remove = new int[str.length];
+			for(int i = 0; i < str.length; i++)
+				if(str[i].replaceAll(",", "") != "")
+					remove[i] = Integer.parseInt(str[i].replaceAll(",", ""));
 			
+			reduce = new int[phy.nrPartitions - remove.length];
+			
+			for(int i = 0, j = 0; i < phy.nrPartitions; i++) {
+				if(!intArrayContains(remove, i)) {
+					reduce[j] = i;
+					j++;
+				}
+			}
+			
+			phy.reduceToPartitions(reduce);
 		// randomly extract some partitions
 		} else if (m) {
 			if(del && count > phy.nrPartitions) {
@@ -126,6 +148,13 @@ public class PhyMod {
 		if(s) phy.reduceToTaxa(Rand.createArray(scount, phy.taxa.size(), true));
 			
 		if(!outfile.equals("")) phy.toFile(workdir + "/" + outfile);
+	}
+	
+	private static boolean intArrayContains(int[] a, int c) {
+		boolean ret = false;
+		for(int i = 0; i < a.length; i++)
+			if(a[i] == c) ret = true;
+		return ret;
 	}
 	
 	private static void assign(String[] args) {
