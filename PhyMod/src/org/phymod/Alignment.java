@@ -1,26 +1,27 @@
 package org.phymod;
 
-import java.util.LinkedList;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.phymod.io.FileLoader;
 import org.phymod.tools.Rand;
 
 public class Alignment {
-	protected LinkedList<Taxa> taxa;
+	protected List<Taxa> taxa;
 	public int nrPartitions;
 	public int nrTaxa;
 	
 	public Alignment() { }
 	
 	public Alignment(Taxa[] s) {
-		taxa = new LinkedList<Taxa>();
+		taxa = new ArrayList<Taxa>();
 		for (int i = 0 ; i < s.length ; i++)
-			taxa.addLast(s[i]);
+			taxa.add(s[i]);
 		
 		update();
 	}
 	
-	public Alignment(LinkedList<Taxa> s) {
+	public Alignment(List<Taxa> s) {
 		taxa = s;
 		update();
 	}
@@ -30,7 +31,7 @@ public class Alignment {
 	 * @return this instance
 	 */
 	private Alignment update() {
-		nrPartitions = taxa.peekFirst().partitions.length;
+		nrPartitions = taxa.get(0).nrPartitions;
 		nrTaxa = taxa.size();
 		return this;
 	}
@@ -50,8 +51,8 @@ public class Alignment {
 		String s = " " + taxa.size() + " " + taxa.get(0).length + "\n";
 		for(int i = 0; i < taxa.size(); i++) {
 			s += taxa.get(i).name + " ";
-			for(int j = 0; j < taxa.get(0).partitions.length; j++) {
-				s += taxa.get(i).partitions[j].data;
+			for(int j = 0; j < taxa.get(0).nrPartitions; j++) {
+				s += taxa.get(i).getPartition(j).data;
 			}
 			s += "\n";
 		}
@@ -62,9 +63,9 @@ public class Alignment {
 		String s = "";
 		int start = 1;
 		
-		for(int j = 0; j < taxa.get(0).partitions.length; j++) {
-			int end = start + taxa.get(0).partitions[j].data.length() - 1;
-			s += taxa.get(0).partitions[j].model + ", " + taxa.get(0).partitions[j].name + " = " + start + "-" + end + "\n";
+		for(int j = 0; j < taxa.get(0).nrPartitions; j++) {
+			int end = start + taxa.get(0).getPartition(j).data.length() - 1;
+			s += taxa.get(0).getPartition(j).model + ", " + taxa.get(0).getPartition(j).name + " = " + start + "-" + end + "\n";
 			start = end + 1;
 		}
 		return s;
@@ -74,8 +75,8 @@ public class Alignment {
 		String s = "";
 		for(int i = 0; i < taxa.size(); i++) {
 			s += taxa.get(i).name + "\n";
-			for(int j = 0; j < taxa.get(i).partitions.length; j++) {
-				s += taxa.get(i).partitions[j].data + "\n";
+			for(int j = 0; j < taxa.get(i).nrPartitions; j++) {
+				s += taxa.get(i).getPartition(j).data + "\n";
 			}
 		}
 		return s;
@@ -88,9 +89,9 @@ public class Alignment {
 	 */
 	public Alignment reduceToTaxa(int[] t) {
 		System.out.println("Reducing number of taxa to " + t.length);
-		LinkedList<Taxa> tmp = new LinkedList<Taxa>();
+		List<Taxa> tmp = new ArrayList<Taxa>();
 		for(int i = 0; i < t.length; i++)
-			tmp.addLast(taxa.get(t[i]));
+			tmp.add(taxa.get(t[i]));
 		this.taxa = tmp;
 		
 		return this.update();
@@ -103,14 +104,14 @@ public class Alignment {
 	 */
 	public Alignment reduceToPartitions(int[] p) {
 		System.out.println("Reducing number of partitions to " + p.length);
-		LinkedList<Taxa> tmp = new LinkedList<Taxa>();
+		List<Taxa> tmp = new ArrayList<Taxa>();
 		
 		for(int j = 0; j < taxa.size(); j++) {
 			Partition[] parts = new Partition[p.length];
 			for(int i = 0; i < p.length; i++)
-				parts[i] = taxa.get(j).partitions[p[i]];
+				parts[i] = taxa.get(j).getPartition(p[i]);
 			
-			tmp.addLast(new Taxa(taxa.get(j).name, parts));
+			tmp.add(new Taxa(taxa.get(j).name, parts));
 		}
 		this.taxa = tmp;
 		return this.update();
@@ -135,7 +136,7 @@ public class Alignment {
 				String str = "";
 				
 				for(int i = 0; i < r.length; i++)
-					str += this.taxa.get(j).partitions[r[i]].data;
+					str += this.taxa.get(j).getPartition(r[i]).data;
 				
 				if(str.replaceAll("-", "").equals("") || str.replaceAll("X", "").equals("")) {
 					redo = true;
@@ -144,6 +145,40 @@ public class Alignment {
 			}
 		} while (del && redo);
 		
+		return this.reduceToPartitions(r);
+	}
+	
+	/**
+	 * extracts only the partitions with at least percentage p filled data for all the species.
+	 * 
+	 * @param p
+	 * @return
+	 */
+	public Alignment extractPercentage(int p) {
+		List<Integer> tmp = new ArrayList<Integer>();
+		
+		for(int i = 0; i < this.nrPartitions; i++) {
+			int count = 0;
+			
+			for(int j = 0; j < this.nrTaxa; j++) {
+				String str = this.taxa.get(j).getPartition(i).data;
+				
+				if(str.replaceAll("-", "").equals("") || str.replaceAll("X", "").equals(""))
+					count++;
+			}
+			if(count *100 / this.nrTaxa > p)
+				tmp.add(i);
+		}
+		
+		int[] r = new int[tmp.size()];
+		for(int i = 0; i < r.length; i++) 
+			r[i] = tmp.get(i);
+		
+		System.out.print("Extracting " + tmp.size() + " partitions (");
+		for(int i = 0; i < r.length; i++)
+			System.out.print(r[i] + " ");
+		System.out.print("), which arte filled for at least " + p + "% of the species.");
+
 		return this.reduceToPartitions(r);
 	}
 }

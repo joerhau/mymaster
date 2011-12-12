@@ -1,9 +1,18 @@
 package org.phymod;
 
+import java.util.List;
+import java.util.ArrayList;
+
 public class Taxa {
+	// name of this species
 	public String name;
-	public Partition[] partitions;
+	// partitions list
+//	private Partition[] partitions; 
+	private List<Partition> partitions;
+	// number of characters for this species
 	public int length;
+	// number of partitions available for this species
+	public int nrPartitions;
 	
 	/**
 	 * default constructor
@@ -11,7 +20,9 @@ public class Taxa {
 	 * @param partitions data assigned to this taxon
 	 */
 	public Taxa(String name, Partition[] partitions) {
-		this.partitions = partitions;
+		this.partitions = new ArrayList<Partition>(partitions.length);
+		for(int i = 0; i < partitions.length; i++)
+			this.partitions.add(partitions[i]);
 		this.name = name;
 		this.update();
 	}
@@ -22,9 +33,11 @@ public class Taxa {
 	 */
 	private Taxa update() {
 		int sum = 0;
-		for (int i = 0; i < partitions.length; i++)
-			sum += partitions[i].data.length();
+		for (int i = 0; i < partitions.size(); i++)
+			sum += partitions.get(i).data.length();
 		this.length = sum;
+		this.nrPartitions = partitions.size();
+		
 		return this;
 	}
 	
@@ -34,14 +47,17 @@ public class Taxa {
 	 * @return
 	 */
 	public Taxa addPartition(Partition part) {
-		Partition[] ps = new Partition[this.partitions.length + 1];
-		
-		for(int i=0; i < this.partitions.length; i++)
-			ps[i] = this.partitions[i];
-		ps[this.partitions.length] = part;
-		this.partitions = ps;
-		
+		this.partitions.add(part);
 		return this.update();
+	}
+	
+	public Taxa removePartition(int nr) {
+		this.partitions.remove(nr);
+		return this.update();
+	}
+	
+	public Partition getPartition(int nr) {
+		return partitions.get(nr);
 	}
 	
 	public String toString() {

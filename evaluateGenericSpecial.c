@@ -1232,6 +1232,15 @@ double evaluateIterative(tree *tr,  boolean writeVector)
 	  
 	  if(width > 0)
 	    {
+		  if(isnan(partitionLikelihood)) {
+				printf("\npartition: %d lh: %E\n", model, partitionLikelihood);
+				partitionLikelihood = -DBL_MAX;
+				printf("partition: %d lh: %E\n", model, partitionLikelihood);
+			}
+			if(!(partitionLikelihood < 0.0))
+				printf("partition: %d lh: %E\n", model, partitionLikelihood);
+
+
 	      assert(partitionLikelihood < 0.0);
 	  	     		      
 	      partitionLikelihood += (tr->partitionData[model].globalScaler[pNumber] + tr->partitionData[model].globalScaler[qNumber]) * LOG(minlikelihood);

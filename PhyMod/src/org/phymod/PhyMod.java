@@ -3,7 +3,8 @@ package org.phymod;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.comparator.NameFileComparator;
 
@@ -38,7 +39,7 @@ public class PhyMod {
 		else if(args[0].equalsIgnoreCase("--extract") || args[0].equalsIgnoreCase("extract"))
 			c=Command.EXTRACT;
 		else
-			c = Command.valueOf(args[0]);
+			c = Command.EXTRACT;
 		
 		switch(c) {
 		case EXTRACT: extract(args); break;
@@ -65,14 +66,15 @@ public class PhyMod {
 		}
 		}
 	}
-	
+
 	private static void extract(String[] args) {
 		boolean del = false;
 		int count = 0;
 		boolean p = false;
-		boolean m = true;
+		boolean m = false;
 		boolean s = false;
 		boolean r = false;
+		boolean f = false;
 		int scount = 0;
 		String tmp = "";
 		String outfile = "";
@@ -82,7 +84,7 @@ public class PhyMod {
 		String workdir = new File(new File(args[args.length - 1]).getAbsolutePath()).getParent();
 		
 		for(int i = 1; i < args.length; i++) {
-			if(args[i].substring(0,1).equals("-")) {
+			if(args[i].substring(0,1).equals("-")) { 
 //				choose random partitions
 				if(args[i].substring(1,2).equals("m")) {
 					count = Integer.parseInt(args[++i]);
@@ -102,6 +104,10 @@ public class PhyMod {
 					r = true;
 					tmp = args[++i];
 				}
+				else if(args[i].substring(1,2).equals("f")) {
+					f = true;
+					tmp = args[++i];
+				}
 //				name given
 				else if(args[i].substring(1,2).equals("n")) outfile = args[++i];
 //				do until no duplicates and non-determined species
@@ -118,43 +124,31 @@ public class PhyMod {
 					reduce[i] = Integer.parseInt(str[i].replaceAll(",", ""));
 			
 			phy.reduceToPartitions(reduce);
-		// remove the followong partitions
+		// remove given partitions
 		} else if (r) {
 			String[] str = tmp.split(",");
 			remove = new int[str.length];
+			
 			for(int i = 0; i < str.length; i++)
 				if(str[i].replaceAll(",", "") != "")
 					remove[i] = Integer.parseInt(str[i].replaceAll(",", ""));
 			
-			reduce = new int[phy.nrPartitions - remove.length];
-			
-			for(int i = 0, j = 0; i < phy.nrPartitions; i++) {
-				if(!intArrayContains(remove, i)) {
-					reduce[j] = i;
-					j++;
-				}
-			}
-			
-			phy.reduceToPartitions(reduce);
-		// randomly extract some partitions
+			for(int i = 0; i < remove.length; i++)
+				for(int j = 0; j < phy.nrTaxa; j++)
+					phy.taxa.get(j).removePartition(i);
 		} else if (m) {
 			if(del && count > phy.nrPartitions) {
 				System.out.println("Number of partitions to extract is larger than available ones. \"-d\" would result in an infinite Loop. Thus we exit here...");
 				System.exit(0);
 			}
 			phy.extractRand(count, del);
-		} 
+		} else if (f) {
+			phy.extractPercentage(Integer.parseInt(tmp));
+		}
 		
 		if(s) phy.reduceToTaxa(Rand.createArray(scount, phy.taxa.size(), true));
 			
 		if(!outfile.equals("")) phy.toFile(workdir + "/" + outfile);
-	}
-	
-	private static boolean intArrayContains(int[] a, int c) {
-		boolean ret = false;
-		for(int i = 0; i < a.length; i++)
-			if(a[i] == c) ret = true;
-		return ret;
 	}
 	
 	private static void assign(String[] args) {
@@ -180,7 +174,7 @@ public class PhyMod {
 		
 		int lastDot = files[0].getAbsolutePath().lastIndexOf(".");
 		toGlue[0] = new PhylipLoader(files[0].getAbsolutePath(), files[0].getAbsolutePath().substring(0, lastDot) + ".part").getAlignment();
-		LinkedList<Taxa> spec = new LinkedList<Taxa>();
+		List<Taxa> spec = new ArrayList<Taxa>();
 		
 		for(int j = 0; j < toGlue[0].taxa.size(); j++) 
 			spec.add(j, toGlue[0].taxa.get(j));
@@ -191,7 +185,7 @@ public class PhyMod {
 			toGlue[i] = new PhylipLoader(files[i].getAbsolutePath(), files[i].getAbsolutePath().substring(0, lastDot) + ".part").getAlignment();
 			
 				for(int j = 0; j < toGlue[i].taxa.size(); j++) 
-					spec.get(j).addPartition(toGlue[i].taxa.get(j).partitions[0]);
+					spec.get(j).addPartition(toGlue[i].taxa.get(j).getPartition(0));
 			}
 		}
 		
@@ -209,18 +203,20 @@ public class PhyMod {
 		System.out.println("\tEXTRACT <Partitionfile> <Phylipfile>");
 		System.out.println("\textracting specified part of the alignment");
 		System.out.println("\t-m\tRandomly extract some of the partitions included in PHYLIPFILE");
-		System.out.println("\t\t\"-m count\":\tNumber of Partitions to extract");
-		System.out.println("\t\t\t\tif (count > #partitions in PHYLIPFILE) some partitions may occure more than once)\n");
+		System.out.println("\t\t\"-m count\": Number of Partitions to extract");
+		System.out.println("\t\tif (count > #partitions in PHYLIPFILE) some partitions may occure more than once)\n");
 		System.out.println("\t-d\tFind combination, so that (1) there are no duplicates and (2) there are no");
 		System.out.println("\t\tundetermined species.\n");
 		System.out.println("\t-n\tSpecify names of outputfiles.");
-		System.out.println("\t\t\"-n test\":\tOutput will be written to \"test.phy\" and \"test.part\".\n");
+		System.out.println("\t\t\"-n test\": Output will be written to \"test.phy\" and \"test.part\".\n");
 		System.out.println("\t-p\tSpecify partitions to extract.");
-		System.out.println("\t\t\"-p 0,5,1\":\tPartitions 0, 5 and 1 will be included in output in exactly that order.\n");
+		System.out.println("\t\t\"-p 0,5,1\": Partitions 0, 5 and 1 will be included in output in exactly that order.\n");
 		System.out.println("\t-s\tSpecify number of Species to extract. Species will be randomly chosen");
-		System.out.println("\t\t\"-s scount\":\tNumber of Speciees.\n");
+		System.out.println("\t\t\"-s scount\": Number of Speciees.\n");
 		System.out.println("\t-r\tSpecify Partition to remove");
-		System.out.println("\t\t\"-r partition_number\":\tThis partition will be deleted from the input alignment.\n");
+		System.out.println("\t\t\"-r partition_number\": This partition will be deleted from the input alignment.\n");
+		System.out.println("\t-f\tSpecify filling degree");
+		System.out.println("\t\t\"-f percentage\": of species which have to be filled with data for each partition.\n");
 		
 		System.out.println("\tGLUE <Folder>");
 		System.out.println("\tConcatenating all phy file within the given directory into a new large file.\n");

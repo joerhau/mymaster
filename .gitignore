@@ -1,7 +1,4 @@
-/interesting_Stuff.txt
-/scripted.sh
 *.o
 raxmlLight-PTHREADS
-/raxmlLight
-oldCode.c
+raxmlLight
 *.swp
