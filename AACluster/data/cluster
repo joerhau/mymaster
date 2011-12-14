@@ -1,0 +1,10 @@
+#!/bin/bash
+m=(aac max oneF)
+for t in "${m[@]}"
+do
+	echo $t
+	Rscript cluster.R $t.txt
+#	name=`echo $1 | sed 's/\(.*\)\..*/\1/'`
+	mv -f Rplots.pdf $t.pdf
+	xpdf $t.pdf &
+done

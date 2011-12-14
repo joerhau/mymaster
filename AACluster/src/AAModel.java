@@ -5,15 +5,15 @@ public class AAModel {
 	private double[] daa = new double[400];
 	private double[][] q = new double[20][20];
 	private static double AA_SCALE = 10;
-	public Models model;
-
+	public String name;
+	
+	
 	public AAModel(String m) {
-		model = Models.valueOf(m);
-		initProtMat(m);
+		name = m;
 	}
 	
 	public AAModel(Models m) {
-		model = m;
+		name = m.toString();
 		initProtMat(m.name());
 	}
 	
@@ -25,6 +25,56 @@ public class AAModel {
 			}
 		}
 		return Math.sqrt(ssum);
+	}
+	
+	/**
+	 * averages the models given in m
+	 * @param m
+	 * @return
+	 */
+	public static AAModel getRepresentative(AAModel[] models, String name) {
+		double ssum = 0;
+		AAModel rep = new AAModel(name);
+
+		for(int i = 0; i < models[0].q.length; i++) {
+			for(int j = i + 1; j < models[0].q[i].length; j++) {
+				ssum = 0;
+				for(int m = 0; m < models.length; m++)
+				ssum += models[m].q[i][j];
+				
+				rep.q[i][j] = ssum / models.length;
+			}
+		}
+		
+		for(int i = 0; i < rep.f.length; i++) {
+			rep.f[i] = (1.0 / rep.f.length);
+		}
+		
+		return rep;
+	}
+	
+	public static AAModel getRepresentative(AAModel[] models) {
+			return getRepresentative(models, "Repr.");
+	}
+	
+	/**
+	 * implements the relative distance as proposed by the flu paper
+	 * (a_{ij}-b_{ij})/(a_{ij}-b_{ij})
+	 * 
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public static double relDist(AAModel a, AAModel b) {
+		double ssum = 0;
+		int count = 0;
+		for(int i = 0; i < a.q.length; i++) {
+			for(int j = i + 1; j < a.q[i].length; j++) {
+				ssum += (a.q[i][j] - b.q[i][j])/(a.q[i][j] + b.q[i][j]);
+				count++;
+			}
+		}
+		return ssum / count;
 	}
 		
 	public AAModel scaleMax() {
@@ -156,7 +206,7 @@ public class AAModel {
 	public String toString() {
 		DecimalFormat dd = new DecimalFormat("#0000.00");
 		DecimalFormat d = new DecimalFormat("#0.00");
-		String s = model.toString() + ":\n";
+		String s = name + ":\n";
 			for(int i = 0; i < q.length - 1; i++) {
 				int j = 0;
 				for(; j <= i; j++)
