@@ -95,7 +95,7 @@
 
 #define badRear         -1
 
-#define NUM_BRANCHES     129
+#define NUM_BRANCHES     2
 
 #define TRUE             1
 #define FALSE            0
@@ -345,6 +345,31 @@ typedef struct {
   int tree;
   double weight;
 } elw;
+
+
+
+
+//[JH] stores the results for one model assignment
+// TODO remove nrModels
+typedef struct {
+	int nrModels;
+	double overallLH;
+	int* partitionModel;
+	double* partitionLH;
+} assignment;
+
+//[JH] contains all intermediate results of a model search
+// TODO include result here
+typedef struct {
+	char *method;
+	int nrRuns;
+//	int nrModels;
+	assignment* run;   // malloc(sizeof(assignment) + nrRuns * tr->NumberOfModels * (sizeof(double) + sizeof(int)))
+//	assignment result;
+} mtest;
+
+
+
 
 struct ent
 {
@@ -1182,6 +1207,11 @@ extern void hookup ( nodeptr p, nodeptr q, double *z, int numBranches);
 extern void hookupDefault ( nodeptr p, nodeptr q, int numBranches);
 extern boolean whitechar ( int ch );
 extern void errorExit ( int e );
+//[JH]
+//extern void printBest(assignment *opt);
+//// print stepwise modeltest
+//extern void printModelTest(mtest *r);
+
 extern void printResult ( tree *tr, analdef *adef, boolean finalPrint );
 extern void printBootstrapResult ( tree *tr, analdef *adef, boolean finalPrint );
 extern void printBipartitionResult ( tree *tr, analdef *adef, boolean finalPrint );

@@ -4260,6 +4260,59 @@ static void printModelAndProgramInfo(tree *tr, analdef *adef, int argc, char *ar
     }
 }
 
+
+//// [JH] print model test information to file
+////print best model assignment
+//void printBest(assignment *opt) {
+//	int model;
+//
+//	printf("best Assignment: \n");
+//	for (model = 0; model < opt->nrModels; model++) {;
+//		printf("%10s %12f ", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
+//	}
+//	printf("   %12f\n", opt->overallLH);
+//
+//	// create file containing the names of the best suiting models
+//	FILE *o = myfopen("linked.models", "w");
+//	for (model = 0; model < opt->nrModels; model++) {
+//		fprintf(o, "%s\n", protModels[opt->partitionModel[model]]);
+//	}
+//	fclose(o);
+//}
+//
+//// print stepwise modeltest
+//void printModelTest(mtest *r) {
+//	int model, i;
+//	double *bestLikelihoods = (double *) malloc(r->run[0].nrModels * sizeof(double)),
+//			bestLH = unlikely;
+//	FILE *f = myfopen("RAxML_modelAssignment", "w");
+//
+//	for(model = 0; model < r->run[0].nrModels; model++)
+//		bestLikelihoods[model] = unlikely;
+//
+//
+//	// print modeltest stepwise
+//	for(i = 0; i < r->nrRuns; i++) {
+//		for (model = 0; model < r->run[0].nrModels; model++) {
+//			fprintf(f, "%10s %12f", protModels[r->run[i].partitionModel[model]], r->run[i].partitionLH[model]);
+//			if (r->run[i].partitionLH[model] > bestLikelihoods[model]) {
+//				bestLikelihoods[model] = r->run[i].partitionLH[model];
+//				fprintf(f, "+");
+//			} else fprintf(f, " ");
+//		}
+//
+//		fprintf(f, "   %12f", r->run[i].overallLH);
+//
+//		if (r->run[i].overallLH > bestLH) {
+//			bestLH = r->run[i].overallLH;
+//			fprintf(f, "+\n");
+//		} else fprintf(f, " \n");
+//	}
+//
+//	fclose(f);
+//	free(bestLikelihoods);
+//}
+
 void printResult(tree *tr, analdef *adef, boolean finalPrint)
 {
   FILE *logFile;
@@ -6234,7 +6287,7 @@ int main (int argc, char *argv[])
 
       printModelAndProgramInfo(tr, adef, argc, argv);
 
-      printBothOpen("Memory Saving Option: %s\n", (tr->saveMemory == TRUE)?"ENABLED":"DISABLED");   	             
+      printBothOpen("Memory Saving Option: %s\n", (tr->saveMemory == TRUE)?"ENABLED":"DISABLED");
 
       initModel(tr, rdta, cdta, adef);                      
 
@@ -6246,6 +6299,7 @@ int main (int argc, char *argv[])
       
       if(adef->useCheckpoint)
 	{
+
 #ifdef _JOERG
 	  /* this is for a checkpoint-based restart, we don't need this here 
 	     so we will just exit gracefully */
@@ -6260,8 +6314,8 @@ int main (int argc, char *argv[])
       else
 	{
 	  accumulatedTime = 0.0;
-	 
 	  getStartingTree(tr, adef);     
+
 #ifdef _JOERG		  
 	  /* 
 	     at this point the code has parsed the input alignment 
@@ -6270,7 +6324,6 @@ int main (int argc, char *argv[])
 	     This function will never return, hence, you don't need to worry 
 	     about the rest of the code below modOptJoerg().
 	  */
-	  
 	  modOptJoerg(tr, adef);
 #else
 	  evaluateGenericInitrav(tr, tr->start);	 

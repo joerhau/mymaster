@@ -2515,26 +2515,30 @@ void init(tree *tr) {
 
 
 // exhaustively tests all possible model assignments
-void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, int *bestModels, linkageList *alphaList, FILE *f) {
+// TODO add return value pointer to testdata
+void linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList, mtest *test, assignment *result) {
 
-	int i, j, model, catOpt = 0, tmp, increased = 0, allIncreased = 0,
-			numberOfAvailableProteinModels = (double) (NUM_PROT_MODELS - 2),
-			combinations = (int) pow(numberOfAvailableProteinModels, tr->NumberOfModels);
-//			testSteps = (int *) malloc(tr->NumberOfModels * combinations * sizeof(int));
+	int i, j, model, catOpt = 0, tmp, increased = 0, allIncreased = 0, nrAAModels = NUM_PROT_MODELS - 2,
+			*bestModels = (int *) malloc(tr->NumberOfModels * sizeof(int)), *partModels;
 
-	double bestLikelihood = unlikely;
-//			testResults = (double *) malloc(tr->NumberOfModels * combinations * sizeof(double));
+	double *bestLH = (double *) malloc(tr->NumberOfModels * sizeof(double)), *partLH, best = unlikely;
 
-	printf("Exhaustive search, number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels, combinations);
+	test->run = (assignment *)  malloc(sizeof(assignment) * pow(nrAAModels, tr->NumberOfModels));
+	test->nrRuns = (int) pow(nrAAModels, tr->NumberOfModels);
+	result->overallLH = unlikely; result->nrModels = tr->NumberOfModels;
 
-	for (i = 0; i < combinations; i++) {
-//	for (i = 0; i < 1; i++) {
+	printf("Exhaustive search, number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, nrAAModels, test->nrRuns);
+
+	for (i = 0; i < test->nrRuns; i++) {
+		partLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
+		partModels = (int *) malloc(tr->NumberOfModels * sizeof(int));
+
 		resetBranches(tr);
 		init(tr);
 
 		// update models
 		for (model = 0; model < tr->NumberOfModels; model++) {
-			tr->partitionData[model].protModels = (int) (fmod(i / pow(numberOfAvailableProteinModels, model), numberOfAvailableProteinModels));
+			tr->partitionData[model].protModels = (int) (fmod(i / pow(nrAAModels, model), nrAAModels));
 			if(!adef->protEmpiricalFreqs)	tr->partitionData[model].protFreqs = 0;
 			initReversibleGTR(tr, adef, model);
 		}
@@ -2551,55 +2555,48 @@ void linkedExhaustive(tree *tr, analdef *adef, double *bestLikelihoods, int *bes
 		optimize(tr, alphaList);
 
 		for (model = 0; model < tr->NumberOfModels; model++) {
-			fprintf(f, "%10s %12f", protModels[tr->partitionData[model].protModels], tr->perPartitionLH[model]);
-			if (tr->perPartitionLH[model] > bestLikelihoods[model]) {
-				fprintf(f, "+");
-			} else fprintf(f, " ");
+			partLH[model] = tr->perPartitionLH[model];
+			partModels[model] = tr->partitionData[model].protModels;
 		}
 
-		fprintf(f, "   %12f", tr->likelihood);
-
-		if(tr->likelihood > bestLikelihood) {
-			for(model = 0; model < tr->NumberOfModels; model++) {
-				bestLikelihoods[model] = tr->perPartitionLH[model];
+		if(tr->likelihood > best) {
+			for (model = 0; model < tr->NumberOfModels; model++) {
+				best = tr->likelihood;
+				bestLH[model] = tr->perPartitionLH[model];
 				bestModels[model] = tr->partitionData[model].protModels;
 			}
 		}
 
-		//	likelihood has increased with current assignment, do some stuff to remember
-		if (tr->likelihood > bestLikelihood) {
-			bestLikelihood = tr->likelihood;
-			fprintf(f, "+\n");
-		} else fprintf(f, " \n");
+		test->run[i].partitionLH = partLH;
+		test->run[i].partitionModel = partModels;
+		test->run[i].nrModels = tr->NumberOfModels; test->run[i].overallLH = tr->likelihood;
 	}
-
-	bestLikelihood = 0;
-	printf("best Assignment: \n");
-	for (model = 0; model < tr->NumberOfModels; model++) {
-		bestLikelihood += bestLikelihoods[model];
-		printf("%10s %12f ", protModels[bestModels[model]], bestLikelihoods[model]);
-	}
-	printf("   %12f\n", bestLikelihood);
-
-	// create file containing the names of the best suiting models
-	FILE *opt = myfopen("linked.models", "w");
-	for (model = 0; model < tr->NumberOfModels; model++) {
-		fprintf(opt, "%s\n", protModels[bestModels[model]]);
-	}
-	fclose(opt);
+	result->overallLH = best;
+	result->partitionLH = bestLH;
+	result->partitionModel = bestModels;
 }
 
-void unlinkedTest(tree *tr, analdef *adef, double *bestLikelihoods, int *bestModels, linkageList *alphaList, FILE *f) {
+// TODO add return value pointer to testdata
+void simple(tree *tr, analdef *adef, linkageList *alphaList, mtest *test, assignment *result) {
 
-	int i, model, catOpt = 0, tmp, combinations, numberOfAvailableProteinModels = NUM_PROT_MODELS - 2;
-//			testSteps = (int *) malloc(tr->NumberOfModels * numberOfAvailableProteinModels * sizeof(int));
+	int i, model, nrAAModels = NUM_PROT_MODELS - 2,
+			*bestModels = (int *) malloc(tr->NumberOfModels * sizeof(int)), *partModels;
 
-	double bestLikelihood = unlikely;
-//	testResults = (double *) malloc(tr->NumberOfModels * numberOfAvailableProteinModels * sizeof(double));
+	double *bestLH = (double *) malloc(tr->NumberOfModels * sizeof(double)), *partLH, LH;
 
-	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) numberOfAvailableProteinModels);
+	test->run = (assignment *)  malloc(sizeof(assignment) * nrAAModels);
+	test->nrRuns = nrAAModels;
+	result->overallLH = 0; result->nrModels = tr->NumberOfModels;
 
-	for (i = 0; i < numberOfAvailableProteinModels; i++) {
+	for(model = 0; model < tr->NumberOfModels; model++)
+		bestLH[model] = unlikely;
+
+//	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) nrAAModels);
+
+	for (i = 0; i < nrAAModels; i++) {
+		partLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
+		partModels = (int *) malloc(tr->NumberOfModels * sizeof(int));
+
 		resetBranches(tr);
 		init(tr);
 
@@ -2621,36 +2618,80 @@ void unlinkedTest(tree *tr, analdef *adef, double *bestLikelihoods, int *bestMod
 		evaluateGenericInitrav(tr, tr->start);
 		optimize(tr, alphaList);
 
+		LH = 0;
+
 		for (model = 0; model < tr->NumberOfModels; model++) {
-			fprintf(f, "%10s %12f", protModels[tr->partitionData[model].protModels], tr->perPartitionLH[model]);
-			if (tr->perPartitionLH[model] > bestLikelihoods[model]) {
-				fprintf(f, "+");
-				bestLikelihoods[model] = tr->perPartitionLH[model];
+			partLH[model] = tr->perPartitionLH[model];
+			partModels[model] = i;
+			LH += partLH[model];
+
+			if (tr->perPartitionLH[model] > bestLH[model]) {
+				bestLH[model] = tr->perPartitionLH[model];
 				bestModels[model] = tr->partitionData[model].protModels;
-			} else fprintf(f, " ");
+			}
 		}
-		fprintf(f, "   %12f", tr->likelihood);
-		//		likelihood has increased with current assignment, do some stuff to remember
-		if (tr->likelihood > bestLikelihood) {
-			bestLikelihood = tr->likelihood;
-			fprintf(f, "+\n");
-		} else fprintf(f, " \n");
+
+		test->run[i].partitionLH = partLH;
+		test->run[i].partitionModel = partModels;
+		test->run[i].nrModels = tr->NumberOfModels; test->run[i].overallLH = LH;
 	}
 
-	bestLikelihood = 0;
 
-	printf("best Assignment: \n");
-	for (model = 0; model < tr->NumberOfModels; model++) {
-		bestLikelihood += bestLikelihoods[model];
-		printf("%10s %12f ", protModels[bestModels[model]], bestLikelihoods[model]);
-	}
-	printf("   %12f\n", bestLikelihood);
+	result->partitionLH = bestLH;
+	result->partitionModel = bestModels;
 
-	FILE *opt = myfopen("unlinked.models", "w");
-	for (model = 0; model < tr->NumberOfModels; model++) {
-		fprintf(opt, "%s\n", protModels[bestModels[model]]);
+	for (model = 0; model < tr->NumberOfModels; model++)
+		result->overallLH += result->partitionLH[model];
+}
+
+// [JH] print model test information to file
+//print best model assignment
+void printAssignment(assignment *opt) {
+	int model;
+
+	printf("best Assignment for %d models: \n", opt->nrModels);
+	for (model = 0; model < opt->nrModels; model++) {;
+		printf("%10s %12f ", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
 	}
-	fclose(opt);
+	printf("   %12f\n", opt->overallLH);
+
+	// create file containing the names of the best suiting models
+	FILE *o = myfopen("linked.models", "w");
+	for (model = 0; model < opt->nrModels; model++) {
+		fprintf(o, "%s\n", protModels[opt->partitionModel[model]]);
+	}
+	fclose(o);
+}
+
+// print stepwise modeltest
+void printModelTest(mtest *r) {
+	int model, i;
+	double *bestLikelihoods = (double *) malloc(r->run[0].nrModels * sizeof(double)),
+			bestLH = unlikely;
+
+	for(model = 0; model < r->run[0].nrModels; model++)
+		bestLikelihoods[model] = unlikely;
+
+	printf("%d combinations tested on %d partitions\n", r->nrRuns, r->run[0].nrModels);
+	// print modeltest stepwise
+	for(i = 0; i < r->nrRuns; i++) {
+		for (model = 0; model < r->run[0].nrModels; model++) {
+			printf("%10s %12f", protModels[r->run[i].partitionModel[model]], r->run[i].partitionLH[model]);
+			if (r->run[i].partitionLH[model] > bestLikelihoods[model]) {
+				bestLikelihoods[model] = r->run[i].partitionLH[model];
+				printf("+");
+			} else printf(" ");
+		}
+
+		printf("   %12f", r->run[i].overallLH);
+
+		if (r->run[i].overallLH > bestLH) {
+			bestLH = r->run[i].overallLH;
+			printf("+\n");
+		} else printf(" \n");
+	}
+
+	free(bestLikelihoods);
 }
 
 void modOptJoerg(tree *tr, analdef *adef) {
@@ -2660,9 +2701,13 @@ void modOptJoerg(tree *tr, analdef *adef) {
 
 	double *bestLikelihoods = (double*) malloc(sizeof(double) * tr->NumberOfModels);
 
+	mtest *simpl = malloc(sizeof(mtest));
+	mtest *exhaustive = malloc(sizeof(mtest));
+
+	assignment *start = malloc(sizeof(assignment));
+
 	linkageList *alphaList;
 
-	FILE *f = myfopen("RAxML_modelAssignment", "w");
 
 	for (i = 0; i < tr->NumberOfModels; i++) {
 		/* this unlinked thing here just tells RAxML that the other relevant model
@@ -2680,20 +2725,34 @@ void modOptJoerg(tree *tr, analdef *adef) {
 	 the recursion of the Felsenstein pruning algorithm */
 	tr->start = tr->nodep[1];
 
-	if(tr->multiBranch) printf("Per Partition Branch Lengths estimated ...\n");
-	else printf("Joint Branch Lengths estimates....\n");
+	// simple heuristic test, to compute a start assignment
+//	printf("%d partitions, unlinked\n", tr->NumberOfModels);
+//	simple(tr, adef, alphaList, simpl, start);
+
+	printf("%d partitions, exahsutively\n", tr->NumberOfModels);
+	linkedExhaustive(tr, adef, alphaList, simpl, start);
+
+
+//	printf("best Assignment: \n");
+//	for (model = 0; model < start->nrModels; model++) {;
+//		printf("%10s %12f ", protModels[start->partitionModel[model]], start->partitionLH[model]);
+//	}
+//	printf("   %12f\n", start->overallLH);
+
+	printAssignment(start);
+	printModelTest(simpl);
 
 	/* start testing protein model assignments */
-	if (tr->allCombinations) {
-		printf("%d partitions, exhaustive\n", tr->NumberOfModels);
-		linkedExhaustive(tr, adef, bestLikelihoods, bestModels, alphaList, f);
-	} else {
-		printf("%d partitions, unlinked\n", tr->NumberOfModels, f);
-		unlinkedTest(tr, adef, bestLikelihoods, bestModels, alphaList, f);
-	}
+//	if (tr->allCombinations) {
+//		printf("%d partitions, exhaustive\n", tr->NumberOfModels);
+//		linkedExhaustive(tr, adef, bestLikelihoods, bestModels, alphaList);
+//	} else {
+//		printf("%d partitions, unlinked\n", tr->NumberOfModels);
+//		simple(tr, adef, alphaList, simpl, start);
+//	}
 
-	fclose(f);
-	free(unlinked);
+
+	free(unlinked); free(simpl); free(start);
 	freeLinkageList(alphaList);
 }
 
