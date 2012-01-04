@@ -2516,15 +2516,18 @@ void init(tree *tr) {
 
 // exhaustively tests all possible model assignments
 // TODO add return value pointer to testdata
-void linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList, mtest *test, assignment *result) {
+mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) { //, mtest *test, assignment *result) {
 
 	int i, j, model, catOpt = 0, tmp, increased = 0, allIncreased = 0, nrAAModels = NUM_PROT_MODELS - 2,
 			*bestModels = (int *) malloc(tr->NumberOfModels * sizeof(int)), *partModels;
 
 	double *bestLH = (double *) malloc(tr->NumberOfModels * sizeof(double)), *partLH, best = unlikely;
 
+	mtest *test = malloc(sizeof(mtest));
+	assignment *result = malloc(sizeof(assignment));
+
 	test->run = (assignment *)  malloc(sizeof(assignment) * pow(nrAAModels, tr->NumberOfModels));
-	test->nrRuns = (int) pow(nrAAModels, tr->NumberOfModels);
+	test->nrRuns = 5; //(int) pow(nrAAModels, tr->NumberOfModels); test->nrModels = tr->NumberOfModels;
 	result->overallLH = unlikely; result->nrModels = tr->NumberOfModels;
 
 	printf("Exhaustive search, number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, nrAAModels, test->nrRuns);
@@ -2574,18 +2577,23 @@ void linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList, mtest *te
 	result->overallLH = best;
 	result->partitionLH = bestLH;
 	result->partitionModel = bestModels;
+	test->result = result;
+	return test;
 }
 
 // TODO add return value pointer to testdata
-void simple(tree *tr, analdef *adef, linkageList *alphaList, mtest *test, assignment *result) {
+mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) { //, mtest *test, assignment *result) {
 
 	int i, model, nrAAModels = NUM_PROT_MODELS - 2,
 			*bestModels = (int *) malloc(tr->NumberOfModels * sizeof(int)), *partModels;
 
 	double *bestLH = (double *) malloc(tr->NumberOfModels * sizeof(double)), *partLH, LH;
 
+	mtest *test = malloc(sizeof(mtest));
+	assignment *result = malloc(sizeof(assignment));
+
 	test->run = (assignment *)  malloc(sizeof(assignment) * nrAAModels);
-	test->nrRuns = nrAAModels;
+	test->nrRuns = nrAAModels; test->nrModels = tr->NumberOfModels;
 	result->overallLH = 0; result->nrModels = tr->NumberOfModels;
 
 	for(model = 0; model < tr->NumberOfModels; model++)
@@ -2642,81 +2650,24 @@ void simple(tree *tr, analdef *adef, linkageList *alphaList, mtest *test, assign
 
 	for (model = 0; model < tr->NumberOfModels; model++)
 		result->overallLH += result->partitionLH[model];
+
+	test->result = result;
+	return test;
 }
 
-// [JH] print model test information to file
-//print best model assignment
-void printAssignment(assignment *opt) {
-	int model;
 
-	printf("best Assignment for %d models: \n", opt->nrModels);
-	for (model = 0; model < opt->nrModels; model++) {;
-		printf("%10s %12f ", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
-	}
-	printf("   %12f\n", opt->overallLH);
-
-	// create file containing the names of the best suiting models
-	FILE *o = myfopen("linked.models", "w");
-	for (model = 0; model < opt->nrModels; model++) {
-		fprintf(o, "%s\n", protModels[opt->partitionModel[model]]);
-	}
-	fclose(o);
-}
-
-// print stepwise modeltest
-void printModelTest(mtest *r) {
-	int model, i;
-	double *bestLikelihoods = (double *) malloc(r->run[0].nrModels * sizeof(double)),
-			bestLH = unlikely;
-
-	for(model = 0; model < r->run[0].nrModels; model++)
-		bestLikelihoods[model] = unlikely;
-
-	printf("%d combinations tested on %d partitions\n", r->nrRuns, r->run[0].nrModels);
-	// print modeltest stepwise
-	for(i = 0; i < r->nrRuns; i++) {
-		for (model = 0; model < r->run[0].nrModels; model++) {
-			printf("%10s %12f", protModels[r->run[i].partitionModel[model]], r->run[i].partitionLH[model]);
-			if (r->run[i].partitionLH[model] > bestLikelihoods[model]) {
-				bestLikelihoods[model] = r->run[i].partitionLH[model];
-				printf("+");
-			} else printf(" ");
-		}
-
-		printf("   %12f", r->run[i].overallLH);
-
-		if (r->run[i].overallLH > bestLH) {
-			bestLH = r->run[i].overallLH;
-			printf("+\n");
-		} else printf(" \n");
-	}
-
-	free(bestLikelihoods);
-}
 
 void modOptJoerg(tree *tr, analdef *adef) {
-	int modelsTested = 0, i, model, catOpt = 0, tmp, combinations, increased = 0, allIncreased = 1,
-			*unlinked = (int *) malloc(sizeof(int) * tr->NumberOfModels),
-			*bestModels = (int *) malloc(sizeof(int) * tr->NumberOfModels);
+	int i, model, catOpt = 0, *unlinked = (int *) malloc(sizeof(int) * tr->NumberOfModels);
 
-	double *bestLikelihoods = (double*) malloc(sizeof(double) * tr->NumberOfModels);
-
-	mtest *simpl = malloc(sizeof(mtest));
-	mtest *exhaustive = malloc(sizeof(mtest));
-
-	assignment *start = malloc(sizeof(assignment));
-
+	mtest *t;
 	linkageList *alphaList;
 
-
-	for (i = 0; i < tr->NumberOfModels; i++) {
-		/* this unlinked thing here just tells RAxML that the other relevant model
-		 parameter, the alpha shape parameter will be estimated separately for each
-		 partition */
-		unlinked[i] = i;
-		bestModels[i] = -1;
-		bestLikelihoods[i] = unlikely;
-	}
+	/* this unlinked thing here just tells RAxML that the other relevant model
+	 parameter, the alpha shape parameter will be estimated separately for each
+	 partition */
+	for (model = 0; model < tr->NumberOfModels; model++)
+		unlinked[model] = model;
 
 	/* initialize the linkage list for the alpha parameter of rate heterogeneity */
 	alphaList = initLinkageList(unlinked, tr);
@@ -2727,20 +2678,10 @@ void modOptJoerg(tree *tr, analdef *adef) {
 
 	// simple heuristic test, to compute a start assignment
 //	printf("%d partitions, unlinked\n", tr->NumberOfModels);
-//	simple(tr, adef, alphaList, simpl, start);
+//	t = simple(tr, adef, alphaList);
 
-	printf("%d partitions, exahsutively\n", tr->NumberOfModels);
-	linkedExhaustive(tr, adef, alphaList, simpl, start);
-
-
-//	printf("best Assignment: \n");
-//	for (model = 0; model < start->nrModels; model++) {;
-//		printf("%10s %12f ", protModels[start->partitionModel[model]], start->partitionLH[model]);
-//	}
-//	printf("   %12f\n", start->overallLH);
-
-	printAssignment(start);
-	printModelTest(simpl);
+	printf("%d partitions, exhaustively\n", tr->NumberOfModels);
+	t = linkedExhaustive(tr, adef, alphaList);
 
 	/* start testing protein model assignments */
 //	if (tr->allCombinations) {
@@ -2751,8 +2692,10 @@ void modOptJoerg(tree *tr, analdef *adef) {
 //		simple(tr, adef, alphaList, simpl, start);
 //	}
 
+	printAssignment(t->result);
+	printModelTest(t);
 
-	free(unlinked); free(simpl); free(start);
+	free(unlinked); free(t);
 	freeLinkageList(alphaList);
 }
 

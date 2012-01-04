@@ -363,9 +363,9 @@ typedef struct {
 typedef struct {
 	char *method;
 	int nrRuns;
-//	int nrModels;
+	int nrModels;
 	assignment* run;   // malloc(sizeof(assignment) + nrRuns * tr->NumberOfModels * (sizeof(double) + sizeof(int)))
-//	assignment result;
+	assignment* result;
 } mtest;
 
 
@@ -1207,10 +1207,9 @@ extern void hookup ( nodeptr p, nodeptr q, double *z, int numBranches);
 extern void hookupDefault ( nodeptr p, nodeptr q, int numBranches);
 extern boolean whitechar ( int ch );
 extern void errorExit ( int e );
-//[JH]
-//extern void printBest(assignment *opt);
-//// print stepwise modeltest
-//extern void printModelTest(mtest *r);
+//[JH] print modeltest results
+extern void printAssignment(assignment *opt);
+extern void printModelTest(mtest *r);
 
 extern void printResult ( tree *tr, analdef *adef, boolean finalPrint );
 extern void printBootstrapResult ( tree *tr, analdef *adef, boolean finalPrint );

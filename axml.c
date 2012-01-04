@@ -81,7 +81,57 @@
 /***************** UTILITY FUNCTIONS **************************/
 
 
-void myPrintModelAssignment(tree *tr, int increased, int run, int allIncreased) {
+// [JH] print model test information to file
+//print best model assignment
+void printAssignment(assignment *opt) {
+	int model;
+
+	printf("best Assignment for %d models: \n", opt->nrModels);
+	for (model = 0; model < opt->nrModels; model++) {;
+		printf("%10s %12f ", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
+	}
+	printf("   %12f\n", opt->overallLH);
+
+	// create file containing the names of the best suiting models
+	FILE *o = myfopen("linked.models", "w");
+	for (model = 0; model < opt->nrModels; model++) {
+		fprintf(o, "%s\n", protModels[opt->partitionModel[model]]);
+	}
+	fclose(o);
+}
+
+// print stepwise modeltest
+void printModelTest(mtest *r) {
+	int model, i;
+	double *bestLikelihoods = (double *) malloc(r->run[0].nrModels * sizeof(double)),
+			bestLH = unlikely;
+
+	for(model = 0; model < r->run[0].nrModels; model++)
+		bestLikelihoods[model] = unlikely;
+
+	printf("%d combinations tested on %d partitions\n", r->nrRuns, r->run[0].nrModels);
+	// print modeltest stepwise
+	for(i = 0; i < r->nrRuns; i++) {
+		for (model = 0; model < r->run[0].nrModels; model++) {
+			printf("%10s %12f", protModels[r->run[i].partitionModel[model]], r->run[i].partitionLH[model]);
+			if (r->run[i].partitionLH[model] > bestLikelihoods[model]) {
+				bestLikelihoods[model] = r->run[i].partitionLH[model];
+				printf("+");
+			} else printf(" ");
+		}
+
+		printf("   %12f", r->run[i].overallLH);
+
+		if (r->run[i].overallLH > bestLH) {
+			bestLH = r->run[i].overallLH;
+			printf("+\n");
+		} else printf(" \n");
+	}
+
+	free(bestLikelihoods);
+}
+
+//void myPrintModelAssignment(tree *tr, int increased, int run, int allIncreased) {
 //  FILE *f = myfopen(proteinModelInfoFile, "ab");
 //  int model = 0;
 //  fprintf(f, "%-5d", run);
@@ -97,7 +147,7 @@ void myPrintModelAssignment(tree *tr, int increased, int run, int allIncreased) 
 //      fprintf(f,"\t*");
 //  fprintf(f,"\n");
 //  fclose(f);
-}
+//}
 
 
 void myBinFwrite(const void *ptr, size_t size, size_t nmemb)
