@@ -2466,6 +2466,16 @@ void modOpt(tree *tr, analdef *adef, boolean resetModel, double likelihoodEpsilo
 void optimize(tree *tr, linkageList *alphaList) {
 	double likelihoodEpsilon = 5.0, currentLikelihood, modelEpsilon = 0.0001;
 
+#ifdef _FINE_GRAIN_MPI
+		masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);
+#endif
+
+#ifdef _USE_PTHREADS
+		masterBarrier(THREAD_COPY_INIT_MODEL, tr);
+#endif
+
+		evaluateGenericInitrav(tr, tr->start);
+
 	do {
 		/* remember the current likelihood */
 		currentLikelihood = tr->likelihood;
@@ -2499,6 +2509,9 @@ void optimize(tree *tr, linkageList *alphaList) {
 
 void init(tree *tr) {
 	int model;
+
+	resetBranches(tr);
+
 	for (model = 0; model < tr->NumberOfModels; model++) {
 		/* set the alpha shape parameter to its default value */
 		tr->partitionData[model].alpha = 1.0;
@@ -2513,18 +2526,133 @@ void init(tree *tr) {
 	}
 }
 
+// computes the likelihood values for the given assignment
+void evaluateAssignment(tree *tr, analdef *adef, assignment *ass,  linkageList *alphaList) {
+	int i, model, catOpt = 0;
 
-// exhaustively tests all possible model assignments
-mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) {
+	init(tr);
+
+	for (model = 0; model < tr->NumberOfModels; model++) {
+		tr->partitionData[model].protModels = ass->partitionModel[model];
+		if(!adef->protEmpiricalFreqs)	tr->partitionData[model].protFreqs = 0;
+		initReversibleGTR(tr, adef, model);
+	}
+
+	optimize(tr, alphaList);
+
+	for (model = 0; model < tr->NumberOfModels; model++) {
+		ass->partitionLH[model] = tr->perPartitionLH[model];
+		ass->partitionModel[model] = tr->partitionData[model].protModels;
+	}
+
+	ass->overallLH = tr->likelihood;
+}
+
+assignment* unlinkedOptimum(mtest *test) {
+	int i, model;
+
+	assignment *result = malloc(sizeof(assignment));
+	result->partitionLH = malloc(sizeof(double) * test->nrModels);
+	result->partitionModel = malloc(sizeof(int) * test->nrModels);
+
+	for(model = 0; model < test->nrModels; model++)
+		result->partitionLH[model] = unlikely;
+	result->overallLH = 0;
+
+	for(i = 0; i < test->nrRuns; i++) {
+		for (model = 0; model < test->nrModels; model++) {
+			if (test->run[i].partitionLH[model] > result->partitionLH[model]) {
+				result->partitionLH[model] = test->run[i].partitionLH[model];
+				result->partitionModel[model] = test->run[i].partitionModel[model];
+			}
+		}
+	}
+
+	for (model = 0; model < test->nrModels; model++)
+		result->overallLH += result->partitionLH[model];
+
+	return result;
+}
+
+assignment* linkedOptimum(mtest *test) {
+	int i, model;
+
+	assignment *result = malloc(sizeof(assignment));
+	result->partitionLH = malloc(sizeof(double) * test->nrModels);
+	result->partitionModel = malloc(sizeof(int) * test->nrModels);
+	result->overallLH = unlikely;
+
+	for(i = 0; i < test->nrRuns; i++) {
+		if(test->run[i].overallLH > result->overallLH) {
+			result->overallLH = test->run[i].overallLH;
+			for (model = 0; model < test->nrModels; model++) {
+				result->partitionLH[model] = test->run[i].partitionLH[model];
+				result->partitionModel[model] = test->run[i].partitionModel[model];
+			}
+		}
+	}
+
+	return result;
+}
+
+// returns a random similar assignment to the given one (right now inly one model will be switched)
+assignment* getNeighbour(assignment *start, int m) {
+	int i, model, partition, nrAAModels = NUM_PROT_MODELS - 2;
+	long randomSeed = 12345;
+
+	assignment *res = (assignment *)  malloc(sizeof(assignment));
+
+	res->partitionLH = malloc(sizeof(double) * m);
+	res->partitionModel = malloc(sizeof(int) * m);
+	partition = (int)(randum(&randomSeed) * m);
+
+	do {
+		model = (int)(randum(&randomSeed) * nrAAModels);
+	} while(model == start->partitionModel[partition]);
+
+	for(i = 0; i < m; i++) {
+		res->partitionModel[i] = start->partitionModel[i];
+		res->partitionLH[i] = unlikely;
+	}
+	res->overallLH = unlikely;
+	res->partitionModel[partition] = model;
+
+	return res;
+}
+
+// simply consider partitions as unlinked
+mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) {
 
 	int i, model, nrAAModels = NUM_PROT_MODELS - 2;
 
 	mtest *test = malloc(sizeof(mtest));
-	assignment *result = malloc(sizeof(assignment));
 
-	result->overallLH = unlikely;
-	result->partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
-	result->partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
+	test->run = (assignment *)  malloc(sizeof(assignment) * nrAAModels);
+	test->nrRuns = nrAAModels; test->nrModels = tr->NumberOfModels;
+
+//	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) nrAAModels);
+
+	for (i = 0; i < nrAAModels; i++) {
+		test->run[i].partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
+		test->run[i].partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
+
+		// update models
+		for (model = 0; model < tr->NumberOfModels; model++)
+			test->run[i].partitionModel[model] = i;
+
+		evaluateAssignment(tr, adef, &(test->run[i]), alphaList);
+	}
+
+	test->result = unlinkedOptimum(test);
+	return test;
+}
+
+
+// exhaustively tests all possible model assignments
+mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) {
+	int i, model, nrAAModels = NUM_PROT_MODELS - 2;
+
+	mtest *test = malloc(sizeof(mtest));
 
 	test->run = (assignment *)  malloc(sizeof(assignment) * pow(nrAAModels, tr->NumberOfModels));
 	test->nrRuns = 5; //(int) pow(nrAAModels, tr->NumberOfModels);
@@ -2536,132 +2664,28 @@ mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) {
 		test->run[i].partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
 		test->run[i].partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
 
-		resetBranches(tr);
-		init(tr);
-
 		// update models
-		for (model = 0; model < tr->NumberOfModels; model++) {
-			tr->partitionData[model].protModels = (int) (fmod(i / pow(nrAAModels, model), nrAAModels));
-			if(!adef->protEmpiricalFreqs)	tr->partitionData[model].protFreqs = 0;
-			initReversibleGTR(tr, adef, model);
-		}
+		for (model = 0; model < tr->NumberOfModels; model++)
+			test->run[i].partitionModel[model] = (int) (fmod(i / pow(nrAAModels, model), nrAAModels));
 
-#ifdef _FINE_GRAIN_MPI
-		masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);
-#endif
-
-#ifdef _USE_PTHREADS
-		masterBarrier(THREAD_COPY_INIT_MODEL, tr);
-#endif
-
-		evaluateGenericInitrav(tr, tr->start);
-		optimize(tr, alphaList);
-
-		for (model = 0; model < tr->NumberOfModels; model++) {
-			test->run[i].partitionLH[model] = tr->perPartitionLH[model];
-			test->run[i].partitionModel[model] = tr->partitionData[model].protModels;
-		}
-
-		if(tr->likelihood > result->overallLH) {
-			for (model = 0; model < tr->NumberOfModels; model++) {
-				result->overallLH = tr->likelihood;
-				result->partitionLH[model] = tr->perPartitionLH[model];
-				result->partitionModel[model] = tr->partitionData[model].protModels;
-			}
-		}
-
-		test->run[i].overallLH = tr->likelihood;
+		evaluateAssignment(tr, adef, &(test->run[i]), alphaList);
 	}
 
-	test->result = result;
+	test->result = linkedOptimum(test);
 	return test;
 }
 
-// simply consider partitions as unlinked
-mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) {
-
-	int i, model, nrAAModels = NUM_PROT_MODELS - 2;
-
-	mtest *test = malloc(sizeof(mtest));
-	assignment *result = malloc(sizeof(assignment));
-
-	result->partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
-	result->partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
-	result->overallLH = 0;
-
-	test->run = (assignment *)  malloc(sizeof(assignment) * nrAAModels);
-	test->nrRuns = nrAAModels; test->nrModels = tr->NumberOfModels;
-
-	for(model = 0; model < tr->NumberOfModels; model++)
-		result->partitionLH[model] = unlikely;
-
-//	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) nrAAModels);
-
-	for (i = 0; i < nrAAModels; i++) {
-		test->run[i].partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
-		test->run[i].partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
-
-		resetBranches(tr);
-		init(tr);
-
-		// update models
-		for (model = 0; model < tr->NumberOfModels; model++) {
-			tr->partitionData[model].protModels = i;
-			if(!adef->protEmpiricalFreqs)	tr->partitionData[model].protFreqs = 0;
-			initReversibleGTR(tr, adef, model);
-		}
-
-#ifdef _FINE_GRAIN_MPI
-		masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);
-#endif
-
-#ifdef _USE_PTHREADS
-		masterBarrier(THREAD_COPY_INIT_MODEL, tr);
-#endif
-
-		evaluateGenericInitrav(tr, tr->start);
-		optimize(tr, alphaList);
-
-		test->run[i].overallLH  = 0;
-
-		for (model = 0; model < tr->NumberOfModels; model++) {
-			test->run[i].partitionLH[model] = tr->perPartitionLH[model];
-			test->run[i].partitionModel[model] = tr->partitionData[model].protModels;
-			test->run[i].overallLH  += test->run[i].partitionLH[model];
-
-			if (tr->perPartitionLH[model] > result->partitionLH[model]) {
-				result->partitionLH[model] = tr->perPartitionLH[model];
-				result->partitionModel[model] = tr->partitionData[model].protModels;
-			}
-		}
-	}
-
-	for (model = 0; model < tr->NumberOfModels; model++)
-		result->overallLH += result->partitionLH[model];
-
-	test->result = result;
-	return test;
-}
 
 // test some random assignments
 mtest* randomTest(tree *tr, analdef *adef, linkageList *alphaList, int loops) {
-
 	int i, model, nrAAModels = NUM_PROT_MODELS - 2;
 
 	long randomSeed = 12345;
 
 	mtest *test = malloc(sizeof(mtest));
-	assignment *result = malloc(sizeof(assignment));
-
-	result->overallLH = unlikely;
-	result->partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
-	result->partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
 
 	test->run = (assignment *)  malloc(sizeof(assignment) * nrAAModels);
 	test->nrRuns = loops; test->nrModels = tr->NumberOfModels;
-
-	for(model = 0; model < tr->NumberOfModels; model++)
-		result->partitionLH[model] = unlikely;
 
 	printf("Random Test, number of partitions: %d, number of iterations: %d\n\n", tr->NumberOfModels, loops);
 
@@ -2669,51 +2693,21 @@ mtest* randomTest(tree *tr, analdef *adef, linkageList *alphaList, int loops) {
 		test->run[i].partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
 		test->run[i].partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
 
-		resetBranches(tr);
-		init(tr);
-
 		// update models
-		for (model = 0; model < tr->NumberOfModels; model++) {
-			tr->partitionData[model].protModels = (int)(randum(&randomSeed) * nrAAModels);
-			if(!adef->protEmpiricalFreqs)	tr->partitionData[model].protFreqs = 0;
-			initReversibleGTR(tr, adef, model);
-		}
+		for (model = 0; model < tr->NumberOfModels; model++)
+			test->run[i].partitionModel[model] = (int)(randum(&randomSeed) * nrAAModels);
 
-#ifdef _FINE_GRAIN_MPI
-		masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);
-#endif
-
-#ifdef _USE_PTHREADS
-		masterBarrier(THREAD_COPY_INIT_MODEL, tr);
-#endif
-
-		evaluateGenericInitrav(tr, tr->start);
-		optimize(tr, alphaList);
-
-		for (model = 0; model < tr->NumberOfModels; model++) {
-			test->run[i].partitionLH[model] = tr->perPartitionLH[model];
-			test->run[i].partitionModel[model] = tr->partitionData[model].protModels;
-		}
-
-		if(tr->likelihood > result->overallLH) {
-			for (model = 0; model < tr->NumberOfModels; model++) {
-				result->overallLH = tr->likelihood;
-				result->partitionLH[model] = tr->perPartitionLH[model];
-				result->partitionModel[model] = tr->partitionData[model].protModels;
-			}
-		}
-
-		test->run[i].overallLH = tr->likelihood;
+		evaluateAssignment(tr, adef, &(test->run[i]), alphaList);
 	}
 
-	test->result = result;
+	test->result = linkedOptimum(test);
 	return test;
 }
 
-
 void modOptJoerg(tree *tr, analdef *adef) {
-	int i, model, catOpt = 0, *unlinked = (int *) malloc(sizeof(int) * tr->NumberOfModels);
+	int i, model, *unlinked = (int *) malloc(sizeof(int) * tr->NumberOfModels);
 
+	assignment *tmp;
 	mtest *t;
 	linkageList *alphaList;
 
@@ -2730,13 +2724,15 @@ void modOptJoerg(tree *tr, analdef *adef) {
 	 the recursion of the Felsenstein pruning algorithm */
 	tr->start = tr->nodep[1];
 
+
 	// simple heuristic test, to compute a start assignment
 //	printf("%d partitions, unlinked\n", tr->NumberOfModels);
-//	t = simple(tr, adef, alphaList);
+	t = simple(tr, adef, alphaList);
 
-	printf("%d partitions, exhaustively\n", tr->NumberOfModels);
-	t = linkedExhaustive(tr, adef, alphaList);
+//	printf("%d partitions, exhaustively\n", tr->NumberOfModels);
+//	t = linkedExhaustive(tr, adef, alphaList);
 //	t = randomTest(tr, adef, alphaList, 5);
+//	tmp = getNeighbour(t->result, t->nrModels);
 
 	/* start testing protein model assignments */
 //	if (tr->allCombinations) {
@@ -2748,6 +2744,8 @@ void modOptJoerg(tree *tr, analdef *adef) {
 //	}
 
 	printAssignment(t->result, t->nrModels);
+//	printf("tmp contains:\n");
+//	printAssignment(tmp, t->nrModels);
 	printModelTest(t);
 
 	free(unlinked); free(t);
