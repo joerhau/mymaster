@@ -83,18 +83,18 @@
 
 // [JH] print model test information to file
 //print best model assignment
-void printAssignment(assignment *opt) {
+void printAssignment(assignment *opt, int m) {
 	int model;
 
-	printf("best Assignment for %d models: \n", opt->nrModels);
-	for (model = 0; model < opt->nrModels; model++) {;
+	printf("best Assignment for %d models: \n", m);
+	for (model = 0; model < m; model++) {;
 		printf("%10s %12f ", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
 	}
 	printf("   %12f\n", opt->overallLH);
 
 	// create file containing the names of the best suiting models
 	FILE *o = myfopen("linked.models", "w");
-	for (model = 0; model < opt->nrModels; model++) {
+	for (model = 0; model < m; model++) {
 		fprintf(o, "%s\n", protModels[opt->partitionModel[model]]);
 	}
 	fclose(o);
@@ -103,16 +103,16 @@ void printAssignment(assignment *opt) {
 // print stepwise modeltest
 void printModelTest(mtest *r) {
 	int model, i;
-	double *bestLikelihoods = (double *) malloc(r->run[0].nrModels * sizeof(double)),
+	double *bestLikelihoods = (double *) malloc(r->nrModels * sizeof(double)),
 			bestLH = unlikely;
 
-	for(model = 0; model < r->run[0].nrModels; model++)
+	for(model = 0; model < r->nrModels; model++)
 		bestLikelihoods[model] = unlikely;
 
-	printf("%d combinations tested on %d partitions\n", r->nrRuns, r->run[0].nrModels);
+	printf("%d combinations tested on %d partitions\n", r->nrRuns, r->nrModels);
 	// print modeltest stepwise
 	for(i = 0; i < r->nrRuns; i++) {
-		for (model = 0; model < r->run[0].nrModels; model++) {
+		for (model = 0; model < r->nrModels; model++) {
 			printf("%10s %12f", protModels[r->run[i].partitionModel[model]], r->run[i].partitionLH[model]);
 			if (r->run[i].partitionLH[model] > bestLikelihoods[model]) {
 				bestLikelihoods[model] = r->run[i].partitionLH[model];
@@ -4310,58 +4310,6 @@ static void printModelAndProgramInfo(tree *tr, analdef *adef, int argc, char *ar
     }
 }
 
-
-//// [JH] print model test information to file
-////print best model assignment
-//void printBest(assignment *opt) {
-//	int model;
-//
-//	printf("best Assignment: \n");
-//	for (model = 0; model < opt->nrModels; model++) {;
-//		printf("%10s %12f ", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
-//	}
-//	printf("   %12f\n", opt->overallLH);
-//
-//	// create file containing the names of the best suiting models
-//	FILE *o = myfopen("linked.models", "w");
-//	for (model = 0; model < opt->nrModels; model++) {
-//		fprintf(o, "%s\n", protModels[opt->partitionModel[model]]);
-//	}
-//	fclose(o);
-//}
-//
-//// print stepwise modeltest
-//void printModelTest(mtest *r) {
-//	int model, i;
-//	double *bestLikelihoods = (double *) malloc(r->run[0].nrModels * sizeof(double)),
-//			bestLH = unlikely;
-//	FILE *f = myfopen("RAxML_modelAssignment", "w");
-//
-//	for(model = 0; model < r->run[0].nrModels; model++)
-//		bestLikelihoods[model] = unlikely;
-//
-//
-//	// print modeltest stepwise
-//	for(i = 0; i < r->nrRuns; i++) {
-//		for (model = 0; model < r->run[0].nrModels; model++) {
-//			fprintf(f, "%10s %12f", protModels[r->run[i].partitionModel[model]], r->run[i].partitionLH[model]);
-//			if (r->run[i].partitionLH[model] > bestLikelihoods[model]) {
-//				bestLikelihoods[model] = r->run[i].partitionLH[model];
-//				fprintf(f, "+");
-//			} else fprintf(f, " ");
-//		}
-//
-//		fprintf(f, "   %12f", r->run[i].overallLH);
-//
-//		if (r->run[i].overallLH > bestLH) {
-//			bestLH = r->run[i].overallLH;
-//			fprintf(f, "+\n");
-//		} else fprintf(f, " \n");
-//	}
-//
-//	fclose(f);
-//	free(bestLikelihoods);
-//}
 
 void printResult(tree *tr, analdef *adef, boolean finalPrint)
 {

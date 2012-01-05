@@ -2515,26 +2515,26 @@ void init(tree *tr) {
 
 
 // exhaustively tests all possible model assignments
-// TODO add return value pointer to testdata
-mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) { //, mtest *test, assignment *result) {
+mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) {
 
-	int i, j, model, catOpt = 0, tmp, increased = 0, allIncreased = 0, nrAAModels = NUM_PROT_MODELS - 2,
-			*bestModels = (int *) malloc(tr->NumberOfModels * sizeof(int)), *partModels;
-
-	double *bestLH = (double *) malloc(tr->NumberOfModels * sizeof(double)), *partLH, best = unlikely;
+	int i, model, nrAAModels = NUM_PROT_MODELS - 2;
 
 	mtest *test = malloc(sizeof(mtest));
 	assignment *result = malloc(sizeof(assignment));
 
+	result->overallLH = unlikely;
+	result->partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
+	result->partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
+
 	test->run = (assignment *)  malloc(sizeof(assignment) * pow(nrAAModels, tr->NumberOfModels));
-	test->nrRuns = 5; //(int) pow(nrAAModels, tr->NumberOfModels); test->nrModels = tr->NumberOfModels;
-	result->overallLH = unlikely; result->nrModels = tr->NumberOfModels;
+	test->nrRuns = 5; //(int) pow(nrAAModels, tr->NumberOfModels);
+	test->nrModels = tr->NumberOfModels;
 
 	printf("Exhaustive search, number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, nrAAModels, test->nrRuns);
 
 	for (i = 0; i < test->nrRuns; i++) {
-		partLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
-		partModels = (int *) malloc(tr->NumberOfModels * sizeof(int));
+		test->run[i].partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
+		test->run[i].partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
 
 		resetBranches(tr);
 		init(tr);
@@ -2558,52 +2558,48 @@ mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) { //, m
 		optimize(tr, alphaList);
 
 		for (model = 0; model < tr->NumberOfModels; model++) {
-			partLH[model] = tr->perPartitionLH[model];
-			partModels[model] = tr->partitionData[model].protModels;
+			test->run[i].partitionLH[model] = tr->perPartitionLH[model];
+			test->run[i].partitionModel[model] = tr->partitionData[model].protModels;
 		}
 
-		if(tr->likelihood > best) {
+		if(tr->likelihood > result->overallLH) {
 			for (model = 0; model < tr->NumberOfModels; model++) {
-				best = tr->likelihood;
-				bestLH[model] = tr->perPartitionLH[model];
-				bestModels[model] = tr->partitionData[model].protModels;
+				result->overallLH = tr->likelihood;
+				result->partitionLH[model] = tr->perPartitionLH[model];
+				result->partitionModel[model] = tr->partitionData[model].protModels;
 			}
 		}
 
-		test->run[i].partitionLH = partLH;
-		test->run[i].partitionModel = partModels;
-		test->run[i].nrModels = tr->NumberOfModels; test->run[i].overallLH = tr->likelihood;
+		test->run[i].overallLH = tr->likelihood;
 	}
-	result->overallLH = best;
-	result->partitionLH = bestLH;
-	result->partitionModel = bestModels;
+
 	test->result = result;
 	return test;
 }
 
-// TODO add return value pointer to testdata
-mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) { //, mtest *test, assignment *result) {
+// simply consider partitions as unlinked
+mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) {
 
-	int i, model, nrAAModels = NUM_PROT_MODELS - 2,
-			*bestModels = (int *) malloc(tr->NumberOfModels * sizeof(int)), *partModels;
-
-	double *bestLH = (double *) malloc(tr->NumberOfModels * sizeof(double)), *partLH, LH;
+	int i, model, nrAAModels = NUM_PROT_MODELS - 2;
 
 	mtest *test = malloc(sizeof(mtest));
 	assignment *result = malloc(sizeof(assignment));
 
+	result->partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
+	result->partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
+	result->overallLH = 0;
+
 	test->run = (assignment *)  malloc(sizeof(assignment) * nrAAModels);
 	test->nrRuns = nrAAModels; test->nrModels = tr->NumberOfModels;
-	result->overallLH = 0; result->nrModels = tr->NumberOfModels;
 
 	for(model = 0; model < tr->NumberOfModels; model++)
-		bestLH[model] = unlikely;
+		result->partitionLH[model] = unlikely;
 
 //	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) nrAAModels);
 
 	for (i = 0; i < nrAAModels; i++) {
-		partLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
-		partModels = (int *) malloc(tr->NumberOfModels * sizeof(int));
+		test->run[i].partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
+		test->run[i].partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
 
 		resetBranches(tr);
 		init(tr);
@@ -2626,27 +2622,19 @@ mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) { //, mtest *test
 		evaluateGenericInitrav(tr, tr->start);
 		optimize(tr, alphaList);
 
-		LH = 0;
+		test->run[i].overallLH  = 0;
 
 		for (model = 0; model < tr->NumberOfModels; model++) {
-			partLH[model] = tr->perPartitionLH[model];
-			partModels[model] = i;
-			LH += partLH[model];
+			test->run[i].partitionLH[model] = tr->perPartitionLH[model];
+			test->run[i].partitionModel[model] = tr->partitionData[model].protModels;
+			test->run[i].overallLH  += test->run[i].partitionLH[model];
 
-			if (tr->perPartitionLH[model] > bestLH[model]) {
-				bestLH[model] = tr->perPartitionLH[model];
-				bestModels[model] = tr->partitionData[model].protModels;
+			if (tr->perPartitionLH[model] > result->partitionLH[model]) {
+				result->partitionLH[model] = tr->perPartitionLH[model];
+				result->partitionModel[model] = tr->partitionData[model].protModels;
 			}
 		}
-
-		test->run[i].partitionLH = partLH;
-		test->run[i].partitionModel = partModels;
-		test->run[i].nrModels = tr->NumberOfModels; test->run[i].overallLH = LH;
 	}
-
-
-	result->partitionLH = bestLH;
-	result->partitionModel = bestModels;
 
 	for (model = 0; model < tr->NumberOfModels; model++)
 		result->overallLH += result->partitionLH[model];
@@ -2655,6 +2643,72 @@ mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) { //, mtest *test
 	return test;
 }
 
+// test some random assignments
+mtest* randomTest(tree *tr, analdef *adef, linkageList *alphaList, int loops) {
+
+	int i, model, nrAAModels = NUM_PROT_MODELS - 2;
+
+	long randomSeed = 12345;
+
+	mtest *test = malloc(sizeof(mtest));
+	assignment *result = malloc(sizeof(assignment));
+
+	result->overallLH = unlikely;
+	result->partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
+	result->partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
+
+	test->run = (assignment *)  malloc(sizeof(assignment) * nrAAModels);
+	test->nrRuns = loops; test->nrModels = tr->NumberOfModels;
+
+	for(model = 0; model < tr->NumberOfModels; model++)
+		result->partitionLH[model] = unlikely;
+
+	printf("Random Test, number of partitions: %d, number of iterations: %d\n\n", tr->NumberOfModels, loops);
+
+	for (i = 0; i < loops; i++) {
+		test->run[i].partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
+		test->run[i].partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
+
+		resetBranches(tr);
+		init(tr);
+
+		// update models
+		for (model = 0; model < tr->NumberOfModels; model++) {
+			tr->partitionData[model].protModels = (int)(randum(&randomSeed) * nrAAModels);
+			if(!adef->protEmpiricalFreqs)	tr->partitionData[model].protFreqs = 0;
+			initReversibleGTR(tr, adef, model);
+		}
+
+#ifdef _FINE_GRAIN_MPI
+		masterBarrierMPI(THREAD_COPY_INIT_MODEL, tr);
+#endif
+
+#ifdef _USE_PTHREADS
+		masterBarrier(THREAD_COPY_INIT_MODEL, tr);
+#endif
+
+		evaluateGenericInitrav(tr, tr->start);
+		optimize(tr, alphaList);
+
+		for (model = 0; model < tr->NumberOfModels; model++) {
+			test->run[i].partitionLH[model] = tr->perPartitionLH[model];
+			test->run[i].partitionModel[model] = tr->partitionData[model].protModels;
+		}
+
+		if(tr->likelihood > result->overallLH) {
+			for (model = 0; model < tr->NumberOfModels; model++) {
+				result->overallLH = tr->likelihood;
+				result->partitionLH[model] = tr->perPartitionLH[model];
+				result->partitionModel[model] = tr->partitionData[model].protModels;
+			}
+		}
+
+		test->run[i].overallLH = tr->likelihood;
+	}
+
+	test->result = result;
+	return test;
+}
 
 
 void modOptJoerg(tree *tr, analdef *adef) {
@@ -2682,6 +2736,7 @@ void modOptJoerg(tree *tr, analdef *adef) {
 
 	printf("%d partitions, exhaustively\n", tr->NumberOfModels);
 	t = linkedExhaustive(tr, adef, alphaList);
+//	t = randomTest(tr, adef, alphaList, 5);
 
 	/* start testing protein model assignments */
 //	if (tr->allCombinations) {
@@ -2692,7 +2747,7 @@ void modOptJoerg(tree *tr, analdef *adef) {
 //		simple(tr, adef, alphaList, simpl, start);
 //	}
 
-	printAssignment(t->result);
+	printAssignment(t->result, t->nrModels);
 	printModelTest(t);
 
 	free(unlinked); free(t);

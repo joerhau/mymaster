@@ -350,21 +350,18 @@ typedef struct {
 
 
 //[JH] stores the results for one model assignment
-// TODO remove nrModels
 typedef struct {
-	int nrModels;
 	double overallLH;
 	int* partitionModel;
 	double* partitionLH;
 } assignment;
 
 //[JH] contains all intermediate results of a model search
-// TODO include result here
 typedef struct {
 	char *method;
 	int nrRuns;
 	int nrModels;
-	assignment* run;   // malloc(sizeof(assignment) + nrRuns * tr->NumberOfModels * (sizeof(double) + sizeof(int)))
+	assignment* run;
 	assignment* result;
 } mtest;
 
@@ -1208,7 +1205,7 @@ extern void hookupDefault ( nodeptr p, nodeptr q, int numBranches);
 extern boolean whitechar ( int ch );
 extern void errorExit ( int e );
 //[JH] print modeltest results
-extern void printAssignment(assignment *opt);
+extern void printAssignment(assignment *opt, int m);
 extern void printModelTest(mtest *r);
 
 extern void printResult ( tree *tr, analdef *adef, boolean finalPrint );
