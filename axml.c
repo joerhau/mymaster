@@ -105,25 +105,34 @@ void printModelTest(mtest *r) {
 	int model, i;
 	double *bestLikelihoods = (double *) malloc(r->nrModels * sizeof(double)),
 			bestLH = unlikely;
+	char *a = malloc(sizeof(char) * 10); char *b = malloc(sizeof(char) * 12);
+
 
 	for(model = 0; model < r->nrModels; model++)
 		bestLikelihoods[model] = unlikely;
 
-	printf("%d combinations tested on %d partitions\n", r->nrRuns, r->nrModels);
+//	printf("%d combinations tested on %d partitions\n", r->nrRuns, r->nrModels);
+	for(i = 0; i < r->nrModels; i++) {
+		sprintf(a, "%s%d", "model", i);
+		sprintf(b, "%s%d", "LH", i);
+		printf("%10s  %-12s", a, b);
+	}
+	printf("    %-12s\n", "overallLH");
+
 	// print modeltest stepwise
 	for(i = 0; i < r->nrRuns; i++) {
 		for (model = 0; model < r->nrModels; model++) {
-			printf("%10s %12f", protModels[r->run[i].partitionModel[model]], r->run[i].partitionLH[model]);
-			if (r->run[i].partitionLH[model] > bestLikelihoods[model]) {
-				bestLikelihoods[model] = r->run[i].partitionLH[model];
+			printf("%10s %12f", protModels[r->run[i]->partitionModel[model]], r->run[i]->partitionLH[model]);
+			if (r->run[i]->partitionLH[model] > bestLikelihoods[model]) {
+				bestLikelihoods[model] = r->run[i]->partitionLH[model];
 				printf("+");
 			} else printf(" ");
 		}
 
-		printf("   %12f", r->run[i].overallLH);
+		printf("   %12f", r->run[i]->overallLH);
 
-		if (r->run[i].overallLH > bestLH) {
-			bestLH = r->run[i].overallLH;
+		if (r->run[i]->overallLH > bestLH) {
+			bestLH = r->run[i]->overallLH;
 			printf("+\n");
 		} else printf(" \n");
 	}

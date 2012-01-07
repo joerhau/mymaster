@@ -34,7 +34,7 @@
 #endif
 
 #include <math.h>
-#include <time.h> 
+#include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -2526,11 +2526,34 @@ void init(tree *tr) {
 	}
 }
 
+assignment* mallocAssignment(int models) {
+	assignment *a;
+
+	a = (assignment*) malloc(sizeof(assignment));
+	a->partitionLH = (double *) malloc(models * sizeof(double));
+	a->partitionModel = (int *) malloc(models * sizeof(int));
+
+	return a;
+}
+
 // computes the likelihood values for the given assignment
 void evaluateAssignment(tree *tr, analdef *adef, assignment *ass,  linkageList *alphaList) {
 	int i, model, catOpt = 0;
 
-	init(tr);
+	resetBranches(tr);
+
+	for (model = 0; model < tr->NumberOfModels; model++) {
+		/* set the alpha shape parameter to its default value */
+		tr->partitionData[model].alpha = 1.0;
+
+		/* initialize the discretization of the GAMMA function --- we use 4 discrete rates
+		 to approximate the integral over GAMMA we actually want to compute */
+		makeGammaCats(tr->partitionData[model].alpha, tr->partitionData[model].gammaRates, 4);
+
+		/* use empirical protein frequencies in contrast to the pre-defined ones that come with the
+		 models. The empirical freqs typically yield better likelihood scores, so let's not worry about this*/
+		tr->partitionData[model].protFreqs = 1;
+	}
 
 	for (model = 0; model < tr->NumberOfModels; model++) {
 		tr->partitionData[model].protModels = ass->partitionModel[model];
@@ -2548,12 +2571,10 @@ void evaluateAssignment(tree *tr, analdef *adef, assignment *ass,  linkageList *
 	ass->overallLH = tr->likelihood;
 }
 
-assignment* unlinkedOptimum(mtest *test) {
+assignment* partitionWiseOptimum(mtest *test) {
 	int i, model;
 
-	assignment *result = malloc(sizeof(assignment));
-	result->partitionLH = malloc(sizeof(double) * test->nrModels);
-	result->partitionModel = malloc(sizeof(int) * test->nrModels);
+	assignment *result = mallocAssignment(test->nrModels);
 
 	for(model = 0; model < test->nrModels; model++)
 		result->partitionLH[model] = unlikely;
@@ -2561,9 +2582,9 @@ assignment* unlinkedOptimum(mtest *test) {
 
 	for(i = 0; i < test->nrRuns; i++) {
 		for (model = 0; model < test->nrModels; model++) {
-			if (test->run[i].partitionLH[model] > result->partitionLH[model]) {
-				result->partitionLH[model] = test->run[i].partitionLH[model];
-				result->partitionModel[model] = test->run[i].partitionModel[model];
+			if (test->run[i]->partitionLH[model] > result->partitionLH[model]) {
+				result->partitionLH[model] = test->run[i]->partitionLH[model];
+				result->partitionModel[model] = test->run[i]->partitionModel[model];
 			}
 		}
 	}
@@ -2574,20 +2595,18 @@ assignment* unlinkedOptimum(mtest *test) {
 	return result;
 }
 
-assignment* linkedOptimum(mtest *test) {
+assignment* overallOptimum(mtest *test) {
 	int i, model;
 
-	assignment *result = malloc(sizeof(assignment));
-	result->partitionLH = malloc(sizeof(double) * test->nrModels);
-	result->partitionModel = malloc(sizeof(int) * test->nrModels);
+	assignment *result = mallocAssignment(test->nrModels);
 	result->overallLH = unlikely;
 
 	for(i = 0; i < test->nrRuns; i++) {
-		if(test->run[i].overallLH > result->overallLH) {
-			result->overallLH = test->run[i].overallLH;
+		if(test->run[i]->overallLH > result->overallLH) {
+			result->overallLH = test->run[i]->overallLH;
 			for (model = 0; model < test->nrModels; model++) {
-				result->partitionLH[model] = test->run[i].partitionLH[model];
-				result->partitionModel[model] = test->run[i].partitionModel[model];
+				result->partitionLH[model] = test->run[i]->partitionLH[model];
+				result->partitionModel[model] = test->run[i]->partitionModel[model];
 			}
 		}
 	}
@@ -2595,27 +2614,32 @@ assignment* linkedOptimum(mtest *test) {
 	return result;
 }
 
-// returns a random similar assignment to the given one (right now inly one model will be switched)
-assignment* getNeighbour(assignment *start, int m) {
-	int i, model, partition, nrAAModels = NUM_PROT_MODELS - 2;
-	long randomSeed = 12345;
+// mutates n random partitions of an assignment with m partitions
+assignment* mutate(assignment *start, int m, int n) {
+	int i, model, partition, *parts = malloc(sizeof(int) * n), nrAAModels = NUM_PROT_MODELS - 2, in, im;
+	long randomSeed = rand();
 
-	assignment *res = (assignment *)  malloc(sizeof(assignment));
-
-	res->partitionLH = malloc(sizeof(double) * m);
-	res->partitionModel = malloc(sizeof(int) * m);
-	partition = (int)(randum(&randomSeed) * m);
-
-	do {
-		model = (int)(randum(&randomSeed) * nrAAModels);
-	} while(model == start->partitionModel[partition]);
+	assignment *res = mallocAssignment(m);
 
 	for(i = 0; i < m; i++) {
 		res->partitionModel[i] = start->partitionModel[i];
 		res->partitionLH[i] = unlikely;
 	}
 	res->overallLH = unlikely;
-	res->partitionModel[partition] = model;
+
+	im = 0;
+	for (in = 0; in < m && im < n; ++in) {
+	  int rn = m - in;
+	  int rm = n - im;
+	  if (rand() % rn < rm)
+		parts[im++] = in;
+	}
+
+	for(i = 0; i < n; i++) {
+		do {
+			res->partitionModel[parts[i]] = (int)(randum(&randomSeed) * nrAAModels);
+		} while(res->partitionModel[parts[i]] == start->partitionModel[parts[i]]);
+	}
 
 	return res;
 }
@@ -2627,23 +2651,23 @@ mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) {
 
 	mtest *test = malloc(sizeof(mtest));
 
-	test->run = (assignment *)  malloc(sizeof(assignment) * nrAAModels);
+//	test->run = (assignment *)  malloc(sizeof(assignment) * nrAAModels);
+	test->run = (assignment**) malloc(sizeof(assignment*) * nrAAModels);
 	test->nrRuns = nrAAModels; test->nrModels = tr->NumberOfModels;
 
 //	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) nrAAModels);
 
 	for (i = 0; i < nrAAModels; i++) {
-		test->run[i].partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
-		test->run[i].partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
+		test->run[i] = mallocAssignment(tr->NumberOfModels);
 
 		// update models
 		for (model = 0; model < tr->NumberOfModels; model++)
-			test->run[i].partitionModel[model] = i;
+			test->run[i]->partitionModel[model] = i;
 
-		evaluateAssignment(tr, adef, &(test->run[i]), alphaList);
+		evaluateAssignment(tr, adef, test->run[i], alphaList);
 	}
 
-	test->result = unlinkedOptimum(test);
+	test->result = partitionWiseOptimum(test);
 	return test;
 }
 
@@ -2654,24 +2678,23 @@ mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) {
 
 	mtest *test = malloc(sizeof(mtest));
 
-	test->run = (assignment *)  malloc(sizeof(assignment) * pow(nrAAModels, tr->NumberOfModels));
-	test->nrRuns = 5; //(int) pow(nrAAModels, tr->NumberOfModels);
+	test->run = (assignment**) malloc(sizeof(assignment*) * nrAAModels);
+	test->nrRuns = (int) pow(nrAAModels, tr->NumberOfModels);
 	test->nrModels = tr->NumberOfModels;
 
 	printf("Exhaustive search, number of partitions: %d, available AA models: %d, resulting combinations: %d\n\n", tr->NumberOfModels, nrAAModels, test->nrRuns);
 
 	for (i = 0; i < test->nrRuns; i++) {
-		test->run[i].partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
-		test->run[i].partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
+		test->run[i] = mallocAssignment(tr->NumberOfModels);
 
 		// update models
 		for (model = 0; model < tr->NumberOfModels; model++)
-			test->run[i].partitionModel[model] = (int) (fmod(i / pow(nrAAModels, model), nrAAModels));
+			test->run[i]->partitionModel[model] = (int) (fmod(i / pow(nrAAModels, model), nrAAModels));
 
-		evaluateAssignment(tr, adef, &(test->run[i]), alphaList);
+		evaluateAssignment(tr, adef, test->run[i], alphaList);
 	}
 
-	test->result = linkedOptimum(test);
+	test->result = overallOptimum(test);
 	return test;
 }
 
@@ -2679,28 +2702,144 @@ mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) {
 // test some random assignments
 mtest* randomTest(tree *tr, analdef *adef, linkageList *alphaList, int loops) {
 	int i, model, nrAAModels = NUM_PROT_MODELS - 2;
+	double elapMilli, elapSeconds, elapMinutes;
+    clock_t begin, end;
 
-	long randomSeed = 12345;
+	long randomSeed = 54321;
 
 	mtest *test = malloc(sizeof(mtest));
 
-	test->run = (assignment *)  malloc(sizeof(assignment) * nrAAModels);
+	assignment *s = mallocAssignment(tr->NumberOfModels);
+
+	for (model = 0; model < tr->NumberOfModels; model++)
+		s->partitionModel[model] = -1;
+
+	test->run = (assignment**) malloc(sizeof(assignment*) * nrAAModels);
 	test->nrRuns = loops; test->nrModels = tr->NumberOfModels;
 
 	printf("Random Test, number of partitions: %d, number of iterations: %d\n\n", tr->NumberOfModels, loops);
 
+	begin = clock();
 	for (i = 0; i < loops; i++) {
-		test->run[i].partitionLH = (double *) malloc(tr->NumberOfModels * sizeof(double));
-		test->run[i].partitionModel = (int *) malloc(tr->NumberOfModels * sizeof(int));
+		test->run[i] = mallocAssignment(tr->NumberOfModels);
+
+		test->run[i] = mutate(s, test->nrModels, test->nrModels);
 
 		// update models
-		for (model = 0; model < tr->NumberOfModels; model++)
-			test->run[i].partitionModel[model] = (int)(randum(&randomSeed) * nrAAModels);
+//		for (model = 0; model < tr->NumberOfModels; model++)
+//			test->run[i]->partitionModel[model] = (int)(randum(&randomSeed) * nrAAModels);
+		evaluateAssignment(tr, adef, test->run[i], alphaList);
+	}
+	end = clock();
 
-		evaluateAssignment(tr, adef, &(test->run[i]), alphaList);
+    elapSeconds = ((double)(end - begin)) / (CLOCKS_PER_SEC * NumberOfThreads * loops); elapMinutes = elapSeconds/60;
+
+    printf("evaluating one assignment took approx. %f sec or %2.2f min\n", elapSeconds, elapMinutes);
+
+	test->result = overallOptimum(test);
+	return test;
+}
+
+//TODO this is simple bubble sort, replace by quicksort or something else
+void sort(mtest *test) {
+	int n = test->nrRuns, i, swap;
+	assignment *tmp;
+
+	do{
+		swap = 0;
+
+		for(i = 0; i < test->nrRuns - 1; i++) {
+			if(test->run[i]->overallLH < test->run[i + 1]->overallLH) {
+				tmp = test->run[i];
+				test->run[i] = test->run[i + 1];
+				test->run[i + 1] = tmp;
+				swap = 1;
+			}
+		}
+		n--;
+	} while (swap && n > 0);
+}
+
+mtest* crossover(mtest *init, int npar) {
+	int i, j, model, p, par;
+	long randomSeed = rand();
+	mtest *res = malloc(sizeof(mtest));
+	res->run = (assignment**) malloc(sizeof(assignment*) * init->nrRuns);	
+	res->nrModels = init->nrModels; res->nrRuns = init->nrRuns;
+
+//	printModelTest(init);
+
+	for(i = 0; i < init->nrRuns; i++) {
+		p = (int)(randum(&randomSeed) * init->nrModels);
+		par = (int)(randum(&randomSeed) * npar);
+		res->run[i] = mallocAssignment(init->nrModels);
+
+		for(j = 0; j < p; j++) {
+			res->run[i]->partitionModel[j] = init->run[par]->partitionModel[j];
+		}
+
+		par = (int)(randum(&randomSeed) * npar);
+		for(;j < init->nrModels; j++) {
+			res->run[i]->partitionModel[j] = init->run[par]->partitionModel[j];
+		}
+	}
+//	printModelTest(res);
+	free(init);
+	return res;
+}
+
+//TODO finish this...
+mtest* geneticAlgo(tree *tr, analdef *adef, linkageList *alphaList, int l) {
+	int model, i, j, popcount = 15, fraq = 20, num, loops = 5;
+
+	mtest *test = malloc(sizeof(mtest)), *population;
+	assignment *tmp;
+
+	num = (int) (popcount * fraq / 100);
+
+	printf("Running genetic algorithm %d of each population with %d assignments will be choosen to breed the next one...\n", num, popcount);
+
+	test->nrModels = tr->NumberOfModels; test->nrRuns = num * loops + loops;
+	// reservers amount of memory needed, to store loops times best breed plus some to seperate them
+	test->run = (assignment**) malloc(sizeof(assignment*) * (num * loops + loops));
+
+	tmp = mallocAssignment(test->nrModels);
+
+	population = malloc(sizeof(mtest));
+	population->run = (assignment**) malloc(sizeof(assignment*) * popcount);
+	population->nrRuns = popcount;
+
+	for(j = 0; j < test->nrModels; j++) {
+		tmp->partitionModel[j] = -1;
+		tmp->partitionLH[j] = unlikely;
 	}
 
-	test->result = linkedOptimum(test);
+	for(j = 0; j < popcount; j++) {
+		population->run[j] = mutate(tmp, test->nrModels, test->nrModels);
+//		printAssignment(population->run[j], test->nrModels);
+	}
+	population->nrRuns = popcount;
+	population->nrModels = test->nrModels;
+
+	//loops times redo population generation
+	for(i = 0; i < loops; i++) {
+
+		population = crossover(population, num);
+		//mutate and evaluate
+		for(j = 0; j < popcount; j++) {
+			population->run[j] = mutate(population->run[j], test->nrModels, 1);
+			evaluateAssignment(tr, adef, population->run[j], alphaList);
+		}
+
+		sort(population);
+		for(j = 0; j < num; j++) {
+			test->run[i * num + j + i] = population->run[j];
+//			printf("writing pos %d of result\n", i * num + j + i);
+		}
+//		printf("writing inline at %d\n", i * num + j + i);
+		test->run[i * num + j + i] = tmp;
+	}
+
 	return test;
 }
 
@@ -2727,12 +2866,14 @@ void modOptJoerg(tree *tr, analdef *adef) {
 
 	// simple heuristic test, to compute a start assignment
 //	printf("%d partitions, unlinked\n", tr->NumberOfModels);
-	t = simple(tr, adef, alphaList);
+//	t = simple(tr, adef, alphaList);
 
 //	printf("%d partitions, exhaustively\n", tr->NumberOfModels);
-//	t = linkedExhaustive(tr, adef, alphaList);
+	t = linkedExhaustive(tr, adef, alphaList);
 //	t = randomTest(tr, adef, alphaList, 5);
-//	tmp = getNeighbour(t->result, t->nrModels);
+//	t = geneticAlgo(tr, adef, alphaList, 10);
+
+//	tmp = mutate(t->result, t->nrModels, 1);
 
 	/* start testing protein model assignments */
 //	if (tr->allCombinations) {
@@ -2743,10 +2884,12 @@ void modOptJoerg(tree *tr, analdef *adef) {
 //		simple(tr, adef, alphaList, simpl, start);
 //	}
 
-	printAssignment(t->result, t->nrModels);
+	sort(t);
+	printModelTest(t);
+
 //	printf("tmp contains:\n");
 //	printAssignment(tmp, t->nrModels);
-	printModelTest(t);
+//	printModelTest(t);
 
 	free(unlinked); free(t);
 	freeLinkageList(alphaList);

@@ -361,7 +361,7 @@ typedef struct {
 	char *method;
 	int nrRuns;
 	int nrModels;
-	assignment* run;
+	assignment** run;
 	assignment* result;
 } mtest;
 
