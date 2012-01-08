@@ -52,9 +52,8 @@ extern volatile int NumberOfThreads;
 #endif
 
 extern const unsigned int mask32[32];
-
-
-
+//[JH]
+int problemCount = 0;
 
 
 void calcDiagptable(double z, int data, int numberOfCategories, double *rptr, double *EIGN, double *diagptable)
@@ -299,16 +298,19 @@ static double evaluateGTRGAMMAPROT (int *ex1, int *ex2, int *wptr,
 {
   double   sum = 0.0, term;        
   int     i, j, l;   
-  double  *left, *right;              
-  
+  double  *left, *right;
+
   if(tipX1)
-    {               
+    {
       for (i = 0; i < n; i++) 
 	{
 
 	  __m128d tv = _mm_setzero_pd();
+
 	  left = &(tipVector[20 * tipX1[i]]);	  	  
 	  
+
+
 	  for(j = 0, term = 0.0; j < 4; j++)
 	    {
 	      double *d = &diagptable[j * 20];
@@ -320,14 +322,21 @@ static double evaluateGTRGAMMAPROT (int *ex1, int *ex2, int *wptr,
 		}		 		
 	    }
 	  tv = _mm_hadd_pd(tv, tv);
+
 	  _mm_storel_pd(&term, tv);
-	  
-	  
+
+	  if(term < 0.0) {
+//		  [JH] sometimes term contains -0.0 which causes log(-0.0) to become NaN
+		  term = fabs(term);
+		  problemCount++;
+		  printf("term negative again (%d times)\n", problemCount);
+//		  printf("term=%f\n", term);
+	  }
+
 	  if(fastScaling)
 	    term = LOG(0.25 * term);
 	  else
-	    term = LOG(0.25 * term) + (ex2[i] * LOG(minlikelihood));	   
-	  
+	    term = LOG(0.25 * term) + (ex2[i] * LOG(minlikelihood));
 	  sum += wptr[i] * term;
 	}    	        
     }              
@@ -1219,10 +1228,12 @@ double evaluateIterative(tree *tr,  boolean writeVector)
 									       tip, width, diagptable, TRUE,
 									       x1_gapColumn, x2_gapColumn, x1_gap, x2_gap);
 		      
-		      else
+		      else {
 			partitionLikelihood = evaluateGTRGAMMAPROT(ex1, ex2, tr->partitionData[model].wgt,
 								   x1_start, x2_start, tr->partitionData[model].tipVector,
 								   tip, width, diagptable, TRUE);
+
+		      }
 		    }	      
 		}
 	      break;	      		    
@@ -1232,13 +1243,14 @@ double evaluateIterative(tree *tr,  boolean writeVector)
 	  
 	  if(width > 0)
 	    {
-		  if(isnan(partitionLikelihood)) {
-				printf("\npartition: %d lh: %E\n", model, partitionLikelihood);
-				partitionLikelihood = -DBL_MAX;
-				printf("partition: %d lh: %E\n", model, partitionLikelihood);
-			}
-			if(!(partitionLikelihood < 0.0))
-				printf("partition: %d lh: %E\n", model, partitionLikelihood);
+		  //[JH] fix this shit
+//		  if(isnan(partitionLikelihood)) {
+//				printf("\npartition: %d lh: %E\n", model, partitionLikelihood);
+//				partitionLikelihood = -DBL_MAX;
+//				printf("partition: %d lh: %E\n", model, partitionLikelihood);
+//			}
+//			if(!(partitionLikelihood < 0.0))
+//				printf("partition: %d lh: %E\n", model, partitionLikelihood);
 
 
 	      assert(partitionLikelihood < 0.0);

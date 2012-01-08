@@ -1,4 +1,7 @@
 #!/bin/bash
+#create indelible config file, run and afterwards test everything
+
+
 #simulate n independent partitions with seqgen
 seq-gen 
 #	glue together both phylip and partition file

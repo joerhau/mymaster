@@ -2582,7 +2582,7 @@ void evaluateAssignment(tree *tr, analdef *adef, assignment *ass,  linkageList *
 }
 
 void printTime(double p) {
-	printf("%d%% processed. Overall time for testing models will be approx. %f seconds...\r", (int) p, (assignmentEvalTicks * 100 / p));
+	printf("%d%% processed. Overall time estimate is %f sec. or %3.1f min....\r", (int) p, (assignmentEvalTicks * 100 / p), (assignmentEvalTicks * 100 / p * 60));
 	fflush(stdout);
 }
 
@@ -2706,9 +2706,9 @@ mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) {
 			test->run[i]->partitionModel[model] = (int) (fmod(i / pow(nrAAModels, model), nrAAModels));
 
 		evaluateAssignment(tr, adef, test->run[i], alphaList);
-		print(i * 100 / test->nrRuns);
+		if(i % (2 * NumberOfThreads) == 0) printTime(i * 100 / test->nrRuns);
 	}
-
+	printf("\nEvaluating one assignment took %f sec", assignmentEvalTicks);
 	test->result = overallOptimum(test);
 	return test;
 }
@@ -2739,9 +2739,12 @@ mtest* randomTest(tree *tr, analdef *adef, linkageList *alphaList, int loops) {
 
 		// update models
 		evaluateAssignment(tr, adef, test->run[i], alphaList);
-		printTime(i * 100 / loops);
+//		printf("One Assignment took %f sec.\n", (assignmentEvalTicks / i));
+		printf("%d%% processed. Overall time estimate is %f sec. One Assignment took %f sec...\r", (int) i * 100 / loops, (assignmentEvalTicks * 100 / (i * 100 / loops)), (assignmentEvalTicks / i));
+		fflush(stdout);
+//		if(i % (2 * NumberOfThreads) == 0) printTime(i * 100 / loops);
 	}
-
+	printf("\nEvaluating one assignment took %f sec", assignmentEvalTicks/loops);
 	test->result = overallOptimum(test);
 	return test;
 }
@@ -2876,7 +2879,7 @@ void modOptJoerg(tree *tr, analdef *adef) {
 
 //	printf("%d partitions, exhaustively\n", tr->NumberOfModels);
 //	t = linkedExhaustive(tr, adef, alphaList);
-	t = randomTest(tr, adef, alphaList, 50);
+	t = randomTest(tr, adef, alphaList, 5);
 //	t = geneticAlgo(tr, adef, alphaList, 10);
 
 //	tmp = mutate(t->result, t->nrModels, 1);

@@ -36,33 +36,56 @@ INDELible V1.03 Simulations completed at: Thu Dec  8 20:44:16 2011
 [TYPE] AMINOACID 1             
 
 // All 13 usable models
+// 0
+[MODEL] m0                     
+  [submodel]    Poisson
+// 1
 [MODEL] m1                      
   [submodel]    JTT
+// 2
 [MODEL] m2                      
   [submodel]    JTT-dcmut
+// 3
 [MODEL] m3                      
   [submodel]    Dayhoff
+// 4
 [MODEL] m4                      
   [submodel]    Dayhoff-dcmut
+// 5
 [MODEL] m5                      
   [submodel]    WAG
+// 6
 [MODEL] m6                      
-  [submodel]    Blosum
+  [submodel]    mtMAM
+// 7
 [MODEL] m7                      
-  [submodel]    LG
+  [submodel]    mtART
+// 8
 [MODEL] m8
-  [submodel]    6
+  [submodel]    mtREV
+// 9
 [MODEL] m9
-  [submodel]    7
+  [submodel]    rtREV
+// 10
 [MODEL] m10
-  [submodel]    8
+  [submodel]    cpREV
+// 11
 [MODEL] m11
-  [submodel]    9
+  [submodel]    Vt
+// 12
 [MODEL] m12
-  [submodel]    10
+  [submodel]    Blosum
+// 13
 [MODEL] m13
-  [submodel]    11
-  
+  [submodel]    LG
+// 14
+[MODEL] m14
+  [submodel]    HIVb
+// 15
+[MODEL] m15
+  [submodel]    HIVw
+
+
 //This will generate a random tree, with seed 123456, note if you do not change the seed, the tree topolgy will always be the same, just the branch length will change. Decrease the "sample-rate " to get a more difficult tree. Note this tree will be write into a seperate file, you must open the file to copy and paste this tree out. You can also replace this part with your own tree.  
 [TREE]     t1   
   [unrooted] 50 10 5 0.1 0.34  // ntaxa birth death sample-rate mut
@@ -72,6 +95,7 @@ INDELible V1.03 Simulations completed at: Thu Dec  8 20:44:16 2011
   [t1 m5 1000]
 
 [PARTITIONS] Pname2                 // this block contains multiple partitions
+  [t1 m0 100]
   [t1 m1 100]                       // tree t1, model m1, root length 100
   [t1 m2 100]                       // tree t1, model m2, root length 200
   [t1 m3 100]
@@ -84,6 +108,8 @@ INDELible V1.03 Simulations completed at: Thu Dec  8 20:44:16 2011
   [t1 m11 100]
   [t1 m12 100]
   [t1 m13 100]
+  [t1 m14 100]
+  [t1 m15 100]
 
 
 

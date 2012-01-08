@@ -80,4 +80,4 @@
 
 [EVOLVE]     
   //Pname1  1  Sre1wag           // 1 replicates generated from partition Pname1
-  Pname2  1  Sre4           // 1 replicates generated from partition Pname2
+  Pname2  1  50t15m           // 1 replicates generated from partition Pname2

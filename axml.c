@@ -82,25 +82,27 @@
 
 
 // [JH] print model test information to file
-//print best model assignment
 void printAssignment(assignment *opt, int m) {
 	int model;
 
-	printf("best Assignment for %d models: \n", m);
 	for (model = 0; model < m; model++) {;
 	if(protEmpiricalFreqs)
-		printf("%9sF %12f", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
+		printf("%10sF %12f", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
 	else
-		printf("%10s %12f", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
+		printf("%11s %12f", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
 	}
 	printf("   %12f\n", opt->overallLH);
+}
 
-	// create file containing the names of the best suiting models
-	FILE *o = myfopen("linked.models", "w");
-	for (model = 0; model < m; model++) {
-		fprintf(o, "%s\n", protModels[opt->partitionModel[model]]);
-	}
-	fclose(o);
+void printAssignmentFile(assignment *opt, int m) {
+	int model;
+
+	if(protEmpiricalFreqs)
+		for (model = 0; model < m; model++)
+			printf("%sF\n", protModels[opt->partitionModel[model]]);
+	else
+		for (model = 0; model < m; model++)
+			printf("%s\n", protModels[opt->partitionModel[model]]);
 }
 
 // print stepwise modeltest
@@ -113,67 +115,35 @@ void printModelTest(mtest *r) {
 	for(model = 0; model < r->nrModels; model++)
 		bestLikelihoods[model] = unlikely;
 
-//	printf("global protEmpiricalFreqs set to %d\n", protEmpiricalFreqs);
-//	printf("%d combinations tested on %d partitions\n", r->nrRuns, r->nrModels);
-
 	for(i = 0; i < r->nrModels; i++) {
 		sprintf(a, "%s%d", "model", i);
 		sprintf(b, "%s%d", "LH", i);
-		printf("%10s  %-12s", a, b);
+		printf("%11s  %-11s", a, b);
 	}
-	printf("    %-12s\n", "overallLH");
+	printf(" %12s\n", "overallLH");
 
 	// print modeltest stepwise
 	for(i = 0; i < r->nrRuns; i++) {
-		for (model = 0; model < r->nrModels; model++) {
-			if(protEmpiricalFreqs)
-				printf("%9sF %12f", protModels[r->run[i]->partitionModel[model]], r->run[i]->partitionLH[model]);
-			else
-				printf("%10s %12f", protModels[r->run[i]->partitionModel[model]], r->run[i]->partitionLH[model]);
-			if (r->run[i]->partitionLH[model] > bestLikelihoods[model]) {
-				bestLikelihoods[model] = r->run[i]->partitionLH[model];
-				printf("+");
-			} else printf(" ");
-		}
-
-		printf("   %12f", r->run[i]->overallLH);
-
-		if (r->run[i]->overallLH > bestLH) {
-			bestLH = r->run[i]->overallLH;
-			printf("+\n");
-		} else printf(" \n");
+		printAssignment(r->run[i], r->nrModels);
 	}
 
 	free(bestLikelihoods);
 }
 
-void printModelTestFile(mtest *r, char *f) {
+void printModelTestFile(mtest *r) {
 	FILE *tmp = stdout;
-	FILE *o = myfopen(f, "w");
+	FILE *o = myfopen(proteinModelInfoFile, "w");
 	stdout = o;
-
+	// test history
 	printModelTest(r);
-
+	fclose(o);
+	o = myfopen(proteinModelTestResult, "w");
+	stdout = o;
+	//model names only
+	printAssignmentFile(r->run[0], r->nrModels);
 	stdout = tmp;
+	fclose(o);
 }
-
-//void myPrintModelAssignment(tree *tr, int increased, int run, int allIncreased) {
-//  FILE *f = myfopen(proteinModelInfoFile, "ab");
-//  int model = 0;
-//  fprintf(f, "%-5d", run);
-//  for (model = 0; model < tr->NumberOfModels; model++)
-//      fprintf(f, "%-10s%-17f", protModels[tr->partitionData[model].protModels], tr->perPartitionLH[model]);
-//
-//  if (increased)
-//      fprintf(f, "+LH %-20f", tr->likelihood);
-//  else
-//      fprintf(f,"-LH %-20f", tr->likelihood);
-//
-//  if (allIncreased)
-//      fprintf(f,"\t*");
-//  fprintf(f,"\n");
-//  fclose(f);
-//}
 
 
 void myBinFwrite(const void *ptr, size_t size, size_t nmemb)
@@ -4011,6 +3981,7 @@ static void makeFileNames(void)
   strcat(binaryCheckpointName, "RAxML_binaryCheckpoint.");
 	// [JH] add model results file here
 	strcat(proteinModelInfoFile, "RAxML_modelAssignment.");
+	strcat(proteinModelTestResult, "RAxML_modelResult.");
 
   strcat(permFileName,         run_id);
   strcat(resultFileName,       run_id);
@@ -4028,6 +3999,7 @@ static void makeFileNames(void)
   strcat(binaryCheckpointName, run_id);
   // [JH]
   strcat(proteinModelInfoFile, run_id);
+  strcat(proteinModelTestResult, run_id);
 
   
 
