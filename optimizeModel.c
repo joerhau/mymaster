@@ -47,6 +47,8 @@ static const double MNBRAK_GLIMIT =     100.0;
 static const double BRENT_ZEPS  =      1.e-5;
 static const double BRENT_CGOLD =   0.3819660;
 
+double assignmentEvalTicks = 0;
+
 extern int optimizeRatesInvocations;
 extern int optimizeRateCategoryInvocations;
 extern int optimizeAlphaInvocations;
@@ -2540,7 +2542,9 @@ assignment* mallocAssignment(int models) {
 // computes the likelihood values for the given assignment
 void evaluateAssignment(tree *tr, analdef *adef, assignment *ass,  linkageList *alphaList) {
 	int i, model, catOpt = 0;
+    clock_t begin, end;
 
+	begin = clock();
 	resetBranches(tr);
 
 	for (model = 0; model < tr->NumberOfModels; model++) {
@@ -2573,6 +2577,8 @@ void evaluateAssignment(tree *tr, analdef *adef, assignment *ass,  linkageList *
 	}
 
 	ass->overallLH = tr->likelihood;
+	end = clock();
+	assignmentEvalTicks += ((double)(end - begin)) / (CLOCKS_PER_SEC * NumberOfThreads);
 }
 
 assignment* partitionWiseOptimum(mtest *test) {
@@ -2655,7 +2661,6 @@ mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) {
 
 	mtest *test = malloc(sizeof(mtest));
 
-//	test->run = (assignment *)  malloc(sizeof(assignment) * nrAAModels);
 	test->run = (assignment**) malloc(sizeof(assignment*) * nrAAModels);
 	test->nrRuns = nrAAModels; test->nrModels = tr->NumberOfModels;
 
@@ -2706,8 +2711,6 @@ mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) {
 // test some random assignments
 mtest* randomTest(tree *tr, analdef *adef, linkageList *alphaList, int loops) {
 	int i, model, nrAAModels = NUM_PROT_MODELS - 2;
-	double elapMilli, elapSeconds, elapMinutes;
-    clock_t begin, end;
 
 	long randomSeed = 54321;
 
@@ -2718,27 +2721,21 @@ mtest* randomTest(tree *tr, analdef *adef, linkageList *alphaList, int loops) {
 	for (model = 0; model < tr->NumberOfModels; model++)
 		s->partitionModel[model] = -1;
 
-	test->run = (assignment**) malloc(sizeof(assignment*) * nrAAModels);
+	test->run = (assignment**) malloc(sizeof(assignment*) * loops);
 	test->nrRuns = loops; test->nrModels = tr->NumberOfModels;
 
 	printf("Random Test, number of partitions: %d, number of iterations: %d\n\n", tr->NumberOfModels, loops);
 
-	begin = clock();
 	for (i = 0; i < loops; i++) {
 		test->run[i] = mallocAssignment(tr->NumberOfModels);
 
 		test->run[i] = mutate(s, test->nrModels, test->nrModels);
 
 		// update models
-//		for (model = 0; model < tr->NumberOfModels; model++)
-//			test->run[i]->partitionModel[model] = (int)(randum(&randomSeed) * nrAAModels);
 		evaluateAssignment(tr, adef, test->run[i], alphaList);
+		printf("%d%% processed. Overall time for testing models will be approx. %f seconds...\r", (int) (assignmentEvalTicks * 100 / ((assignmentEvalTicks / (i + 1)) * loops)), (assignmentEvalTicks / (i + 1)) * loops);
+		fflush(stdout);
 	}
-	end = clock();
-
-    elapSeconds = ((double)(end - begin)) / (CLOCKS_PER_SEC * NumberOfThreads * loops); elapMinutes = elapSeconds/60;
-
-    printf("evaluating one assignment took approx. %f sec or %2.2f min\n", elapSeconds, elapMinutes);
 
 	test->result = overallOptimum(test);
 	return test;
@@ -2818,10 +2815,9 @@ mtest* geneticAlgo(tree *tr, analdef *adef, linkageList *alphaList, int l) {
 		tmp->partitionLH[j] = unlikely;
 	}
 
-	for(j = 0; j < popcount; j++) {
+	for(j = 0; j < popcount; j++)
 		population->run[j] = mutate(tmp, test->nrModels, test->nrModels);
-//		printAssignment(population->run[j], test->nrModels);
-	}
+
 	population->nrRuns = popcount;
 	population->nrModels = test->nrModels;
 
@@ -2838,9 +2834,7 @@ mtest* geneticAlgo(tree *tr, analdef *adef, linkageList *alphaList, int l) {
 		sort(population);
 		for(j = 0; j < num; j++) {
 			test->run[i * num + j + i] = population->run[j];
-//			printf("writing pos %d of result\n", i * num + j + i);
 		}
-//		printf("writing inline at %d\n", i * num + j + i);
 		test->run[i * num + j + i] = tmp;
 	}
 
@@ -2877,7 +2871,7 @@ void modOptJoerg(tree *tr, analdef *adef) {
 
 //	printf("%d partitions, exhaustively\n", tr->NumberOfModels);
 //	t = linkedExhaustive(tr, adef, alphaList);
-	t = randomTest(tr, adef, alphaList, 1);
+	t = randomTest(tr, adef, alphaList, 50);
 //	t = geneticAlgo(tr, adef, alphaList, 10);
 
 //	tmp = mutate(t->result, t->nrModels, 1);
