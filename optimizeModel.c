@@ -2581,6 +2581,11 @@ void evaluateAssignment(tree *tr, analdef *adef, assignment *ass,  linkageList *
 	assignmentEvalTicks += ((double)(end - begin)) / (CLOCKS_PER_SEC * NumberOfThreads);
 }
 
+void printTime(double p) {
+	printf("%d%% processed. Overall time for testing models will be approx. %f seconds...\r", (int) p, (assignmentEvalTicks * 100 / p));
+	fflush(stdout);
+}
+
 assignment* partitionWiseOptimum(mtest *test) {
 	int i, model;
 
@@ -2701,6 +2706,7 @@ mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) {
 			test->run[i]->partitionModel[model] = (int) (fmod(i / pow(nrAAModels, model), nrAAModels));
 
 		evaluateAssignment(tr, adef, test->run[i], alphaList);
+		print(i * 100 / test->nrRuns);
 	}
 
 	test->result = overallOptimum(test);
@@ -2733,8 +2739,7 @@ mtest* randomTest(tree *tr, analdef *adef, linkageList *alphaList, int loops) {
 
 		// update models
 		evaluateAssignment(tr, adef, test->run[i], alphaList);
-		printf("%d%% processed. Overall time for testing models will be approx. %f seconds...\r", (int) (assignmentEvalTicks * 100 / ((assignmentEvalTicks / (i + 1)) * loops)), (assignmentEvalTicks / (i + 1)) * loops);
-		fflush(stdout);
+		printTime(i * 100 / loops);
 	}
 
 	test->result = overallOptimum(test);
