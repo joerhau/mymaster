@@ -58,6 +58,7 @@ extern char run_id[128];
 extern char lengthFileName[1024];
 extern char lengthFileNameModel[1024];
 extern char *protModels[20];
+extern int protEmpiricalFreqs;
 
 
 #ifdef _USE_PTHREADS
@@ -2557,7 +2558,10 @@ void evaluateAssignment(tree *tr, analdef *adef, assignment *ass,  linkageList *
 
 	for (model = 0; model < tr->NumberOfModels; model++) {
 		tr->partitionData[model].protModels = ass->partitionModel[model];
-		if(!adef->protEmpiricalFreqs)	tr->partitionData[model].protFreqs = 0;
+		if(!adef->protEmpiricalFreqs) {
+//			printf("protEmpiricalFreqs == %d, setting tr->partitionData[model].protFreqs, which were %d to 0\n", adef->protEmpiricalFreqs, tr->partitionData[model].protFreqs);
+			tr->partitionData[model].protFreqs = 0;
+		}
 		initReversibleGTR(tr, adef, model);
 	}
 
@@ -2678,7 +2682,7 @@ mtest* linkedExhaustive(tree *tr, analdef *adef, linkageList *alphaList) {
 
 	mtest *test = malloc(sizeof(mtest));
 
-	test->run = (assignment**) malloc(sizeof(assignment*) * nrAAModels);
+	test->run = (assignment**) malloc(sizeof(assignment*) * pow(nrAAModels, tr->NumberOfModels));
 	test->nrRuns = (int) pow(nrAAModels, tr->NumberOfModels);
 	test->nrModels = tr->NumberOfModels;
 
@@ -2846,6 +2850,9 @@ mtest* geneticAlgo(tree *tr, analdef *adef, linkageList *alphaList, int l) {
 void modOptJoerg(tree *tr, analdef *adef) {
 	int i, model, *unlinked = (int *) malloc(sizeof(int) * tr->NumberOfModels);
 
+//	printf(".... %s .... \n", Thorough);
+	if(adef->protEmpiricalFreqs) protEmpiricalFreqs = 1;
+
 	assignment *tmp;
 	mtest *t;
 	linkageList *alphaList;
@@ -2869,8 +2876,8 @@ void modOptJoerg(tree *tr, analdef *adef) {
 //	t = simple(tr, adef, alphaList);
 
 //	printf("%d partitions, exhaustively\n", tr->NumberOfModels);
-	t = linkedExhaustive(tr, adef, alphaList);
-//	t = randomTest(tr, adef, alphaList, 5);
+//	t = linkedExhaustive(tr, adef, alphaList);
+	t = randomTest(tr, adef, alphaList, 1);
 //	t = geneticAlgo(tr, adef, alphaList, 10);
 
 //	tmp = mutate(t->result, t->nrModels, 1);
@@ -2885,7 +2892,7 @@ void modOptJoerg(tree *tr, analdef *adef) {
 //	}
 
 	sort(t);
-	printModelTest(t);
+	printModelTestFile(t, "RAXML_modeAssignment");
 
 //	printf("tmp contains:\n");
 //	printAssignment(tmp, t->nrModels);

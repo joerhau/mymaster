@@ -88,7 +88,10 @@ void printAssignment(assignment *opt, int m) {
 
 	printf("best Assignment for %d models: \n", m);
 	for (model = 0; model < m; model++) {;
-		printf("%10s %12f ", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
+	if(protEmpiricalFreqs)
+		printf("%9sF %12f", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
+	else
+		printf("%10s %12f", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
 	}
 	printf("   %12f\n", opt->overallLH);
 
@@ -107,11 +110,12 @@ void printModelTest(mtest *r) {
 			bestLH = unlikely;
 	char *a = malloc(sizeof(char) * 10); char *b = malloc(sizeof(char) * 12);
 
-
 	for(model = 0; model < r->nrModels; model++)
 		bestLikelihoods[model] = unlikely;
 
+//	printf("global protEmpiricalFreqs set to %d\n", protEmpiricalFreqs);
 //	printf("%d combinations tested on %d partitions\n", r->nrRuns, r->nrModels);
+
 	for(i = 0; i < r->nrModels; i++) {
 		sprintf(a, "%s%d", "model", i);
 		sprintf(b, "%s%d", "LH", i);
@@ -122,7 +126,10 @@ void printModelTest(mtest *r) {
 	// print modeltest stepwise
 	for(i = 0; i < r->nrRuns; i++) {
 		for (model = 0; model < r->nrModels; model++) {
-			printf("%10s %12f", protModels[r->run[i]->partitionModel[model]], r->run[i]->partitionLH[model]);
+			if(protEmpiricalFreqs)
+				printf("%9sF %12f", protModels[r->run[i]->partitionModel[model]], r->run[i]->partitionLH[model]);
+			else
+				printf("%10s %12f", protModels[r->run[i]->partitionModel[model]], r->run[i]->partitionLH[model]);
 			if (r->run[i]->partitionLH[model] > bestLikelihoods[model]) {
 				bestLikelihoods[model] = r->run[i]->partitionLH[model];
 				printf("+");
@@ -138,6 +145,16 @@ void printModelTest(mtest *r) {
 	}
 
 	free(bestLikelihoods);
+}
+
+void printModelTestFile(mtest *r, char *f) {
+	FILE *tmp = stdout;
+	FILE *o = myfopen(f, "w");
+	stdout = o;
+
+	printModelTest(r);
+
+	stdout = tmp;
 }
 
 //void myPrintModelAssignment(tree *tr, int increased, int run, int allIncreased) {
@@ -3159,6 +3176,8 @@ static int modelExists(char *model, analdef *adef)
 
       if(strcmp(model, thisModel) == 0)
 	{
+    	  // [JH]
+    	  protEmpiricalFreqs = 1;
 	  adef->model = M_PROTGAMMA;
 	  adef->proteinMatrix = i;
 	  adef->protEmpiricalFreqs = 1;
@@ -3175,6 +3194,8 @@ static int modelExists(char *model, analdef *adef)
 
       if(strcmp(model, thisModel) == 0)
 	{
+    	  // [JH]
+    	  protEmpiricalFreqs = 1;
 	  adef->model = M_PROTGAMMA;
 	  adef->proteinMatrix = i;
 	  adef->protEmpiricalFreqs = 1;
@@ -3191,6 +3212,8 @@ static int modelExists(char *model, analdef *adef)
 
       if(strcmp(model, thisModel) == 0)
 	{
+    	  // [JH]
+    	  protEmpiricalFreqs = 1;
 	  adef->model = M_PROTGAMMA;
 	  adef->proteinMatrix = i;
 	  adef->protEmpiricalFreqs = 1;
