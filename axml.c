@@ -140,7 +140,7 @@ void printModelTestFile(mtest *r) {
 	o = myfopen(proteinModelTestResult, "w");
 	stdout = o;
 	//model names only
-	printAssignmentFile(r->run[0], r->nrModels);
+	printAssignmentFile(r->result, r->nrModels);
 	stdout = tmp;
 	fclose(o);
 }

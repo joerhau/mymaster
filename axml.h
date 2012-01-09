@@ -1206,6 +1206,7 @@ extern boolean whitechar ( int ch );
 extern void errorExit ( int e );
 //[JH] print modeltest results
 extern void printAssignment(assignment *opt, int m);
+extern void printModelTestFile(mtest *r);
 extern void printModelTest(mtest *r);
 
 extern void printResult ( tree *tr, analdef *adef, boolean finalPrint );

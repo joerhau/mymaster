@@ -2582,7 +2582,7 @@ void evaluateAssignment(tree *tr, analdef *adef, assignment *ass,  linkageList *
 }
 
 void printTime(double p) {
-	printf("%d%% processed. Overall time estimate is %f sec. or %3.1f min....\r", (int) p, (assignmentEvalTicks * 100 / p), (assignmentEvalTicks * 100 / p * 60));
+	printf("%d%% processed. Overall time estimate is %f sec. or %3.1f min....\n", (int) p, (assignmentEvalTicks * 100 / p), ((assignmentEvalTicks * 100 / p) /60));
 	fflush(stdout);
 }
 
@@ -2679,9 +2679,11 @@ mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) {
 			test->run[i]->partitionModel[model] = i;
 
 		evaluateAssignment(tr, adef, test->run[i], alphaList);
+		printTime(i * 100 / nrAAModels);
 	}
-
+	printf("evaluating one assignment took %f sec. in average\n", assignmentEvalTicks/nrAAModels);
 	test->result = partitionWiseOptimum(test);
+	printAssignment(test->result, test->nrModels);
 	return test;
 }
 
@@ -2740,9 +2742,9 @@ mtest* randomTest(tree *tr, analdef *adef, linkageList *alphaList, int loops) {
 		// update models
 		evaluateAssignment(tr, adef, test->run[i], alphaList);
 //		printf("One Assignment took %f sec.\n", (assignmentEvalTicks / i));
-		printf("%d%% processed. Overall time estimate is %f sec. One Assignment took %f sec...\r", (int) i * 100 / loops, (assignmentEvalTicks * 100 / (i * 100 / loops)), (assignmentEvalTicks / i));
-		fflush(stdout);
-//		if(i % (2 * NumberOfThreads) == 0) printTime(i * 100 / loops);
+//		printf("%d%% processed. Overall time estimate is %f sec. One Assignment took %f sec...\r", (int) i * 100 / loops, (assignmentEvalTicks * 100 / (i * 100 / loops)), (assignmentEvalTicks / i));
+//		fflush(stdout);
+		if(i % (2 * NumberOfThreads) == 0) printTime(i * 100 / loops);
 	}
 	printf("\nEvaluating one assignment took %f sec", assignmentEvalTicks/loops);
 	test->result = overallOptimum(test);
@@ -2806,7 +2808,7 @@ mtest* geneticAlgo(tree *tr, analdef *adef, linkageList *alphaList, int l) {
 
 	num = (int) (popcount * fraq / 100);
 
-	printf("Running genetic algorithm %d of each population with %d assignments will be choosen to breed the next one...\n", num, popcount);
+	printf("Genetic algorithm: %d of each population with %d assignments will breed next %d times...\n", num, popcount, loops);
 
 	test->nrModels = tr->NumberOfModels; test->nrRuns = num * loops + loops;
 	// reservers amount of memory needed, to store loops times best breed plus some to seperate them
@@ -2875,11 +2877,11 @@ void modOptJoerg(tree *tr, analdef *adef) {
 
 	// simple heuristic test, to compute a start assignment
 //	printf("%d partitions, unlinked\n", tr->NumberOfModels);
-//	t = simple(tr, adef, alphaList);
+	t = simple(tr, adef, alphaList);
 
 //	printf("%d partitions, exhaustively\n", tr->NumberOfModels);
 //	t = linkedExhaustive(tr, adef, alphaList);
-	t = randomTest(tr, adef, alphaList, 5);
+//	t = randomTest(tr, adef, alphaList, 5);
 //	t = geneticAlgo(tr, adef, alphaList, 10);
 
 //	tmp = mutate(t->result, t->nrModels, 1);
@@ -2894,7 +2896,7 @@ void modOptJoerg(tree *tr, analdef *adef) {
 //	}
 
 	sort(t);
-	printModelTestFile(t, "RAXML_modeAssignment");
+	printModelTestFile(t);
 
 //	printf("tmp contains:\n");
 //	printAssignment(tmp, t->nrModels);
