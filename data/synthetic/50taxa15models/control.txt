@@ -64,6 +64,7 @@
   [t1 m2 100]                       // tree t1, model m2, root length 200
   [t1 m3 100]
   [t1 m4 100]
+  [t1 m5 100]
   [t1 m6 100]
   [t1 m7 100]
   [t1 m8 100]
