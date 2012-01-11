@@ -61,11 +61,15 @@ extern char lengthFileName[1024];
 extern char lengthFileNameModel[1024];
 extern char *protModels[20];
 extern int protEmpiricalFreqs;
+extern int assertionError;
 
 
 #ifdef _USE_PTHREADS
 extern volatile int             NumberOfThreads;
 extern volatile double          *reductionBuffer;
+// [JH]
+#else
+volatile int NumberOfThreads=1;
 #endif
 
 
@@ -2567,6 +2571,11 @@ void evaluateAssignment(tree *tr, analdef *adef, assignment *ass,  linkageList *
 			tr->partitionData[model].protFreqs = 0;
 		}
 		initReversibleGTR(tr, adef, model);
+//		if(assertionError) {
+//			printf("The following assignment of models caused evaluation problems\n");
+//			printAssignment(ass, tr->NumberOfModels);
+//			assertionError = 0;
+//		}
 	}
 
 	optimize(tr, alphaList);
@@ -2629,6 +2638,61 @@ assignment* overallOptimum(mtest *test) {
 	return result;
 }
 
+void sortUnlinked(mtest *test) {
+	int n = test->nrRuns, model, i, swap, tmpModel;
+	assignment *tmp;
+	double tmpLH, sum;
+
+	do{
+		swap = 0;
+
+		for(i = 0; i < test->nrRuns - 1; i++) {
+			for(model = 0; model < test->nrModels; model++) {
+				if(test->run[i]->partitionLH[model] < test->run[i + 1]->partitionLH[model]) {
+					swap = 1;
+					tmpLH = test->run[i]->partitionLH[model];
+					tmpModel = test->run[i]->partitionModel[model];
+
+					test->run[i]->partitionLH[model] = test->run[i + 1]->partitionLH[model];
+					test->run[i]->partitionModel[model] = test->run[i + 1]->partitionModel[model];
+
+					test->run[i + 1]->partitionLH[model] = tmpLH;
+					test->run[i + 1]->partitionModel[model] = tmpModel;
+				}
+			}
+		}
+		n--;
+	} while (swap && n > 0);
+
+	for(i = 0; i < test->nrRuns; i++) {
+		sum = 0;
+		for(model = 0; model < test->nrModels; model++)
+			sum += test->run[i]->partitionLH[model];
+		test->run[i]->overallLH = sum;
+	}
+
+}
+
+//TODO this is simple bubble sort, replace by quicksort or something else
+void sort(mtest *test) {
+	int n = test->nrRuns, i, swap;
+	assignment *tmp;
+
+	do{
+		swap = 0;
+
+		for(i = 0; i < test->nrRuns - 1; i++) {
+			if(test->run[i]->overallLH < test->run[i + 1]->overallLH) {
+				tmp = test->run[i];
+				test->run[i] = test->run[i + 1];
+				test->run[i + 1] = tmp;
+				swap = 1;
+			}
+		}
+		n--;
+	} while (swap && n > 0);
+}
+
 // mutates n random partitions of an assignment with m partitions
 assignment* mutate(assignment *start, int m, int n) {
 	int i, model, partition, *parts = malloc(sizeof(int) * n), nrAAModels = NUM_PROT_MODELS - 2, in, im;
@@ -2684,6 +2748,7 @@ mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) {
 	printf("evaluating one assignment took %f sec. in average\n", assignmentEvalTicks/nrAAModels);
 	test->result = partitionWiseOptimum(test);
 	printAssignment(test->result, test->nrModels);
+	sortUnlinked(test);
 	return test;
 }
 
@@ -2749,26 +2814,6 @@ mtest* randomTest(tree *tr, analdef *adef, linkageList *alphaList, int loops) {
 	printf("\nEvaluating one assignment took %f sec", assignmentEvalTicks/loops);
 	test->result = overallOptimum(test);
 	return test;
-}
-
-//TODO this is simple bubble sort, replace by quicksort or something else
-void sort(mtest *test) {
-	int n = test->nrRuns, i, swap;
-	assignment *tmp;
-
-	do{
-		swap = 0;
-
-		for(i = 0; i < test->nrRuns - 1; i++) {
-			if(test->run[i]->overallLH < test->run[i + 1]->overallLH) {
-				tmp = test->run[i];
-				test->run[i] = test->run[i + 1];
-				test->run[i + 1] = tmp;
-				swap = 1;
-			}
-		}
-		n--;
-	} while (swap && n > 0);
 }
 
 mtest* crossover(mtest *init, int npar) {
@@ -2874,14 +2919,22 @@ void modOptJoerg(tree *tr, analdef *adef) {
 	 the recursion of the Felsenstein pruning algorithm */
 	tr->start = tr->nodep[1];
 
+// quickly evaluate one special assignment
+//	tmp=mallocAssignment(3);
+//	for(i = 0; i < 3; i++) {
+//		tmp->partitionModel[i] = 0;
+//	}
+//	evaluateAssignment(tr, adef, tmp, alphaList);
+//	printAssignment(tmp, 3);
+
 
 	// simple heuristic test, to compute a start assignment
 //	printf("%d partitions, unlinked\n", tr->NumberOfModels);
-	t = simple(tr, adef, alphaList);
+//	t = simple(tr, adef, alphaList);
 
 //	printf("%d partitions, exhaustively\n", tr->NumberOfModels);
 //	t = linkedExhaustive(tr, adef, alphaList);
-//	t = randomTest(tr, adef, alphaList, 5);
+	t = randomTest(tr, adef, alphaList, 20);
 //	t = geneticAlgo(tr, adef, alphaList, 10);
 
 //	tmp = mutate(t->result, t->nrModels, 1);
@@ -2895,7 +2948,9 @@ void modOptJoerg(tree *tr, analdef *adef) {
 //		simple(tr, adef, alphaList, simpl, start);
 //	}
 
-	sort(t);
+//	printModelTest(t);
+//	sortUnlinked(t);
+//	printModelTest(t);
 	printModelTestFile(t);
 
 //	printf("tmp contains:\n");

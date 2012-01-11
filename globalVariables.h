@@ -47,6 +47,8 @@ int Thorough = 0;
 
 checkPointState ckp;
 
+int assertionError = 0;
+
 char run_id[128] = "", 
   workdir[1024] = "", 
   seq_file[1024] = "", 

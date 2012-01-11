@@ -53,6 +53,7 @@ extern volatile int NumberOfThreads;
 
 extern const unsigned int mask32[32];
 //[JH]
+extern int assertionError;
 int problemCount = 0;
 
 
@@ -296,9 +297,11 @@ static double evaluateGTRGAMMAPROT (int *ex1, int *ex2, int *wptr,
 				    double *tipVector, 
 				    unsigned char *tipX1, int n, double *diagptable, const boolean fastScaling)
 {
-  double   sum = 0.0, term;        
+  double   sum = 0.0, term;
   int     i, j, l;   
   double  *left, *right;
+
+  assertionError = 0;
 
   if(tipX1)
     {
@@ -325,19 +328,28 @@ static double evaluateGTRGAMMAPROT (int *ex1, int *ex2, int *wptr,
 
 	  _mm_storel_pd(&term, tv);
 
+
+//		  [JH] sometimes term contains -0.0000.... which causes the log to become NaN
 	  if(term < 0.0) {
-//		  [JH] sometimes term contains -0.0 which causes log(-0.0) to become NaN
-		  term = fabs(term);
+		  assertionError = 1;
 		  problemCount++;
-		  printf("term negative again (%d times)\n", problemCount);
-//		  printf("term=%f\n", term);
+//		  printf("term negative again (%d times), i was %d, n was %d\n", problemCount, i, n);
+		  printf("tipX1 i=%d, term=%E\n", i, term);
+		term = fabs(term);
 	  }
+//	  else if(assertionError) {
+//		  printf("term negative again (%d times), i was %d, n was %d\n", problemCount, i, n);
+//		  printf("term=%1.80f\n", term);
+//	  }
 
 	  if(fastScaling)
 	    term = LOG(0.25 * term);
 	  else
 	    term = LOG(0.25 * term) + (ex2[i] * LOG(minlikelihood));
+
 	  sum += wptr[i] * term;
+//	  if(i == n - 1 && assertionError)
+//	  		  printf("sum=%1.80f\n", sum);
 	}    	        
     }              
   else
@@ -361,12 +373,27 @@ static double evaluateGTRGAMMAPROT (int *ex1, int *ex2, int *wptr,
 	  tv = _mm_hadd_pd(tv, tv);
 	  _mm_storel_pd(&term, tv);	  
 	  
+//		  [JH] sometimes term contains -0.0000.... which causes the log to become NaN
+	  	  if(term < 0.0) {
+	  		  assertionError = 1;
+	  		  problemCount++;
+//	  		  printf("term negative again (%d times), i was %d, n was %d\n", problemCount, i, n);
+	  		  printf("nontip term=%E\n", term);
+	  		term = fabs(term);
+	  	  }
+//	  	  else if(assertionError) {
+//	  		  printf("term negative again (%d times), i was %d, n was %d\n", problemCount, i, n);
+//	  		  printf("term=%1.80f\n", term);
+//	  	  }
+
 	  if(fastScaling)
 	    term = LOG(0.25 * term);
 	  else
 	    term = LOG(0.25 * term) + ((ex1[i] + ex2[i])*LOG(minlikelihood));
 	  
 	  sum += wptr[i] * term;
+//	  if(i == n - 1 && assertionError)
+//	  		  printf("sum=%1.80f\n", sum);
 	}
     }
        
@@ -1240,7 +1267,7 @@ double evaluateIterative(tree *tr,  boolean writeVector)
 	    default:
 	      assert(0);	    
 	    }	
-	  
+
 	  if(width > 0)
 	    {
 		  //[JH] fix this shit
@@ -1251,8 +1278,11 @@ double evaluateIterative(tree *tr,  boolean writeVector)
 //			}
 //			if(!(partitionLikelihood < 0.0))
 //				printf("partition: %d lh: %E\n", model, partitionLikelihood);
-
-
+		  if(assertionError) {
+			  printf("partition %d, model %d, LH %f\n", model, tr->partitionData[model].protModels, partitionLikelihood);
+//			  printf("LH is %1.80f\n", partitionLikelihood);
+			  assertionError = 0;
+		  }
 	      assert(partitionLikelihood < 0.0);
 	  	     		      
 	      partitionLikelihood += (tr->partitionData[model].globalScaler[pNumber] + tr->partitionData[model].globalScaler[qNumber]) * LOG(minlikelihood);
