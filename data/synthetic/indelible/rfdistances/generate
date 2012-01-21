@@ -10,8 +10,7 @@ nrModels=14
 min=100
 max=500
 #end of test (2^1 ... 2^pow)
-pow=1
-#7
+pow=7
 #taxa
 nrTaxa=50
 #name of indelible control file
