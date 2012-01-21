@@ -25,7 +25,7 @@ tree=`echo "$tFile" | cut -d'.' -f1`
 indel="indelible"
 NUM_CORES=4
 raxmlHPC="raxmlHPC-PTHREADS -T "$NUM_CORES
-raxmlLight="raxmlLight-PTHREADS -T "$NUM_CORES
+raxmlLight="raxmlLight-PTHREADS-SSE -T "$NUM_CORES
 seed=65498
 
 #for number of partitions in 2^i generate control file and run indelible 
@@ -50,7 +50,7 @@ do
 		let "r2=$RANDOM % $nrModels"
 		let "l=$RANDOM % $((max-min))"
 		l=$((l + min))
-		end=$((begin+l))
+		end=$((begin+l-1))
 
 		models[$j]=$r
 		mI=${modelsI[${models[$j]}]}	
