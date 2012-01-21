@@ -2514,7 +2514,7 @@ void optimize(tree *tr, linkageList *alphaList) {
 	} while (fabs(currentLikelihood - tr->likelihood) > likelihoodEpsilon);
 }
 
-void init(tree *tr) {
+void init(tree *tr, analdef *adef) {
 	int model;
 
 	resetBranches(tr);
@@ -2527,9 +2527,10 @@ void init(tree *tr) {
 		 to approximate the integral over GAMMA we actually want to compute */
 		makeGammaCats(tr->partitionData[model].alpha, tr->partitionData[model].gammaRates, 4);
 
-		/* use empirical protein frequencies in contrast to the pre-defined ones that come with the
-		 models. The empirical freqs typically yield better likelihood scores, so let's not worry about this*/
-		tr->partitionData[model].protFreqs = 1;
+//		use empirical protein frequencies if specified
+		if(!adef->protEmpiricalFreqs)
+			tr->partitionData[model].protFreqs = 0;
+		else tr->partitionData[model].protFreqs = 1;
 	}
 }
 
@@ -2539,6 +2540,7 @@ assignment* mallocAssignment(int models) {
 	a = (assignment*) malloc(sizeof(assignment));
 	a->partitionLH = (double *) malloc(models * sizeof(double));
 	a->partitionModel = (int *) malloc(models * sizeof(int));
+	a->chosen = 0;
 
 	return a;
 }
@@ -2549,27 +2551,12 @@ void evaluateAssignment(tree *tr, analdef *adef, assignment *ass,  linkageList *
     clock_t begin, end;
 
 	begin = clock();
-	resetBranches(tr);
 
-	for (model = 0; model < tr->NumberOfModels; model++) {
-		/* set the alpha shape parameter to its default value */
-		tr->partitionData[model].alpha = 1.0;
-
-		/* initialize the discretization of the GAMMA function --- we use 4 discrete rates
-		 to approximate the integral over GAMMA we actually want to compute */
-		makeGammaCats(tr->partitionData[model].alpha, tr->partitionData[model].gammaRates, 4);
-
-		/* use empirical protein frequencies in contrast to the pre-defined ones that come with the
-		 models. The empirical freqs typically yield better likelihood scores, so let's not worry about this*/
-		tr->partitionData[model].protFreqs = 1;
-	}
+	init(tr, adef);
 
 	for (model = 0; model < tr->NumberOfModels; model++) {
 		tr->partitionData[model].protModels = ass->partitionModel[model];
-		if(!adef->protEmpiricalFreqs) {
-//			printf("protEmpiricalFreqs == %d, setting tr->partitionData[model].protFreqs, which were %d to 0\n", adef->protEmpiricalFreqs, tr->partitionData[model].protFreqs);
-			tr->partitionData[model].protFreqs = 0;
-		}
+
 		initReversibleGTR(tr, adef, model);
 //		if(assertionError) {
 //			printf("The following assignment of models caused evaluation problems\n");
@@ -2593,6 +2580,23 @@ void evaluateAssignment(tree *tr, analdef *adef, assignment *ass,  linkageList *
 void printTime(double p) {
 	printf("%d%% processed. Overall time estimate is %f sec. or %3.1f min....\n", (int) p, (assignmentEvalTicks * 100 / p), ((assignmentEvalTicks * 100 / p) /60));
 	fflush(stdout);
+}
+
+// enables per independent per gene branch length estimation
+void switchPerGene(tree *tr, analdef * adef, int enable) {
+
+	if(enable) {
+		adef->perGeneBranchLengths = 1;
+		tr->multiBranch = 1;
+		tr->numBranches = tr->NumberOfModels;
+		masterBarrier(THREAD_INIT_PARTITION, tr);
+	} else {
+		adef->perGeneBranchLengths = 0;
+		tr->multiBranch = 0;
+		tr->numBranches = 1;
+		masterBarrier(THREAD_INIT_PARTITION, tr);
+
+	}
 }
 
 assignment* partitionWiseOptimum(mtest *test) {
@@ -2694,6 +2698,7 @@ void sort(mtest *test) {
 }
 
 // mutates n random partitions of an assignment with m partitions
+//TODO check whether every partition is assigned a new model if n = m = nrModels or not
 assignment* mutate(assignment *start, int m, int n) {
 	int i, model, partition, *parts = malloc(sizeof(int) * n), nrAAModels = NUM_PROT_MODELS - 2, in, im;
 	long randomSeed = rand();
@@ -2714,6 +2719,10 @@ assignment* mutate(assignment *start, int m, int n) {
 		parts[im++] = in;
 	}
 
+//	printf("partitions: ");
+//	for(i = 0; i < n; i++)
+//		printf("%d ", parts[i]);
+
 	for(i = 0; i < n; i++) {
 		do {
 			res->partitionModel[parts[i]] = (int)(randum(&randomSeed) * nrAAModels);
@@ -2733,7 +2742,9 @@ mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) {
 	test->run = (assignment**) malloc(sizeof(assignment*) * nrAAModels);
 	test->nrRuns = nrAAModels; test->nrModels = tr->NumberOfModels;
 
-//	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) nrAAModels);
+	printf("Simple Test, number of partitions: %d, available AA models: %d\n\n", tr->NumberOfModels, (int) nrAAModels);
+
+//	switchPerGene(tr, adef, 1);
 
 	for (i = 0; i < nrAAModels; i++) {
 		test->run[i] = mallocAssignment(tr->NumberOfModels);
@@ -2743,12 +2754,14 @@ mtest* simple(tree *tr, analdef *adef, linkageList *alphaList) {
 			test->run[i]->partitionModel[model] = i;
 
 		evaluateAssignment(tr, adef, test->run[i], alphaList);
-		printTime(i * 100 / nrAAModels);
 	}
+
+//	switchPerGene(tr, adef, 0);
+
 	printf("evaluating one assignment took %f sec. in average\n", assignmentEvalTicks/nrAAModels);
 	test->result = partitionWiseOptimum(test);
-	printAssignment(test->result, test->nrModels);
-	sortUnlinked(test);
+
+//	sortUnlinked(test);
 	return test;
 }
 
@@ -2809,7 +2822,8 @@ mtest* randomTest(tree *tr, analdef *adef, linkageList *alphaList, int loops) {
 //		printf("One Assignment took %f sec.\n", (assignmentEvalTicks / i));
 //		printf("%d%% processed. Overall time estimate is %f sec. One Assignment took %f sec...\r", (int) i * 100 / loops, (assignmentEvalTicks * 100 / (i * 100 / loops)), (assignmentEvalTicks / i));
 //		fflush(stdout);
-		if(i % (2 * NumberOfThreads) == 0) printTime(i * 100 / loops);
+//		if(i % (2 * NumberOfThreads) == 0)
+//		printTime(i * 100 / loops);
 	}
 	printf("\nEvaluating one assignment took %f sec", assignmentEvalTicks/loops);
 	test->result = overallOptimum(test);
@@ -2823,7 +2837,6 @@ mtest* crossover(mtest *init, int npar) {
 	res->run = (assignment**) malloc(sizeof(assignment*) * init->nrRuns);	
 	res->nrModels = init->nrModels; res->nrRuns = init->nrRuns;
 
-//	printModelTest(init);
 
 	for(i = 0; i < init->nrRuns; i++) {
 		p = (int)(randum(&randomSeed) * init->nrModels);
@@ -2839,27 +2852,66 @@ mtest* crossover(mtest *init, int npar) {
 			res->run[i]->partitionModel[j] = init->run[par]->partitionModel[j];
 		}
 	}
-//	printModelTest(res);
+
 	free(init);
 	return res;
 }
 
-//TODO finish this...
-mtest* geneticAlgo(tree *tr, analdef *adef, linkageList *alphaList, int l) {
-	int model, i, j, popcount = 15, fraq = 20, num, loops = 5;
+
+mtest* simmulatedAnnealing(tree *tr, analdef *adef, linkageList *alphaList, assignment * start, int loops) {
+	int model, i, j, numAccepted = 0;
+
+	mtest *test = malloc(sizeof(mtest));
+	assignment *y;
+
+	test->run = (assignment**) malloc(loops * sizeof(assignment*));
+	test->run[0] = start;
+	test->nrModels = tr->NumberOfModels; test->nrRuns = loops;
+
+	printf("Simmulated annealing: loops is %d....\n", loops);
+
+	evaluateAssignment(tr, adef, test->run[0], alphaList);
+	printf("started with: \n");
+	printAssignment(test->run[0], test->nrModels);
+	printf("\n");
+
+	for(i = 0; i < loops - 1; i++) {
+		y = mallocAssignment(test->nrModels);
+		y = mutate(test->run[i], test->nrModels, 1);
+		evaluateAssignment(tr,adef, y, alphaList);
+
+//		printf("diff: %f  x: %f  y: %f  P: %f  RAND: %f\n", y->overallLH - test->run[i]->overallLH, test->run[i]->overallLH, y->overallLH, exp((y->overallLH - test->run[i]->overallLH) / (loops - i)), rand() / (double)RAND_MAX);
+//		printAssignment(y, test->nrModels);
+//		printf("diff: %f P: %f\n", y->overallLH - test->run[i]->overallLH, exp((y->overallLH - test->run[i]->overallLH) / (loops - i)));
+
+		if(exp((y->overallLH - test->run[i]->overallLH) / (loops - i)) > rand() / (double)RAND_MAX) {
+			numAccepted++;
+			test->run[i + 1] = y;
+		} else {
+			test->run[i + 1] = test->run[i];
+		}
+	}
+
+	printf("\naccepted branch was chosen %d times\n", numAccepted);
+
+	return test;
+}
+
+
+mtest* geneticAlgo(tree *tr, analdef *adef, linkageList *alphaList, int loops) {
+	int model, i, j, popcount = 15, fraq = 20, num; // loops = 5;
 
 	mtest *test = malloc(sizeof(mtest)), *population;
-	assignment *tmp;
+	assignment *tmp = mallocAssignment(test->nrModels);
 
 	num = (int) (popcount * fraq / 100);
 
-	printf("Genetic algorithm: %d of each population with %d assignments will breed next %d times...\n", num, popcount, loops);
+	printf("Genetic algorithm: %d of each population with %d assignments will breed next population %d times...\n"
+			"in summary %d assignments will be evaluated\n", num, popcount, loops, loops * popcount);
 
-	test->nrModels = tr->NumberOfModels; test->nrRuns = num * loops + loops;
+	test->nrModels = tr->NumberOfModels; test->nrRuns = popcount * loops; //num * loops;
 	// reservers amount of memory needed, to store loops times best breed plus some to seperate them
-	test->run = (assignment**) malloc(sizeof(assignment*) * (num * loops + loops));
-
-	tmp = mallocAssignment(test->nrModels);
+	test->run = (assignment**) malloc(sizeof(assignment*) * (popcount * loops)); //(num * loops));
 
 	population = malloc(sizeof(mtest));
 	population->run = (assignment**) malloc(sizeof(assignment*) * popcount);
@@ -2887,22 +2939,26 @@ mtest* geneticAlgo(tree *tr, analdef *adef, linkageList *alphaList, int l) {
 		}
 
 		sort(population);
-		for(j = 0; j < num; j++) {
-			test->run[i * num + j + i] = population->run[j];
+		for(j = 0; j < popcount; j++) {
+			if(j < num) population->run[j]->chosen = 1;
+			test->run[i * popcount + j] = population->run[j];
 		}
-		test->run[i * num + j + i] = tmp;
+
+//		for(j = 0; j < num; j++)
+//			test->run[i * num + j] = population->run[j];
 	}
 
+	test->result = overallOptimum(test);
 	return test;
 }
 
-void modOptJoerg(tree *tr, analdef *adef) {
+void modOptJoerg(tree *tr, analdef *adef, rawdata* rdta) {
 	int i, model, *unlinked = (int *) malloc(sizeof(int) * tr->NumberOfModels);
 
-//	printf(".... %s .... \n", Thorough);
+	printf("starting to test models \n");
 	if(adef->protEmpiricalFreqs) protEmpiricalFreqs = 1;
 
-	assignment *tmp;
+	assignment *tmp, *start;
 	mtest *t;
 	linkageList *alphaList;
 
@@ -2919,43 +2975,28 @@ void modOptJoerg(tree *tr, analdef *adef) {
 	 the recursion of the Felsenstein pruning algorithm */
 	tr->start = tr->nodep[1];
 
-// quickly evaluate one special assignment
-//	tmp=mallocAssignment(3);
-//	for(i = 0; i < 3; i++) {
-//		tmp->partitionModel[i] = 0;
-//	}
-//	evaluateAssignment(tr, adef, tmp, alphaList);
-//	printAssignment(tmp, 3);
-
-
-	// simple heuristic test, to compute a start assignment
-//	printf("%d partitions, unlinked\n", tr->NumberOfModels);
-//	t = simple(tr, adef, alphaList);
-
-//	printf("%d partitions, exhaustively\n", tr->NumberOfModels);
-//	t = linkedExhaustive(tr, adef, alphaList);
-	t = randomTest(tr, adef, alphaList, 20);
-//	t = geneticAlgo(tr, adef, alphaList, 10);
-
-//	tmp = mutate(t->result, t->nrModels, 1);
-
 	/* start testing protein model assignments */
-//	if (tr->allCombinations) {
-//		printf("%d partitions, exhaustive\n", tr->NumberOfModels);
-//		linkedExhaustive(tr, adef, bestLikelihoods, bestModels, alphaList);
-//	} else {
-//		printf("%d partitions, unlinked\n", tr->NumberOfModels);
-//		simple(tr, adef, alphaList, simpl, start);
-//	}
+	if (tr->allCombinations) {
+		printf("trying an enhanced algorithm\n", tr->NumberOfModels);
 
-//	printModelTest(t);
-//	sortUnlinked(t);
-//	printModelTest(t);
+		start = mallocAssignment(tr->NumberOfModels);
+
+		for(model = 0; model < tr->NumberOfModels; model++) {
+			start->partitionModel[model] = tr->partitionData[model].protModels;
+		}
+
+//		t = linkedExhaustive(tr, adef, alphaList);
+//		t = randomTest(tr, adef, alphaList, 300);
+//		t = geneticAlgo(tr, adef, alphaList, 20);
+		t = simmulatedAnnealing(tr, adef, alphaList, start, 10);
+	} else {
+		printf("simple heuristic called\n", tr->NumberOfModels);
+		t = simple(tr, adef, alphaList);
+		sortUnlinked(t);
+	}
+
+	printModelTest(t);
 	printModelTestFile(t);
-
-//	printf("tmp contains:\n");
-//	printAssignment(tmp, t->nrModels);
-//	printModelTest(t);
 
 	free(unlinked); free(t);
 	freeLinkageList(alphaList);

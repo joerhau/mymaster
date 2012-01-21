@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#indelible model names
+modelsI=(Dayhoff Dayhoff-dcmut JTT mtREV WAG rtREV cpREV Vt Blosum mtMAM LG HIVb HIVw JTT-dcmut)
+# RAxML model names
+modelsR=(DAYHOFF DCMUT JTT MTREV WAG RTREV CPREV VT BLOSUM62 MTMAM LG HIVB HIVW JTTDCMUT)
+nrModels=14
+#length opf generated partitions
+min=100
+max=500
+#end of test (2^1 ... 2^pow)
+pow=1
+#7
+#taxa
+nrTaxa=50
+#name of indelible control file
+cFile="control.txt"
+
+#for 2 to 128 partitions do
+for i in `seq 1 $pow`
+do
+	n=$((2 ** $i))
+	rm -rf $n
+done

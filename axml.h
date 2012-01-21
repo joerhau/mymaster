@@ -95,7 +95,7 @@
 
 #define badRear         -1
 
-#define NUM_BRANCHES     129
+#define NUM_BRANCHES     3
 
 #define TRUE             1
 #define FALSE            0
@@ -354,6 +354,7 @@ typedef struct {
 	double overallLH;
 	int* partitionModel;
 	double* partitionLH;
+	int chosen;
 } assignment;
 
 //[JH] contains all intermediate results of a model search
@@ -1342,7 +1343,7 @@ extern void myBinFwrite(const void *ptr, size_t size, size_t nmemb);
 extern void myBinFread(void *ptr, size_t size, size_t nmemb);
 
 #ifdef _JOERG
-extern void modOptJoerg(tree *tr, analdef *adef);
+extern void modOptJoerg(tree *tr, analdef *adef, rawdata* rdta);
 #endif
 
 extern void makenewzIterative(tree *);
@@ -1516,6 +1517,8 @@ extern void testInsertThoroughIterative(tree *tr, int branchNumber, boolean boot
 #define THREAD_MRE_COMPUTE                  40
 #define THREAD_BROADCAST_RATE               41
 #define THREAD_OPTIMIZE_PER_SITE_AA         42
+// [JH]
+#define THREAD_CHANGE_NUM_BRANCHES			43
 
 /*
 

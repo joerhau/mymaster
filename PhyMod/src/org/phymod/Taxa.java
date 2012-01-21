@@ -8,11 +8,13 @@ public class Taxa {
 	public String name;
 	// partitions list
 //	private Partition[] partitions; 
-	private List<Partition> partitions;
-	// number of characters for this species
+	public List<Partition> partitions;
+//	number of characters for this species
 	public int length;
-	// number of partitions available for this species
+//	number of partitions available for this species
 	public int nrPartitions;
+//	shall this species be included in generated output
+	public boolean masked;
 	
 	/**
 	 * default constructor
@@ -23,6 +25,7 @@ public class Taxa {
 		this.partitions = new ArrayList<Partition>(partitions.length);
 		for(int i = 0; i < partitions.length; i++)
 			this.partitions.add(partitions[i]);
+		this.masked = false;
 		this.name = name;
 		this.update();
 	}
@@ -31,12 +34,13 @@ public class Taxa {
 	 * update length, has to be called after anything within the partitions were updated
 	 * @return
 	 */
-	private Taxa update() {
-		int sum = 0;
-		for (int i = 0; i < partitions.size(); i++)
-			sum += partitions.get(i).data.length();
-		this.length = sum;
-		this.nrPartitions = partitions.size();
+	public Taxa update() {
+		nrPartitions = 0;
+		length = 0;
+		for (int i = 0; i < partitions.size(); i++) {
+			nrPartitions += !partitions.get(i).masked ? 1 : 0;
+			length += !partitions.get(i).masked ? partitions.get(i).data.length() : 0;
+		}
 		
 		return this;
 	}
@@ -52,8 +56,8 @@ public class Taxa {
 	}
 	
 	public Taxa removePartition(int nr) {
-		this.partitions.remove(nr);
-		return this.update();
+		partitions.get(nr).masked = true;
+		return update();
 	}
 	
 	public Partition getPartition(int nr) {

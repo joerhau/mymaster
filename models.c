@@ -3203,29 +3203,29 @@ static void initGeneric(const int n, const unsigned int *valueVector, int valueV
 			double *tipVector,
 			int model)
 {
-  double 
-    **r, 
-    **a, 
+  double
+    **r,
+    **a,
     **EIGV,
-    *initialRates = ext_initialRates, 
-    *f, 
-    *e, 
-    *d, 
-    *invfreq, 
+    *initialRates = ext_initialRates,
+    *f,
+    *e,
+    *d,
+    *invfreq,
     *EIGN,
-    *eptr; 
-  
-  int 
-    i, 
-    j, 
-    k, 
-    m, 
-    l;  
+    *eptr;
+
+  int
+    i,
+    j,
+    k,
+    m,
+    l;
 
   r    = (double **)malloc(n * sizeof(double *));
-  EIGV = (double **)malloc(n * sizeof(double *));  
-  a    = (double **)malloc(n * sizeof(double *));	  
-  
+  EIGV = (double **)malloc(n * sizeof(double *));
+  a    = (double **)malloc(n * sizeof(double *));
+
   for(i = 0; i < n; i++)
     {
       a[i]    = (double*)malloc(n * sizeof(double));
@@ -3238,127 +3238,127 @@ static void initGeneric(const int n, const unsigned int *valueVector, int valueV
   d       = (double*)malloc(n * sizeof(double));
   invfreq = (double*)malloc(n * sizeof(double));
   EIGN    = (double*)malloc(n * sizeof(double));
-  
-  for(l = 0; l < n; l++)		 
-    f[l] = frequencies[l];	
+
+  for(l = 0; l < n; l++)
+    f[l] = frequencies[l];
   /*assert(initialRates[numRates - 1] == 1.0);	*/
-  
+
   i = 0;
-  
-  for(j = 0; j < n; j++)	 
+
+  for(j = 0; j < n; j++)
     for(k = 0; k < n; k++)
       r[j][k] = 0.0;
-  
+
   for(j = 0; j < n - 1; j++)
-    for (k = j+1; k < n; k++)      	  
-      r[j][k] = initialRates[i++];         
-  
-  for (j = 0; j < n; j++) 
+    for (k = j+1; k < n; k++)
+      r[j][k] = initialRates[i++];
+
+  for (j = 0; j < n; j++)
     {
       r[j][j] = 0.0;
       for (k = 0; k < j; k++)
 	r[j][k] = r[k][j];
-    }                         
-  
-  fracchanges[model] = 0.0;         
-  
+    }
+
+  fracchanges[model] = 0.0;
+
   for (j = 0; j< n; j++)
     for (k = 0; k< n; k++)
-      fracchanges[model] += f[j] * r[j][k] * f[k];             
-  
+      fracchanges[model] += f[j] * r[j][k] * f[k];
+
   m = 0;
-  
-  for(i=0; i< n; i++) 
+
+  for(i=0; i< n; i++)
     a[i][i] = 0;
-  
+
   /*assert(r[n - 2][n - 1] == 1.0);*/
-  
-  for(i=0; i < n; i++) 
+
+  for(i=0; i < n; i++)
     {
-      for(j=i+1;  j < n; j++) 
+      for(j=i+1;  j < n; j++)
 	{
 	  double factor =  initialRates[m++];
 	  a[i][j] = a[j][i] = factor * sqrt( f[i] * f[j]);
 	  a[i][i] -= factor * f[j];
 	  a[j][j] -= factor * f[i];
 	}
-    }             	        
+    }
 
-  makeEigen(a, n, d, e);	   	  	    
+  makeEigen(a, n, d, e);
 
-  for(i=0; i<n; i++)     
-    for(j=0; j<n; j++)       
+  for(i=0; i<n; i++)
+    for(j=0; j<n; j++)
       a[i][j] *= sqrt(f[j]);
-  
+
   for (i=0; i<n; i++)
-    {	  
-      if (d[i] > -1e-8) 
-	{	      
-	  if (i != 0) 
-	    {		    
+    {
+      if (d[i] > -1e-8)
+	{
+	  if (i != 0)
+	    {
 	      double tmp = d[i], sum=0;
 	      d[i] = d[0];
 	      d[0] = tmp;
-	      for (j=0; j < n; j++) 
+	      for (j=0; j < n; j++)
 		{
 		  tmp = a[i][j];
 		  a[i][j] = a[0][j];
 		  sum += (a[0][j] = tmp);
 		}
-	      for (j=0; j < n; j++) 
+	      for (j=0; j < n; j++)
 		a[0][j] /= sum;
 	    }
 	  break;
 	}
     }
-  
-  for (i=0; i< n; i++) 
+
+  for (i=0; i< n; i++)
     {
       EIGN[i] = -d[i];
-      
+
       for (j=0; j<n; j++)
 	EIGV[i][j] = a[j][i];
-      invfreq[i] = 1 / EIGV[i][0]; 
-    }                                    
-  
+      invfreq[i] = 1 / EIGV[i][0];
+    }
+
   for(l = 1; l < n; l++)
     {
-      ext_EIGN[(l - 1)] = EIGN[l]; 
-      assert( ext_EIGN[(l - 1)] > 0.0);
+      ext_EIGN[(l - 1)] = EIGN[l];
+      assert(ext_EIGN[(l - 1)] > 0.0);
     }
-  
+
   eptr = EV;
-  
-  for(i = 0; i < n; i++)		  
+
+  for(i = 0; i < n; i++)
     for(j = 0; j < n; j++)
       {
-	*eptr++ = EIGV[i][j];	             	    	     
-	
+	*eptr++ = EIGV[i][j];
+
       }
-  
+
   for(i = 0; i < n; i++)
     for(j = 1; j < n; j++)
-      EI[i * (n - 1) + (j - 1)] = EV[i * n + j] * invfreq[i];  
-  
+      EI[i * (n - 1) + (j - 1)] = EV[i * n + j] * invfreq[i];
+
   for(i=0; i < valueVectorLength; i++)
     {
       unsigned int value = valueVector[i];
-      
+
       for(j = 0; j < n; j++)
-	tipVector[i * n + j]     = 0;	            
+	tipVector[i * n + j]     = 0;
 
       if(value > 0)
-	{		      
-	  for (j = 0; j < n; j++) 
-	    {	    
-	      if ((value >> j) & 1) 
+	{
+	  for (j = 0; j < n; j++)
+	    {
+	      if ((value >> j) & 1)
 		{
 		  int l;
 		  for(l = 0; l < n; l++)
-		    tipVector[i * n + l] += EIGV[j][l];		      		      		     		      
-		}	     		  
-	    }	    
-	}     
+		    tipVector[i * n + l] += EIGV[j][l];
+		}
+	    }
+	}
     }
 
   for(i = 0; i < valueVectorLength; i++)
@@ -3369,7 +3369,7 @@ static void initGeneric(const int n, const unsigned int *valueVector, int valueV
     }
 
 
-  
+
 
   for(i = 0; i < n; i++)
     {
@@ -3403,9 +3403,10 @@ void initReversibleGTR(tree *tr, analdef *adef, int model)
    *ext_initialRates = tr->partitionData[model].substRates,
    *tipVector        = tr->partitionData[model].tipVector;
 
- 
   
  int states = tr->partitionData[model].states;
+
+
 
  switch(tr->partitionData[model].dataType)
    { 

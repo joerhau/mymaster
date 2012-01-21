@@ -1,5 +1,6 @@
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.IOException;
 
 public class AACluster {
 	
@@ -18,6 +19,7 @@ public class AACluster {
 		if(VV) {
 			for(Models d : Models.values()) {
 				AAModel tmp = new AAModel(d);
+				
 				System.out.println(tmp.toString());
 			}
 			System.exit(0);
@@ -25,7 +27,24 @@ public class AACluster {
 			System.out.println(new AAModel(Models.MTMAM).toString());
 			System.exit(0);
 		}
-
+		
+		for(Models d : Models.values()) {
+			FileWriter fstream;
+			AAModel tmp = new AAModel(d);
+			tmp.scaleMax();
+			tmp.revertMax();
+//			System.out.println(tmp.matToString());
+			try {
+				fstream = new FileWriter(d.name() + ".txt");
+				BufferedWriter out = new BufferedWriter(fstream);
+				out.write(tmp.matToString());
+				out.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
 		d1 = new double[m.length][m.length];
 		for(int i = 0; i < m.length; i++) {
 			a = new AAModel(m[i]).scaleMax();
@@ -107,22 +126,22 @@ public class AACluster {
 //		d4 = scaleByMax(d4, 100);
 //		distMatToString(d4);
 		
-		try{
-			max = new BufferedWriter(new FileWriter("max.txt"));
-			aac = new BufferedWriter(new FileWriter("aac.txt"));
-			one = new BufferedWriter(new FileWriter("one.txt"));
-			oneF = new BufferedWriter(new FileWriter("oneF.txt"));
-			max.write(distMatToString(d1));
-			aac.write(distMatToString(d2));
-			one.write(distMatToString(d3));
-			oneF.write(distMatToString(d4));
-			max.close();
-			aac.close();
-			one.close();
-			oneF.close();
-		}catch (Exception e){//Catch exception if any
-			System.err.println("Error: " + e.getMessage());
-		}
+//		try{
+//			max = new BufferedWriter(new FileWriter("max.txt"));
+//			aac = new BufferedWriter(new FileWriter("aac.txt"));
+//			one = new BufferedWriter(new FileWriter("one.txt"));
+//			oneF = new BufferedWriter(new FileWriter("oneF.txt"));
+//			max.write(distMatToString(d1));
+//			aac.write(distMatToString(d2));
+//			one.write(distMatToString(d3));
+//			oneF.write(distMatToString(d4));
+//			max.close();
+//			aac.close();
+//			one.close();
+//			oneF.close();
+//		}catch (Exception e){//Catch exception if any
+//			System.err.println("Error: " + e.getMessage());
+//		}
 		
 //		System.out.println(new AAModel(Models.FLU).toString());
 //		System.out.println(new AAModel(Models.HIVB).toString());

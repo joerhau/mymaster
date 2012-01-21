@@ -3722,15 +3722,17 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
       case 'v':
 	printVersionInfo();
 	errorExit(0);
+	break;
       
       case 'h':
 	printREADME();
 	errorExit(0);
-     
+    break;
+
 // [JH] temporarily added to switch between model search strategies
-	case 'l':
-		tr->allCombinations = TRUE;
-		break;
+//	case 'l':
+//		tr->allCombinations = TRUE;
+//		break;
 
       case 'c':
 	sscanf(optarg, "%d", &adef->categories);
@@ -3804,6 +3806,8 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 	errorExit(-1);
     }
   }
+
+  if(!adef->perGeneBranchLengths) tr->allCombinations = TRUE;
 
  
 
@@ -5469,10 +5473,12 @@ static void execFunction(tree *tr, tree *localTree, int tid, int n)
 
   currentJob = threadJob >> 16;
 
+//  printf("dadada: %d\n", currentJob);
+//  exit(0);
  
   
   switch(currentJob)
-    {            
+    {
     case THREAD_INIT_PARTITION:
      
       localTree->estimatePerSiteAA = tr->estimatePerSiteAA;
@@ -5492,7 +5498,32 @@ static void execFunction(tree *tr, tree *localTree, int tid, int n)
 
      
       
-      break;      
+      break;
+
+
+      //[JH] synchronise the branches across all Threads
+      //TODO test if this works as expected
+    case THREAD_CHANGE_NUM_BRANCHES:
+
+        localTree->estimatePerSiteAA = tr->estimatePerSiteAA;
+
+
+        localTree->manyPartitions = tr->manyPartitions;
+        if(localTree->manyPartitions && tid > 0)
+  	{
+  	  localTree->NumberOfModels = tr->NumberOfModels;
+  	  localTree->partitionAssignment = (int*)malloc(sizeof(int) * localTree->NumberOfModels);
+  	  memcpy(localTree->partitionAssignment, tr->partitionAssignment, localTree->NumberOfModels * sizeof(int));
+  	}
+
+        initPartition(tr, localTree, tid);
+        allocNodex(localTree, tid, n);
+        threadFixModelIndices(tr, localTree, tid, n);
+
+        localTree->numBranches = tr->numBranches;
+
+    break;
+
     case THREAD_EVALUATE:
       sendTraversalInfo(localTree, tr);
       result = evaluateIterative(localTree, FALSE);
@@ -5891,9 +5922,12 @@ static void execFunction(tree *tr, tree *localTree, int tid, int n)
 	free(bestScore);      					
       }
       break;
+
+
     default:
       printf("Job %d\n", currentJob);
       assert(0);
+      break;
     }
 }
 
@@ -6315,6 +6349,7 @@ int main (int argc, char *argv[])
 	}
       else
 	{
+
 	  accumulatedTime = 0.0;
 	  getStartingTree(tr, adef);     
 
@@ -6326,7 +6361,7 @@ int main (int argc, char *argv[])
 	     This function will never return, hence, you don't need to worry 
 	     about the rest of the code below modOptJoerg().
 	  */
-	  modOptJoerg(tr, adef);
+	  modOptJoerg(tr, adef, rdta);
 #else
 	  evaluateGenericInitrav(tr, tr->start);	 
 	 	  	  

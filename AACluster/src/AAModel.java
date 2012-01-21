@@ -7,6 +7,7 @@ public class AAModel {
 	private static double AA_SCALE = 10;
 	public String name;
 	
+	public final static String[] AAs = {"Ala", "Arg", "Asn", "Asp", "Cys", "Gln", "Glu", "Gly", "His", "Ile", "Leu", "Lys", "Met", "Phe", "Pro", "Ser", "Thr", "Trp", "Tyr", "Val"};
 	
 	public AAModel(String m) {
 		name = m;
@@ -35,7 +36,7 @@ public class AAModel {
 	public static AAModel getRepresentative(AAModel[] models, String name) {
 		double ssum = 0;
 		AAModel rep = new AAModel(name);
-
+		
 		for(int i = 0; i < models[0].q.length; i++) {
 			for(int j = i + 1; j < models[0].q[i].length; j++) {
 				ssum = 0;
@@ -76,7 +77,28 @@ public class AAModel {
 		}
 		return ssum / count;
 	}
+	
+	
+	public AAModel revertMax() {
+		double max = 0;
+
+		if(AACluster.VVV) System.out.println(this.toString());
 		
+		for (int i = 0; i < 19; i++)
+			for (int j = i + 1; j < 20; j++)
+				if (this.q[i][j] > max)
+					max = this.q[i][j];
+		
+		for (int i = 0; i < 19; i++)
+			for (int j = i + 1; j < 20; j++)
+				this.q[i][j] = -1 * this.q[i][j];
+//				this.q[i][j] = ((max - this.q[i][j]) * 10) / max;
+		
+		if(AACluster.VVV) System.out.println(this.toString());
+		
+		return this;
+	}
+	
 	public AAModel scaleMax() {
 		return this.scaleMax(AA_SCALE);
 	}
@@ -203,22 +225,56 @@ public class AAModel {
 		return this;
 	}
 	
+	public String matToString() {
+		DecimalFormat dd = new DecimalFormat("#0000.00");
+
+
+		String s = "\t";
+		
+		for(int i = 0; i < AAs.length; i++)
+			s += AAs[i] + "\t";
+
+		s += "\n" + AAs[0] + " ";
+		
+		for(int i = 0; i < q.length; i++) {
+			int j = 0;
+			for(; j < i; j++)
+				s += dd.format(q[j][i]) + " ";
+			for(; j < q[i].length; j++)
+				s+= dd.format(q[i][j]) + " ";
+			if(i < q.length - 1) s += "\n" + AAs[i + 1] + " ";
+		}
+		
+		s += "\n";
+		return s;		
+	}
+	
 	public String toString() {
 		DecimalFormat dd = new DecimalFormat("#0000.00");
 		DecimalFormat d = new DecimalFormat("#0.00");
-		String s = name + ":\n";
-			for(int i = 0; i < q.length - 1; i++) {
-				int j = 0;
-				for(; j <= i; j++)
-					s += "        ";
-				for(; j < q[i].length; j++)
-					s+= dd.format(q[i][j]) + " ";
-				s += "\n";
-			}
-			s += "F: ";
-			for(int i = 0; i < f.length; i++)
-				s+= d.format(f[i]) + " ";
-			s += "\n";
+		String s = name + ":\n\t";
+		
+		
+		for(int i = 0; i < AAs.length; i++)
+			s += AAs[i] + "\t";
+
+		s += "\n" + AAs[0] + " ";
+		
+		for(int i = 0; i < q.length; i++) {
+			int j = 0;
+			for(; j < i; j++)
+				s += "        ";
+			for(; j < q[i].length; j++)
+				s+= dd.format(q[i][j]) + " ";
+			if(i < q.length - 1) s += "\n" + AAs[i + 1] + " ";
+		}
+		s += "\n";
+		
+		s += "F: ";
+		for(int i = 0; i < f.length; i++)
+			s+= d.format(f[i]) + " ";
+		s += "\n";
+		
 		return s;
 	}
 	

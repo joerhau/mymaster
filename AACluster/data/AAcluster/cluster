@@ -1,0 +1,13 @@
+#!/bin/bash
+#m=(aac max oneF)
+for t in *.txt
+do
+#	echo $t
+	filename=$(basename $t)
+	filename=${filename%.*}
+#	echo $filename
+	Rscript cluster.R $t
+#	name=`echo $1 | sed 's/\(.*\)\..*/\1/'`
+	mv -f Rplots.pdf $filename.pdf
+#	xpdf $t.pdf &
+done

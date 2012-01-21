@@ -31,8 +31,13 @@ public class Alignment {
 	 * @return this instance
 	 */
 	private Alignment update() {
+		for(Taxa t : taxa) t.update();
+				
 		nrPartitions = taxa.get(0).nrPartitions;
-		nrTaxa = taxa.size();
+		nrTaxa = 0;
+		for(int i = 0; i < taxa.size(); i++)
+			nrTaxa += !(taxa.get(i).masked) ? 1 : 0;
+		
 		return this;
 	}
 	
@@ -48,13 +53,16 @@ public class Alignment {
 	}	
 	
 	public String phylipToString() {
-		String s = " " + taxa.size() + " " + taxa.get(0).length + "\n";
+		String s = " " + nrTaxa + " " + taxa.get(0).length + "\n";
 		for(int i = 0; i < taxa.size(); i++) {
-			s += taxa.get(i).name + " ";
-			for(int j = 0; j < taxa.get(0).nrPartitions; j++) {
-				s += taxa.get(i).getPartition(j).data;
+			if(!taxa.get(i).masked) {
+				s += taxa.get(i).name + " ";
+				for(int j = 0; j < taxa.get(0).partitions.size(); j++) {
+					if(!taxa.get(i).getPartition(j).masked)
+						s += taxa.get(i).getPartition(j).data;
+				}
+				s += "\n";
 			}
-			s += "\n";
 		}
 		return s;
 	}
@@ -63,10 +71,12 @@ public class Alignment {
 		String s = "";
 		int start = 1;
 		
-		for(int j = 0; j < taxa.get(0).nrPartitions; j++) {
-			int end = start + taxa.get(0).getPartition(j).data.length() - 1;
-			s += taxa.get(0).getPartition(j).model + ", " + taxa.get(0).getPartition(j).name + " = " + start + "-" + end + "\n";
-			start = end + 1;
+		for(int i = 0; i < taxa.get(0).partitions.size(); i++) {
+			if(!taxa.get(0).getPartition(i).masked) {
+				int end = start + taxa.get(0).getPartition(i).data.length() - 1;
+				s += taxa.get(0).getPartition(i).model + ", " + taxa.get(0).getPartition(i).name + " = " + start + "-" + end + "\n";
+				start = end + 1;
+			}
 		}
 		return s;
 	}
@@ -80,6 +90,28 @@ public class Alignment {
 			}
 		}
 		return s;
+	}
+	
+	// marks the partitions at the given positions as hidden
+	public Alignment maskPartitions(int[] p) {
+		for(int i = 0; i < taxa.get(0).nrPartitions; i++)
+			for(int j = 0; j < p.length; j++)
+				if(i == p[j]) 
+					for(int k = 0; k < this.nrTaxa; k++)
+						this.taxa.get(k).getPartition(i).masked = true;
+		update();
+		return this;
+	}
+	
+	// marks the taxa at the given positions as hidden
+	public Alignment maskTaxa(int[] t) {
+		for(int i = 0; i < taxa.size(); i++)
+			for(int j = 0; j < t.length; j++) {
+				if(i == t[j]) this.taxa.get(i).masked = true;
+			}
+		
+		update();
+		return this;
 	}
 	
 	/**
@@ -104,16 +136,24 @@ public class Alignment {
 	 */
 	public Alignment reduceToPartitions(int[] p) {
 		System.out.println("Reducing number of partitions to " + p.length);
-		List<Taxa> tmp = new ArrayList<Taxa>();
 		
-		for(int j = 0; j < taxa.size(); j++) {
-			Partition[] parts = new Partition[p.length];
-			for(int i = 0; i < p.length; i++)
-				parts[i] = taxa.get(j).getPartition(p[i]);
-			
-			tmp.add(new Taxa(taxa.get(j).name, parts));
+		for(int i = 0; i < taxa.size(); i++) {
+			for(int j = 0; j < taxa.get(0).partitions.size(); j++) {
+				taxa.get(i).getPartition(j).masked = true;
+				for(int k = 0; k < p.length; k++)
+					if(j == p[k]) taxa.get(i).getPartition(j).masked = false;
+			}
 		}
-		this.taxa = tmp;
+		
+		
+		
+//		for(int i = 0; i < taxa.size(); i++)
+//			for(int j = 0; j < taxa.get(0).partitions.size(); j++) {
+//				this.taxa.get(i).getPartition(j).masked = true;
+//				for(int k = 0; k < p.length; k++)
+//					if(j == p[k]) this.taxa.get(i).getPartition(j).masked = false;
+//			}
+		
 		return this.update();
 	}
 	
@@ -124,26 +164,26 @@ public class Alignment {
 	 * @param del if true distinct partitions are chosen
 	 * @return
 	 */
-	public Alignment extractRand(int count, boolean del) {
+	public Alignment extractRand(int count) {
 		boolean redo;
 		int[] r = new int[count];
 		
 		do {
 			redo = false;
-			r = Rand.createArray(count, this.nrPartitions, del);
+			r = Rand.createArray(count, nrPartitions, true);
 		
-			for(int j = 0; j < this.taxa.size(); j++) {
+			for(int j = 0; j < taxa.size(); j++) {
 				String str = "";
 				
 				for(int i = 0; i < r.length; i++)
-					str += this.taxa.get(j).getPartition(r[i]).data;
+					str += taxa.get(j).getPartition(r[i]).data;
 				
 				if(str.replaceAll("-", "").equals("") || str.replaceAll("X", "").equals("")) {
 					redo = true;
 					break;
 				}
 			}
-		} while (del && redo);
+		} while (redo);
 		
 		return this.reduceToPartitions(r);
 	}
@@ -157,16 +197,16 @@ public class Alignment {
 	public Alignment extractPercentage(int p) {
 		List<Integer> tmp = new ArrayList<Integer>();
 		
-		for(int i = 0; i < this.nrPartitions; i++) {
+		for(int i = 0; i < taxa.get(0).partitions.size(); i++) {
 			int count = 0;
 			
-			for(int j = 0; j < this.nrTaxa; j++) {
-				String str = this.taxa.get(j).getPartition(i).data;
+			for(int j = 0; j < taxa.size(); j++) {
+				String str = taxa.get(j).getPartition(i).data;
 				
-				if(str.replaceAll("-", "").equals("") || str.replaceAll("X", "").equals(""))
+				if(!(str.replaceAll("-", "").equals("") || str.replaceAll("X", "").equals("")))
 					count++;
 			}
-			if(count *100 / this.nrTaxa > p)
+			if(count *100 / taxa.size() > p)
 				tmp.add(i);
 		}
 		
@@ -174,10 +214,10 @@ public class Alignment {
 		for(int i = 0; i < r.length; i++) 
 			r[i] = tmp.get(i);
 		
-		System.out.print("Extracting " + tmp.size() + " partitions (");
-		for(int i = 0; i < r.length; i++)
-			System.out.print(r[i] + " ");
-		System.out.print("), which arte filled for at least " + p + "% of the species.");
+//		System.out.print("Extracting " + tmp.size() + " partitions (");
+//		for(int i = 0; i < r.length; i++)
+//			System.out.print(r[i] + " ");
+//		System.out.print("), which arte filled for at least " + p + "% of the species.");
 
 		return this.reduceToPartitions(r);
 	}
