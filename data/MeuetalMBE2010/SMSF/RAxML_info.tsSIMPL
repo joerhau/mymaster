@@ -1,0 +1,1219 @@
+
+
+This is RAxML-Light version 1.0.5 released by Alexandros Stamatakis in June 2011.
+
+
+Alignment has 36426 distinct alignment patterns
+
+Proportion of gaps and completely undetermined characters in this alignment: 51.97%
+
+RAxML rapid hill-climbing mode
+
+Using 129 distinct models/data partitions with joint branch length optimization
+
+
+All free model parameters will be estimated by RAxML
+GAMMA model of rate heteorgeneity, ML estimate of alpha-parameter
+
+Partition: 0
+Alignment Patterns: 442
+Name: gene11924g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 1
+Alignment Patterns: 429
+Name: gene11806g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 2
+Alignment Patterns: 140
+Name: gene11637g
+DataType: AA
+Substitution Matrix: WAG
+Empirical Base Frequencies:
+
+
+
+Partition: 3
+Alignment Patterns: 199
+Name: gene11514g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 4
+Alignment Patterns: 177
+Name: gene12061g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 5
+Alignment Patterns: 293
+Name: gene11911g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 6
+Alignment Patterns: 462
+Name: gene12071g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 7
+Alignment Patterns: 137
+Name: gene11552g
+DataType: AA
+Substitution Matrix: MTZOA
+Empirical Base Frequencies:
+
+
+
+Partition: 8
+Alignment Patterns: 153
+Name: gene11639g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 9
+Alignment Patterns: 296
+Name: gene11874g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 10
+Alignment Patterns: 270
+Name: gene11983g
+DataType: AA
+Substitution Matrix: RTREV
+Empirical Base Frequencies:
+
+
+
+Partition: 11
+Alignment Patterns: 98
+Name: gene11635g
+DataType: AA
+Substitution Matrix: JTTDCMUT
+Empirical Base Frequencies:
+
+
+
+Partition: 12
+Alignment Patterns: 137
+Name: gene11965g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 13
+Alignment Patterns: 144
+Name: gene12121g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 14
+Alignment Patterns: 278
+Name: gene11580g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 15
+Alignment Patterns: 256
+Name: gene11910g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 16
+Alignment Patterns: 213
+Name: gene11928g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 17
+Alignment Patterns: 131
+Name: gene11587g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 18
+Alignment Patterns: 373
+Name: gene11735g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 19
+Alignment Patterns: 382
+Name: gene11380g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 20
+Alignment Patterns: 212
+Name: gene11711g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 21
+Alignment Patterns: 183
+Name: gene11707g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 22
+Alignment Patterns: 82
+Name: gene11375g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 23
+Alignment Patterns: 601
+Name: gene11411g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 24
+Alignment Patterns: 254
+Name: gene11847g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 25
+Alignment Patterns: 196
+Name: gene11849g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 26
+Alignment Patterns: 144
+Name: gene11754g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 27
+Alignment Patterns: 106
+Name: gene11919g
+DataType: AA
+Substitution Matrix: JTTDCMUT
+Empirical Base Frequencies:
+
+
+
+Partition: 28
+Alignment Patterns: 454
+Name: gene11846g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 29
+Alignment Patterns: 351
+Name: gene11563g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 30
+Alignment Patterns: 397
+Name: gene11609g
+DataType: AA
+Substitution Matrix: JTTDCMUT
+Empirical Base Frequencies:
+
+
+
+Partition: 31
+Alignment Patterns: 144
+Name: gene11798g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 32
+Alignment Patterns: 369
+Name: gene12081g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 33
+Alignment Patterns: 124
+Name: gene11362g
+DataType: AA
+Substitution Matrix: RTREV
+Empirical Base Frequencies:
+
+
+
+Partition: 34
+Alignment Patterns: 109
+Name: gene11710g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 35
+Alignment Patterns: 205
+Name: gene11750g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 36
+Alignment Patterns: 257
+Name: gene11391g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 37
+Alignment Patterns: 498
+Name: gene11829g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 38
+Alignment Patterns: 416
+Name: gene11681g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 39
+Alignment Patterns: 396
+Name: gene11366g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 40
+Alignment Patterns: 703
+Name: gene11547g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 41
+Alignment Patterns: 185
+Name: gene11451g
+DataType: AA
+Substitution Matrix: JTT
+Empirical Base Frequencies:
+
+
+
+Partition: 42
+Alignment Patterns: 362
+Name: gene11394g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 43
+Alignment Patterns: 371
+Name: gene11460g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 44
+Alignment Patterns: 391
+Name: gene11454g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 45
+Alignment Patterns: 215
+Name: gene11844g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 46
+Alignment Patterns: 166
+Name: gene11619g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 47
+Alignment Patterns: 85
+Name: gene11958g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 48
+Alignment Patterns: 400
+Name: gene11484g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 49
+Alignment Patterns: 67
+Name: gene11591g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 50
+Alignment Patterns: 291
+Name: gene11899g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 51
+Alignment Patterns: 475
+Name: gene11617g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 52
+Alignment Patterns: 134
+Name: gene12040g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 53
+Alignment Patterns: 273
+Name: gene11984g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 54
+Alignment Patterns: 307
+Name: gene11386g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 55
+Alignment Patterns: 380
+Name: gene11642g
+DataType: AA
+Substitution Matrix: WAG
+Empirical Base Frequencies:
+
+
+
+Partition: 56
+Alignment Patterns: 318
+Name: gene11511g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 57
+Alignment Patterns: 190
+Name: gene11917g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 58
+Alignment Patterns: 296
+Name: gene12029g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 59
+Alignment Patterns: 239
+Name: gene11773g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 60
+Alignment Patterns: 208
+Name: gene11618g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 61
+Alignment Patterns: 189
+Name: gene11760g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 62
+Alignment Patterns: 117
+Name: gene11778g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 63
+Alignment Patterns: 502
+Name: gene11379g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 64
+Alignment Patterns: 381
+Name: gene12024g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 65
+Alignment Patterns: 360
+Name: gene11902g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 66
+Alignment Patterns: 411
+Name: gene11762g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 67
+Alignment Patterns: 498
+Name: gene11759g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 68
+Alignment Patterns: 263
+Name: gene11649g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 69
+Alignment Patterns: 346
+Name: gene12035g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 70
+Alignment Patterns: 390
+Name: gene11450g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 71
+Alignment Patterns: 370
+Name: gene12019g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 72
+Alignment Patterns: 236
+Name: gene12047g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 73
+Alignment Patterns: 241
+Name: gene11534g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 74
+Alignment Patterns: 191
+Name: gene12122g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 75
+Alignment Patterns: 159
+Name: gene12074g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 76
+Alignment Patterns: 155
+Name: gene11695g
+DataType: AA
+Substitution Matrix: RTREV
+Empirical Base Frequencies:
+
+
+
+Partition: 77
+Alignment Patterns: 389
+Name: gene11624g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 78
+Alignment Patterns: 308
+Name: gene12115g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 79
+Alignment Patterns: 225
+Name: gene11848g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 80
+Alignment Patterns: 314
+Name: gene11660g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 81
+Alignment Patterns: 208
+Name: gene11499g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 82
+Alignment Patterns: 417
+Name: gene11992g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 83
+Alignment Patterns: 232
+Name: gene11393g
+DataType: AA
+Substitution Matrix: JTT
+Empirical Base Frequencies:
+
+
+
+Partition: 84
+Alignment Patterns: 462
+Name: gene12012g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 85
+Alignment Patterns: 298
+Name: gene11893g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 86
+Alignment Patterns: 203
+Name: gene11442g
+DataType: AA
+Substitution Matrix: JTTDCMUT
+Empirical Base Frequencies:
+
+
+
+Partition: 87
+Alignment Patterns: 208
+Name: gene11869g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 88
+Alignment Patterns: 249
+Name: gene11437g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 89
+Alignment Patterns: 371
+Name: gene12033g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 90
+Alignment Patterns: 125
+Name: gene11491g
+DataType: AA
+Substitution Matrix: RTREV
+Empirical Base Frequencies:
+
+
+
+Partition: 91
+Alignment Patterns: 165
+Name: gene11383g
+DataType: AA
+Substitution Matrix: JTT
+Empirical Base Frequencies:
+
+
+
+Partition: 92
+Alignment Patterns: 512
+Name: gene12097g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 93
+Alignment Patterns: 233
+Name: gene11428g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 94
+Alignment Patterns: 255
+Name: gene11820g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 95
+Alignment Patterns: 102
+Name: gene12123g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 96
+Alignment Patterns: 359
+Name: gene11652g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 97
+Alignment Patterns: 347
+Name: gene11378g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 98
+Alignment Patterns: 514
+Name: gene11634g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 99
+Alignment Patterns: 236
+Name: gene11567g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 100
+Alignment Patterns: 364
+Name: gene11555g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 101
+Alignment Patterns: 270
+Name: gene12054g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 102
+Alignment Patterns: 393
+Name: gene11802g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 103
+Alignment Patterns: 516
+Name: gene11645g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 104
+Alignment Patterns: 450
+Name: gene11385g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 105
+Alignment Patterns: 191
+Name: gene11793g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 106
+Alignment Patterns: 135
+Name: gene11912g
+DataType: AA
+Substitution Matrix: JTTDCMUT
+Empirical Base Frequencies:
+
+
+
+Partition: 107
+Alignment Patterns: 241
+Name: gene11976g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 108
+Alignment Patterns: 328
+Name: gene12120g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 109
+Alignment Patterns: 499
+Name: gene11583g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 110
+Alignment Patterns: 250
+Name: gene11855g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 111
+Alignment Patterns: 387
+Name: gene11962g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 112
+Alignment Patterns: 431
+Name: gene11627g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 113
+Alignment Patterns: 296
+Name: gene11772g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 114
+Alignment Patterns: 202
+Name: gene11584g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 115
+Alignment Patterns: 134
+Name: gene11350g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 116
+Alignment Patterns: 152
+Name: gene11663g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 117
+Alignment Patterns: 440
+Name: gene11932g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 118
+Alignment Patterns: 506
+Name: gene11868g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 119
+Alignment Patterns: 307
+Name: gene11603g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 120
+Alignment Patterns: 272
+Name: gene11429g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 121
+Alignment Patterns: 227
+Name: gene11577g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 122
+Alignment Patterns: 173
+Name: gene12093g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 123
+Alignment Patterns: 236
+Name: gene11814g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 124
+Alignment Patterns: 189
+Name: gene11377g
+DataType: AA
+Substitution Matrix: RTREV
+Empirical Base Frequencies:
+
+
+
+Partition: 125
+Alignment Patterns: 116
+Name: gene11479g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 126
+Alignment Patterns: 291
+Name: gene12046g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 127
+Alignment Patterns: 251
+Name: gene12112g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+Partition: 128
+Alignment Patterns: 74
+Name: gene11841g
+DataType: AA
+Substitution Matrix: LG
+Empirical Base Frequencies:
+
+
+
+
+RAxML was called as follows:
+
+raxmlLight-PTHREADS -T 24 -t ../SOS.tree -s ../SOS.phy -m PROTGAMMAWAGF -q ../plusF1.part -n tsSIMPL 
+
+
+Memory Saving Option: DISABLED
+
+Checkpoint written to: /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_binaryCheckpoint.tsSIMPL_0 likelihood: -1145221.713885
+
+Checkpoint written to: /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_binaryCheckpoint.tsSIMPL_1 likelihood: -1145221.713885
+
+Best rearrangement radius: 5
+
+Checkpoint written to: /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_binaryCheckpoint.tsSIMPL_2 likelihood: -1144987.599018
+
+Checkpoint written to: /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_binaryCheckpoint.tsSIMPL_3 likelihood: -1144956.440226
+
+Checkpoint written to: /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_binaryCheckpoint.tsSIMPL_4 likelihood: -1144956.371167
+
+Checkpoint written to: /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_binaryCheckpoint.tsSIMPL_5 likelihood: -1144947.665396
+
+Checkpoint written to: /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_binaryCheckpoint.tsSIMPL_6 likelihood: -1144947.665363
+
+Checkpoint written to: /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_binaryCheckpoint.tsSIMPL_7 likelihood: -1144947.665363
+
+Checkpoint written to: /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_binaryCheckpoint.tsSIMPL_8 likelihood: -1144947.665363
+
+Checkpoint written to: /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_binaryCheckpoint.tsSIMPL_9 likelihood: -1144947.665363
+
+
+Overall Time for 1 Inference 20772.841820
+
+Overall accumulated Time (in case of restarts): 20772.841820
+
+Likelihood   : -1144947.665363
+
+
+Final tree written to:                 /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_result.tsSIMPL
+Execution Log File written to:         /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_log.tsSIMPL
+Execution information file written to: /home/hauserjg/RAxML-Light/data/MeuetalMBE2010/plusF1/RAxML_info.tsSIMPL
