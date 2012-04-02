@@ -41,7 +41,6 @@ public class Taxa {
 			nrPartitions += !partitions.get(i).masked ? 1 : 0;
 			length += !partitions.get(i).masked ? partitions.get(i).data.length() : 0;
 		}
-		
 		return this;
 	}
 	

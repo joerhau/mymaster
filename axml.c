@@ -94,15 +94,16 @@ void printAssignment(assignment *opt, int m) {
 	printf("   %12f\n", opt->overallLH);
 }
 
-void printAssignmentFile(assignment *opt, int m) {
-	int model;
+void printSearch(mtest *l, mtest *r) {
+	int i;
+	FILE *tmp, *out = myfopen(proteinModelSearch, "w");;
+	tmp = stdout;
+	stdout = out;
+	printf("%17s\t%17s\n", l->method, r->method);
+	for(i = 0; i < r->nrRuns; i++)
+		printf("%17f\t%17f\n", l->run[i]->overallLH, r->run[i]->overallLH);
 
-	if(protEmpiricalFreqs)
-		for (model = 0; model < m; model++)
-			printf("%sF\n", protModels[opt->partitionModel[model]]);
-	else
-		for (model = 0; model < m; model++)
-			printf("%s\n", protModels[opt->partitionModel[model]]);
+	stdout = tmp;
 }
 
 // print stepwise modeltest
@@ -130,19 +131,35 @@ void printModelTest(mtest *r) {
 	free(bestLikelihoods);
 }
 
-void printModelTestFile(mtest *r) {
-	FILE *tmp = stdout;
-	FILE *o = myfopen(proteinModelInfoFile, "w");
+
+void printAssignmentFile(assignment *opt, int m) {
+	int model;
+	FILE *o, *tmp;
+	tmp = stdout;
+	o = fopen(proteinModelTestResult, "w");
 	stdout = o;
-	// test history
+
+	if(protEmpiricalFreqs)
+		for (model = 0; model < m; model++)
+			printf("%sF\n", protModels[opt->partitionModel[model]]);
+	else
+		for (model = 0; model < m; model++)
+			printf("%s\n", protModels[opt->partitionModel[model]]);
+	fclose(o);
+	stdout = tmp;
+}
+
+
+void printModelTestFile(mtest *r, char *name) {
+	FILE *tmp = stdout;
+	char fname[1024] = "";
+	strcat(fname, proteinModelInfoFile);
+	strcat(fname, name);
+	FILE *o = fopen(fname, "w");
+	stdout = o;
 	printModelTest(r);
 	fclose(o);
-	o = myfopen(proteinModelTestResult, "w");
-	stdout = o;
-	//model names only
-	printAssignmentFile(r->result, r->nrModels);
 	stdout = tmp;
-	fclose(o);
 }
 
 
@@ -3574,6 +3591,8 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
     aut[256],         
     *optarg,
     model[2048] = "",
+    // [JH]
+    modelSearch[2048] = "",
     secondaryModel[2048] = "",
     multiStateModel[2048] = "",
     modelChar;
@@ -3632,7 +3651,7 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
   tr->saveMemory = FALSE;
   tr->estimatePerSiteAA = FALSE;
   // [JH]
-  tr->allCombinations = FALSE;
+  tr->modelAssignment = NAIVE;
 
 #if (defined(_USE_PTHREADS) || (_FINE_GRAIN_MPI))
   tr->manyPartitions = FALSE;
@@ -3642,10 +3661,11 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 
 #if (defined(_USE_PTHREADS) || (_FINE_GRAIN_MPI))
   while(!bad_opt &&
-	((c = mygetopt(argc,argv,"T:P:R:e:c:f:i:m:t:w:s:n:o:q:G:vhMSDBQX", &optind, &optarg))!=-1))
+	// [JH] add switch to choose model selection strategy here
+	((c = mygetopt(argc,argv,"T:P:R:e:c:f:i:m:l:t:w:s:n:o:q:G:vhMSDBQX", &optind, &optarg))!=-1))
 #else
     while(!bad_opt &&
-	  ((c = mygetopt(argc,argv,"T:P:R:e:c:f:i:m:t:w:s:n:o:q:G:vhMSDBX", &optind, &optarg))!=-1))
+	  ((c = mygetopt(argc,argv,"T:P:R:e:c:f:i:m:l:t:w:s:n:o:q:G:vhMSDBX", &optind, &optarg))!=-1))
 #endif
     {
     switch(c)
@@ -3678,8 +3698,7 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
       case 'R':
 	adef->useCheckpoint = TRUE;
 	strcpy(binaryCheckpointInputName, optarg);
-	break;     
-     
+	break;
       case 'M':
 	adef->perGeneBranchLengths = TRUE;
 	break;
@@ -3728,12 +3747,6 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 	printREADME();
 	errorExit(0);
     break;
-
-// [JH] temporarily added to switch between model search strategies
-//	case 'l':
-//		tr->allCombinations = TRUE;
-//		break;
-
       case 'c':
 	sscanf(optarg, "%d", &adef->categories);
 	break;     
@@ -3802,14 +3815,30 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 	else
 	  modelSet = 1;
 	break;
+
+	// [JH] temporarily added to switch between model search strategies
+	case 'l':
+		if(!strcmp("EXHAUSTIVE", optarg))
+			tr->modelAssignment = EXHAUSTIVE;
+		else if(!strcmp("GREEDY", optarg))
+			tr->modelAssignment = GREEDY;
+		else if(!strcmp("HILL", optarg))
+			tr->modelAssignment = HILL;
+		else if(!strcmp("SA", optarg))
+			tr->modelAssignment = SA;
+		else if(!strcmp("GA", optarg))
+			tr->modelAssignment = GA;
+		else if(!strcmp("NAIVE", optarg))
+			tr->modelAssignment = NAIVE;
+		else if(!strcmp("RANDOM", optarg))
+			tr->modelAssignment = RANDOM;
+		break;
+
       default:
-	errorExit(-1);
+		errorExit(-1);
+		break;
     }
   }
-
-  if(!adef->perGeneBranchLengths) tr->allCombinations = TRUE;
-
- 
 
 #ifdef _USE_PTHREADS
   if(NumberOfThreads < 2)
@@ -3984,8 +4013,9 @@ static void makeFileNames(void)
   strcat(perSiteLLsFileName,   "RAxML_perSiteLLs."); 
   strcat(binaryCheckpointName, "RAxML_binaryCheckpoint.");
 	// [JH] add model results file here
-	strcat(proteinModelInfoFile, "RAxML_modelAssignment.");
+	strcat(proteinModelInfoFile, "RAxML_modelTest.");
 	strcat(proteinModelTestResult, "RAxML_modelResult.");
+	strcat(proteinModelSearch, "RAxML_modelSearch.");
 
   strcat(permFileName,         run_id);
   strcat(resultFileName,       run_id);
@@ -4004,6 +4034,7 @@ static void makeFileNames(void)
   // [JH]
   strcat(proteinModelInfoFile, run_id);
   strcat(proteinModelTestResult, run_id);
+  strcat(proteinModelSearch, run_id);
 
   
 
@@ -5492,7 +5523,7 @@ static void execFunction(tree *tr, tree *localTree, int tid, int n)
 	  memcpy(localTree->partitionAssignment, tr->partitionAssignment, localTree->NumberOfModels * sizeof(int));
 	}
 
-      initPartition(tr, localTree, tid);     
+      initPartition(tr, localTree, tid);
       allocNodex(localTree, tid, n);
       threadFixModelIndices(tr, localTree, tid, n);
 
@@ -5505,22 +5536,24 @@ static void execFunction(tree *tr, tree *localTree, int tid, int n)
       //TODO test if this works as expected
     case THREAD_CHANGE_NUM_BRANCHES:
 
-        localTree->estimatePerSiteAA = tr->estimatePerSiteAA;
-
-
-        localTree->manyPartitions = tr->manyPartitions;
-        if(localTree->manyPartitions && tid > 0)
-  	{
-  	  localTree->NumberOfModels = tr->NumberOfModels;
-  	  localTree->partitionAssignment = (int*)malloc(sizeof(int) * localTree->NumberOfModels);
-  	  memcpy(localTree->partitionAssignment, tr->partitionAssignment, localTree->NumberOfModels * sizeof(int));
-  	}
-
-        initPartition(tr, localTree, tid);
-        allocNodex(localTree, tid, n);
-        threadFixModelIndices(tr, localTree, tid, n);
+//        localTree->estimatePerSiteAA = tr->estimatePerSiteAA;
 
         localTree->numBranches = tr->numBranches;
+        localTree->multiBranch = tr->multiBranch;
+
+
+//        initPartition(tr, localTree, tid);
+//        allocNodex(localTree, tid, n);
+//        threadFixModelIndices(tr, localTree, tid, n);
+
+//        localTree->manyPartitions = tr->manyPartitions;
+//
+//        if(localTree->manyPartitions && tid > 0)
+//  	{
+//  	  localTree->NumberOfModels = tr->NumberOfModels;
+//  	  localTree->partitionAssignment = (int*)malloc(sizeof(int) * localTree->NumberOfModels);
+//  	  memcpy(localTree->partitionAssignment, tr->partitionAssignment, localTree->NumberOfModels * sizeof(int));
+//  	}
 
     break;
 
@@ -5918,6 +5951,8 @@ static void execFunction(tree *tr, tree *localTree, int tid, int n)
 		  }	     	           
 	      }
 	  }
+
+
 	  
 	free(bestScore);      					
       }

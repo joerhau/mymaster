@@ -186,7 +186,7 @@ public class PhyMod {
 		
 		FileLoader l = new FileLoader(assignmentFile);
 		l.open();
-		if(part.models.length == l.l.size()) {
+		if(part.models.length == l.l.size() || part.models.length == l.l.size() + 1) {
 			for(int i = 0; i < l.l.size(); i++) {
 				part.models[i] = l.l.get(i);
 			}

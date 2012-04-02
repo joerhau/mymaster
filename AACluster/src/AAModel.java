@@ -22,9 +22,11 @@ public class AAModel {
 		double ssum = 0;
 		for(int i = 0; i < a.q.length; i++) {
 			for(int j = i + 1; j < a.q[i].length; j++) {
+//				System.out.println(Math.pow(a.q[i][j] - b.q[i][j], 2));
 				ssum += Math.pow(a.q[i][j] - b.q[i][j], 2);
 			}
 		}
+//		System.out.println(Math.sqrt(ssum));
 		return Math.sqrt(ssum);
 	}
 	

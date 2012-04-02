@@ -13,7 +13,7 @@ public class AACluster {
 	 * @param args none
 	 */
 	public static void main(String[] args) {
-		double[][] d1, d2, d3, d4;
+		double[][] d1, d2, d3, d4, d5;
 		AAModel a, b;
 		
 		if(VV) {
@@ -28,22 +28,22 @@ public class AACluster {
 			System.exit(0);
 		}
 		
-		for(Models d : Models.values()) {
-			FileWriter fstream;
-			AAModel tmp = new AAModel(d);
-			tmp.scaleMax();
-			tmp.revertMax();
-//			System.out.println(tmp.matToString());
-			try {
-				fstream = new FileWriter(d.name() + ".txt");
-				BufferedWriter out = new BufferedWriter(fstream);
-				out.write(tmp.matToString());
-				out.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
-		}
+//		creating AA distance matrices for every model
+//		for(Models d : Models.values()) {
+//			FileWriter fstream;
+//			AAModel tmp = new AAModel(d);
+//			tmp.scaleMax();
+//			tmp.revertMax();
+//			try {
+//				fstream = new FileWriter(d.name() + ".txt");
+//				BufferedWriter out = new BufferedWriter(fstream);
+//				out.write(tmp.matToString());
+//				out.close();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//			
+//		}
 		
 		d1 = new double[m.length][m.length];
 		for(int i = 0; i < m.length; i++) {
@@ -80,6 +80,16 @@ public class AACluster {
 				d4[i][j] = AAModel.dist(a, b);
 			}
 		}
+
+		d5 = new double[m.length][m.length];
+		for(int i = 0; i < m.length; i++) {
+			a = new AAModel(m[i]);
+			for(int j = 0; j < m.length; j++) {
+				b = new AAModel(m[j]);
+				d5[i][j] = AAModel.dist(a, b);
+			}
+		}
+		
 		
 //		AAModel[] v = new AAModel[3];
 //		v[0] = new AAModel(Models.FLU).scaleMax();
@@ -110,38 +120,50 @@ public class AACluster {
 //			System.out.println(dayhoffs.name + " - " + tmp.name + ": \t" + AAModel.dist(dayhoffs, tmp));
 //		}
 		
-		BufferedWriter max, aac, one, oneF;
+		BufferedWriter max, aac, one, oneF, none;
 		
 
+
+		d1 = scaleByMax(d1, 100);
+		d2 = scaleByMax(d2, 100);
+		d3 = scaleByMax(d3, 100);
+		d4 = scaleByMax(d4, 100);
+		d5 = scaleByMax(d5, 100);
+		
 		
 //		System.out.println("Scaled by maximum: ");
-//		d1 = scaleByMax(d1, 100);
+//		distMatToString(d1);
 //		System.out.println("Scaled by number of occurence of AAs: ");
-//		d2 = scaleByMax(d2, 100);
 //		distMatToString(d2);
 //		System.out.println("Scaled to one subst. per time step: ");
-//		d3 = scaleByMax(d3, 100);
 //		distMatToString(d3);
 //		System.out.println("F less: ");
-//		d4 = scaleByMax(d4, 100);
 //		distMatToString(d4);
+//		System.out.println("not scaled: ");
+//		distMatToString(d5);
 		
-//		try{
-//			max = new BufferedWriter(new FileWriter("max.txt"));
-//			aac = new BufferedWriter(new FileWriter("aac.txt"));
-//			one = new BufferedWriter(new FileWriter("one.txt"));
-//			oneF = new BufferedWriter(new FileWriter("oneF.txt"));
+		
+		try{
+			none = new BufferedWriter(new FileWriter("none.txt"));
+			max = new BufferedWriter(new FileWriter("max.txt"));
+			aac = new BufferedWriter(new FileWriter("aac.txt"));
+			one = new BufferedWriter(new FileWriter("one.txt"));
+			oneF = new BufferedWriter(new FileWriter("oneF.txt"));
+			
 //			max.write(distMatToString(d1));
 //			aac.write(distMatToString(d2));
 //			one.write(distMatToString(d3));
 //			oneF.write(distMatToString(d4));
-//			max.close();
-//			aac.close();
-//			one.close();
-//			oneF.close();
-//		}catch (Exception e){//Catch exception if any
-//			System.err.println("Error: " + e.getMessage());
-//		}
+			none.write(distMatToString(d5));
+			
+			none.close();
+			max.close();
+			aac.close();
+			one.close();
+			oneF.close();
+		}catch (Exception e){//Catch exception if any
+			System.err.println("Error: " + e.getMessage());
+		}
 		
 //		System.out.println(new AAModel(Models.FLU).toString());
 //		System.out.println(new AAModel(Models.HIVB).toString());

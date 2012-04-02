@@ -188,6 +188,14 @@ extern double exp_approx (double x);
 #define programVersion     "1.0.5"
 #define programDate        "June 2011"
 
+// [JH] model search options
+#define EXHAUSTIVE		0
+#define GREEDY			1
+#define HILL			2
+#define SA				3
+#define GA				4
+#define NAIVE			5
+#define RANDOM			6
 
 #define  TREE_EVALUATION            0
 #define  BIG_RAPID_MODE             1
@@ -1002,7 +1010,7 @@ typedef  struct  {
   hashtable *h;
   
   // [JH]
-  int allCombinations;
+  int modelAssignment;
 
 } tree;
 
@@ -1207,7 +1215,7 @@ extern boolean whitechar ( int ch );
 extern void errorExit ( int e );
 //[JH] print modeltest results
 extern void printAssignment(assignment *opt, int m);
-extern void printModelTestFile(mtest *r);
+extern void printModelTestFile(mtest *r, char *name);
 extern void printModelTest(mtest *r);
 
 extern void printResult ( tree *tr, analdef *adef, boolean finalPrint );

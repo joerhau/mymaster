@@ -1,0 +1,114 @@
+#!/bin/bash
+RAXMLCOMMAND="raxmlLight-PTHREADS"
+RAXMLF="/home/joerhau/RAxML-Light"
+PHYMOD="phymod"
+AXMLH="axml.h"
+HOMEF=`pwd`
+PARTF=""
+TREEF=""
+DATAF=""
+NAME=""
+MODEL=""
+count=0
+
+
+#takes partition file to count the number of partitions
+function makeNew {
+	#delete blank lines in partition file
+	sed '/^$/d' $PARTF > tmp
+	count=`wc -l < tmp`
+	rm tmp
+	#gets return code only
+	#count=$?
+	echo "you are using a dataset with $count partitions"
+	# set NUM_BRANCHES in axml.h
+	cd $RAXMLF
+	sed "98s/.*/#define NUM_BRANCHES     $count/" $AXMLH > axml.h.new
+	rm $AXMLH
+	mv axml.h.new $AXMLH
+	make -f Makefile.JOERG.PTHREADS.gcc -j
+	cp -f $RAXMLCOMMAND $HOMEF
+	cd $HOMEF
+}
+
+# run greedy modelassignment algorithm
+function greedy {
+	i=0
+	p=""
+	while [ $i -lt $count ]; do
+		p="$p$i,"
+
+		$PHYMOD EXTRACT -p $p -n run_$i $PARTF $DATAF
+		if [ $i -gt 0 ] ; then
+			$PHYMOD ASSIGN run_$i.part RAxML_modelResult.$((i-1))
+			rm run_$i.part
+			mv RAxML_modelResult.$((i-1)).part run_$i.part
+		fi
+
+		$RAXMLCOMMAND -t $TREEF -q run_$i.part -s run_$i.phy -n $i -m $MODEL -l GREEDY $params
+		i=$((i+1))
+	done
+}
+
+
+#parse arguments
+declare -a pass
+args=("$@")
+argc=$#
+
+g=0
+i=0
+j=0
+#parse parameters
+while [ $i -lt $argc ]; do
+	if [ ${args[$i]} = "-q" ] ; then
+		PARTF=$HOMEF/${args[$(($i+1))]}
+		i=$(($i+1))
+	else
+		if [ ${args[$i]} = "-t" ] ; then
+			TREEF=$HOMEF/${args[$(($i+1))]}
+			i=$(($i+1))
+		else
+			if [ ${args[$i]} = "-s" ] ; then
+				DATAF=$HOMEF/${args[$(($i+1))]}
+				i=$(($i+1))
+			else
+				if [ ${args[$i]} = "-m" ] ; then
+					MODEL=${args[$(($i+1))]}
+					i=$(($i+1))
+				else
+					if [ ${args[$i]} = "-n" ] ; then
+						NAME=${args[$(($i+1))]}
+						i=$(($i+1))
+					else
+						if [ ${args[$i]} = "-l" ] && [ ${args[$((i+1))]} = "GREEDY" ] ; then
+							g=1
+							i=$(($i+1))
+						else
+							pass[$j]=${args[$i]}
+							j=$(($j+1))
+						fi
+					fi
+				fi
+			fi
+		fi
+	fi
+i=$(($i+1))
+done
+
+params=""
+for p in ${pass[@]}; do
+	params="$params $p"
+done
+
+makeNew $PARTF
+
+#run RAxML
+if [ $g = "1" ] ; then
+	greedy
+else 
+	echo $HOMEF/$RAXMLCOMMAND -t $TREEF -q $PARTF -s $DATAF -n $NAME -m $MODEL $params
+fi
+
+exit 0
+

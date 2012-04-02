@@ -7,7 +7,7 @@ import org.phymod.io.FileLoader;
 import org.phymod.tools.Rand;
 
 public class Alignment {
-	protected List<Taxa> taxa;
+	public List<Taxa> taxa;
 	public int nrPartitions;
 	public int nrTaxa;
 	
@@ -48,8 +48,11 @@ public class Alignment {
 	public void toFile(String name) {
 		FileLoader phylip = new FileLoader(name + ".phy");
 		FileLoader part = new FileLoader(name + ".part");
-		phylip.write(this.phylipToString());
 		part.write(this.partToString());
+		
+		// TODO efficiency issue
+		phylip.writePhy(this);
+		
 	}	
 	
 	public String phylipToString() {
