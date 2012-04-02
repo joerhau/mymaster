@@ -12,7 +12,7 @@ RM = rm -f
 
 objs    = axml.o  optimizeModel.o trash.o searchAlgo.o topologies.o parsePartitions.o treeIO.o models.o evaluatePartialGenericSpecial.o evaluateGenericSpecial.o newviewGenericSpecial.o makenewzGenericSpecial.o mesh.o bipartitionList.o restartHashTable.o
 
-all : raxmlLight-PTHREADS
+all : raxmlMINE-PTHREADS
 
 GLOBAL_DEPS = axml.h globalVariables.h
 
