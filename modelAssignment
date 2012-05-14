@@ -19,13 +19,15 @@ function makeNew {
 	rm tmp
 	#gets return code only
 	#count=$?
-	echo "you are using a dataset with $count partitions"
+
 	# set NUM_BRANCHES in axml.h
 	echo "cd $RAXMLF"
 	cd $RAXMLF
+    echo "replacing former NUM_BRANCHES definition with $count"
 	sed "98s/.*/#define NUM_BRANCHES     $count/" $AXMLH > axml.h.new
 	rm $AXMLH
 	mv axml.h.new $AXMLH
+	echo make -f Makefile.JOERG.PTHREADS.gcc -j
 	make -f Makefile.JOERG.PTHREADS.gcc -j
 	cp -f $RAXMLCOMMAND $HOMEF
 	cd $HOMEF
