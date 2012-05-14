@@ -1,8 +1,0 @@
-testing 100 assignments on 3 partitions testdata
-
-time neded for optimizing after each assignment changec
-with alpha opt
-19 sec
-
-without alpha opt
-12 sec

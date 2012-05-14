@@ -38,6 +38,8 @@ public class PhyMod {
 			c = Command.ASSIGN;
 		else if(args[0].equalsIgnoreCase("--extract") || args[0].equalsIgnoreCase("extract"))
 			c=Command.EXTRACT;
+		else if(args[0].equalsIgnoreCase("--extra") || args[0].equalsIgnoreCase("extra"))
+			c=Command.EXTRA;
 		else
 			c = Command.EXTRACT;
 		
@@ -59,6 +61,17 @@ public class PhyMod {
 			}
 			File f = new File(args[1]);
 			glue(f);
+		} break;
+		case EXTRA: {
+			if(args.length != 2) {
+				System.out.println("Please specify partition file");
+				System.exit(0);
+			}
+			PhylipPartitionLoader part = new PhylipPartitionLoader(args[1]);
+			part.parse();
+			System.out.println("The mean partition size in the specified file is: " + part.end[part.nrPartitions - 1] / part.nrPartitions);
+			
+			System.exit(0);
 		} break;
 		default: {
 			System.out.println("Unknown Command passed");
@@ -260,5 +273,8 @@ public class PhyMod {
 		
 		System.out.println("\tASSIGN <Source file> <RAxML_modelResult.*>");
 		System.out.println("\tUse Model File's substitution models to replace models in Source File.\n\tCreates <Models File>.part and takes a Newline seperatet list of subst. Models in Models File.\n");
+		
+		System.out.println("\tEXTRA <Partitionfile>");
+		System.out.println("\tCompute mean partition length.\n");
 	}
 }

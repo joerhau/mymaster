@@ -1,6 +1,5 @@
 #!/bin/bash
 RAXMLCOMMAND="raxmlLight-PTHREADS"
-RAXMLF="/home/joerhau/RAxML-Light"
 PHYMOD="phymod"
 AXMLH="axml.h"
 HOMEF=`pwd`
@@ -22,6 +21,7 @@ function makeNew {
 	#count=$?
 	echo "you are using a dataset with $count partitions"
 	# set NUM_BRANCHES in axml.h
+	echo "cd $RAXMLF"
 	cd $RAXMLF
 	sed "98s/.*/#define NUM_BRANCHES     $count/" $AXMLH > axml.h.new
 	rm $AXMLH
@@ -45,7 +45,7 @@ function greedy {
 			mv RAxML_modelResult.$((i-1)).part run_$i.part
 		fi
 
-		$RAXMLCOMMAND -t $TREEF -q run_$i.part -s run_$i.phy -n $i -m $MODEL -l GREEDY $params
+		$HOMEF/$RAXMLCOMMAND -t $TREEF -q run_$i.part -s run_$i.phy -n $i -m $MODEL -l GREEDY $params
 		i=$((i+1))
 	done
 }
@@ -107,7 +107,7 @@ makeNew $PARTF
 if [ $g = "1" ] ; then
 	greedy
 else 
-	echo $HOMEF/$RAXMLCOMMAND -t $TREEF -q $PARTF -s $DATAF -n $NAME -m $MODEL $params
+	$HOMEF/$RAXMLCOMMAND -t $TREEF -q $PARTF -s $DATAF -n $NAME -m $MODEL $params
 fi
 
 exit 0

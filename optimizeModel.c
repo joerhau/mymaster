@@ -3197,30 +3197,30 @@ void modOptJoerg(tree *tr, analdef *adef, rawdata* rdta) {
 	tr->start = tr->nodep[1];
 
 	// example to switch -M on the fly
-//	if(1) {
-//		if(tr->multiBranch == 0)
-//			printf("started for JBL\n");
-//		else
-//			printf("started with -M\n");
-//
-//		printf("run JBL:\n");
-//		jbl(tr, 1);
-//		t = simple(tr, adef, alphaList, 10);
-//		printModelTest(t);
-//		printf("\n");
-//
-//		printf("run -M:\n");
-//		jbl(tr, 0);
-//		t = simple(tr, adef, alphaList, 10);
-//		printModelTest(t);
-//		printf("\n");
-//
-//		exit(0);
-//	}
+	if(0) {
+		if(tr->multiBranch == 0)
+			printf("started for JBL\n");
+		else
+			printf("started with -M\n");
+
+		printf("run JBL:\n");
+		jbl(tr, 1);
+		t = simple(tr, adef, alphaList, 10);
+		printModelTest(t);
+		printf("\n");
+
+		printf("run -M:\n");
+		jbl(tr, 0);
+		t = simple(tr, adef, alphaList, 10);
+		printModelTest(t);
+		printf("\n");
+
+		exit(0);
+	}
 
 	/* start testing protein model assignments */
 //	if (tr->allCombinations) {
-		loops = 100;
+//		loops = 10;
 		printf("starting model search... \n");
 
 //		create assignment of the models given in partition file

@@ -4,8 +4,11 @@ import java.io.IOException;
 
 public class AACluster {
 	
+	// print models to stdout
 	public static boolean VVV = false;
+	// creating AA distance matrices for every model
 	public static boolean VV = false;
+	// test something on MTMAM
     public static boolean V = false;
 	private static Models[] m =  Models.values();
 	
@@ -16,35 +19,38 @@ public class AACluster {
 		double[][] d1, d2, d3, d4, d5;
 		AAModel a, b;
 		
-		if(VV) {
+		// output original models
+		if(VVV) {
 			for(Models d : Models.values()) {
 				AAModel tmp = new AAModel(d);
 				
 				System.out.println(tmp.toString());
 			}
 			System.exit(0);
+		// output inner model distance matrices
+		} else if (VV) {
+			for(Models d : Models.values()) {
+				FileWriter fstream;
+				AAModel tmp = new AAModel(d);
+				tmp.scaleMax();
+				tmp.revertMax();
+				try {
+					fstream = new FileWriter(d.name() + ".txt");
+					BufferedWriter out = new BufferedWriter(fstream);
+					out.write(tmp.matToString());
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
+			}	
+		// check something on mtmam
 		} else if (V) {
 			System.out.println(new AAModel(Models.MTMAM).toString());
 			System.exit(0);
 		}
 		
-//		creating AA distance matrices for every model
-//		for(Models d : Models.values()) {
-//			FileWriter fstream;
-//			AAModel tmp = new AAModel(d);
-//			tmp.scaleMax();
-//			tmp.revertMax();
-//			try {
-//				fstream = new FileWriter(d.name() + ".txt");
-//				BufferedWriter out = new BufferedWriter(fstream);
-//				out.write(tmp.matToString());
-//				out.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//			
-//		}
-		
+		// create distance matrix, models scaled by their maximum rate
 		d1 = new double[m.length][m.length];
 		for(int i = 0; i < m.length; i++) {
 			a = new AAModel(m[i]).scaleMax();
@@ -54,6 +60,7 @@ public class AACluster {
 			}
 		}
 		
+		// create distance matrix, models scaled by the sum of the rates of all affected amino acids
 		d2 = new double[m.length][m.length];
 		for(int i = 0; i < m.length; i++) {
 			a = new AAModel(m[i]).scaleOcc(20);
@@ -63,6 +70,7 @@ public class AACluster {
 			}
 		}
 		
+		// create distance mattrix, models scaled to one substitution per unit time (kassians approach)
 		d3 = new double[m.length][m.length];
 		for(int i = 0; i < m.length; i++) {
 			a = new AAModel(m[i]).scaleOne();
@@ -72,6 +80,7 @@ public class AACluster {
 			}
 		}
 	
+		// create distance matrix, kassians approach, with the acid frequencies removed
 		d4 = new double[m.length][m.length];
 		for(int i = 0; i < m.length; i++) {
 			a = new AAModel(m[i]).scaleOneFLess();
@@ -81,6 +90,7 @@ public class AACluster {
 			}
 		}
 
+		// create distance matrix without any scaling beforehand
 		d5 = new double[m.length][m.length];
 		for(int i = 0; i < m.length; i++) {
 			a = new AAModel(m[i]);
@@ -125,14 +135,14 @@ public class AACluster {
 
 
 		d1 = scaleByMax(d1, 100);
-		d2 = scaleByMax(d2, 100);
-		d3 = scaleByMax(d3, 100);
-		d4 = scaleByMax(d4, 100);
-		d5 = scaleByMax(d5, 100);
+		d2 = scaleByMax(d2, 1);
+		d3 = scaleByMax(d3, 1);
+		d4 = scaleByMax(d4, 1);
+		d5 = scaleByMax(d5, 1);
 		
 		
-//		System.out.println("Scaled by maximum: ");
-//		distMatToString(d1);
+		System.out.println("Scaled by maximum: ");
+		System.out.println(distMatToString(d1));
 //		System.out.println("Scaled by number of occurence of AAs: ");
 //		distMatToString(d2);
 //		System.out.println("Scaled to one subst. per time step: ");
@@ -144,17 +154,17 @@ public class AACluster {
 		
 		
 		try{
-			none = new BufferedWriter(new FileWriter("none.txt"));
 			max = new BufferedWriter(new FileWriter("max.txt"));
+			none = new BufferedWriter(new FileWriter("none.txt"));
 			aac = new BufferedWriter(new FileWriter("aac.txt"));
 			one = new BufferedWriter(new FileWriter("one.txt"));
 			oneF = new BufferedWriter(new FileWriter("oneF.txt"));
 			
-//			max.write(distMatToString(d1));
+			max.write(distMatToString(d1));
 //			aac.write(distMatToString(d2));
 //			one.write(distMatToString(d3));
 //			oneF.write(distMatToString(d4));
-			none.write(distMatToString(d5));
+//			none.write(distMatToString(d5));
 			
 			none.close();
 			max.close();
@@ -198,7 +208,8 @@ public class AACluster {
 	/**
 	 * scales all entries in mat so that there are only values between 0 and 1
 	 * 
-	 * @param mat
+	 * @param mat the matrix that shall be rescaled
+	 * @param scaler multiply results with this value
 	 * @return
 	 */
 	public static double[][] scaleByMax(double[][] mat, double scaler) {
