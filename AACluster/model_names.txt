@@ -1,0 +1,20 @@
+RAXML definition of models
+#define DAYHOFF    0
+#define DCMUT      1
+#define JTT        2
+#define MTREV      3
+#define WAG        4
+#define RTREV      5
+#define CPREV      6
+#define VT         7
+#define BLOSUM62   8
+#define MTMAM      9
+#define LG         10
+#define MTART      11
+#define MTZOA      12
+#define PMB        13
+#define HIVB       14
+#define HIVW       15
+#define JTTDCMUT   16
+#define FLU        17 
+

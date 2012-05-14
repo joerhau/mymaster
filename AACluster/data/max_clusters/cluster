@@ -1,0 +1,2 @@
+#!/bin/bash
+R --vanilla -q $1 < cluster.r
