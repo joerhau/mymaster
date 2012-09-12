@@ -18,6 +18,7 @@ public class AAModel {
 		initProtMat(m.name());
 	}
 	
+	// the euclidean distance of two matrices
 	public static double dist(AAModel a, AAModel b) {
 		double ssum = 0;
 		for(int i = 0; i < a.q.length; i++) {
@@ -62,7 +63,7 @@ public class AAModel {
 	
 	/**
 	 * implements the relative distance as proposed by the flu paper
-	 * (a_{ij}-b_{ij})/(a_{ij}-b_{ij})
+	 * (a_{ij}-b_{ij})/(a_{ij}+b_{ij})
 	 * 
 	 * @param a
 	 * @param b

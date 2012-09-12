@@ -1,116 +1,326 @@
 #!/bin/bash
-RAXMLCOMMAND="raxmlLight-PTHREADS"
-PHYMOD="phymod"
+#OS specific commands
+local_bin=$HOME"/local_bin"
+#generic commands
+bin=$HOME"/bin"
+current_dir=`pwd`
+#where do the sources of RAxML Light PMA modification lie
+pmaFOLDER=$HOME"/RAxML-Light/"
+
+treeFile="RAxML_parsimonyTree.START"
+dumpFile="pmaNaiveDump"
+
+#available heuristics
+H=(EXHAUSTIVE SGREEDY GREEDY HILL SA GA NAIVE RANDOM CLASSIC CHECK TREE RANDWALK RANDDUPL)
+pmaBINARY="raxmlPMA-PTHREADS"
+pmaCOMMAND=""
+pmaMAKE="Makefile.PMA.PTHREADS.gcc"
+phymod=$bin"/phymod"
+
+# binary location of unmodified versions of raxml
+raxmlHPC=$local_bin"/raxmlHPC-PTHREADS-SSE3"
+raxmlLight=$local_bin"/raxmlLight-PTHREADS"
+
 AXMLH="axml.h"
-HOMEF=`pwd`
-PARTF=""
-TREEF=""
-DATAF=""
-NAME=""
-MODEL=""
-count=0
+PARTCOUNT=0
+SORTED=0
+BUILD=0
 
-
-#takes partition file to count the number of partitions
-function makeNew {
-	#delete blank lines in partition file
-	sed '/^$/d' $PARTF > tmp
-	count=`wc -l < tmp`
-	rm tmp
-	#gets return code only
-	#count=$?
-
-	# set NUM_BRANCHES in axml.h
-	echo "cd $RAXMLF"
-	cd $RAXMLF
-    echo "replacing former NUM_BRANCHES definition with $count"
-	sed "98s/.*/#define NUM_BRANCHES     $count/" $AXMLH > axml.h.new
-	rm $AXMLH
-	mv axml.h.new $AXMLH
-	echo make -f Makefile.JOERG.PTHREADS.gcc -j
-	make -f Makefile.JOERG.PTHREADS.gcc -j
-	cp -f $RAXMLCOMMAND $HOMEF
-	cd $HOMEF
+function getDump {
+	dumpPath=`pwd`
+	if ! [ -f $dumpFile ]; then
+		for i in `seq 3`; do
+			cd ..
+			if [ -f $dumpFile ]; then
+				cp -f $dumpFile $current_dir
+				break
+			fi
+		done
+	fi
+	cd $current_dir
 }
 
-# run greedy modelassignment algorithm
-function greedy {
-	i=0
-	p=""
-	while [ $i -lt $count ]; do
-		p="$p$i,"
+function getTree {
+	if ! [ -f $treeFile ]; then
+		for i in `seq 3`; do
+			cd ..
+			if [ -f $treeFile ]; then
+				cp -f $treeFile $current_dir
+				break
+			fi
+		done
+	fi
+	cd $current_dir
+}
 
-		$PHYMOD EXTRACT -p $p -n run_$i $PARTF $DATAF
-		if [ $i -gt 0 ] ; then
-			$PHYMOD ASSIGN run_$i.part RAxML_modelResult.$((i-1))
-			rm run_$i.part
-			mv RAxML_modelResult.$((i-1)).part run_$i.part
+#get or create raxmlLight-PTHREADS binary
+function getBinary {
+	binPath=`pwd` 
+	# if not BUILD is set search for binary recursively
+	if [[ $BUILD -eq 0 ]]; then
+		while [ $binPath != $HOME ] && [ $binPath != "/" ]; do
+			if [ -f $binPath/$pmaBINARY ]; then
+				pmaCOMMAND=$binPath/$pmaBINARY
+				break
+			else
+				cd ..
+				binPath=`pwd`
+			fi
+		done
+
+		if [[ $pmaCOMMAND = "" ]]; then
+			if [ -e $local_bin/$pmaBINARY ]; then
+				pmaCOMMAND=$local_bin/$pmaBINARY
+			else
+				BUILD=1
+			fi
 		fi
 
-		$HOMEF/$RAXMLCOMMAND -t $TREEF -q run_$i.part -s run_$i.phy -n $i -m $MODEL -l GREEDY $params
-		i=$((i+1))
-	done
-}
-
-
-#parse arguments
-declare -a pass
-args=("$@")
-argc=$#
-
-g=0
-i=0
-j=0
-#parse parameters
-while [ $i -lt $argc ]; do
-	if [ ${args[$i]} = "-q" ] ; then
-		PARTF=$HOMEF/${args[$(($i+1))]}
-		i=$(($i+1))
-	else
-		if [ ${args[$i]} = "-t" ] ; then
-			TREEF=$HOMEF/${args[$(($i+1))]}
-			i=$(($i+1))
-		else
-			if [ ${args[$i]} = "-s" ] ; then
-				DATAF=$HOMEF/${args[$(($i+1))]}
-				i=$(($i+1))
-			else
-				if [ ${args[$i]} = "-m" ] ; then
-					MODEL=${args[$(($i+1))]}
-					i=$(($i+1))
-				else
-					if [ ${args[$i]} = "-n" ] ; then
-						NAME=${args[$(($i+1))]}
-						i=$(($i+1))
-					else
-						if [ ${args[$i]} = "-l" ] && [ ${args[$((i+1))]} = "GREEDY" ] ; then
-							g=1
-							i=$(($i+1))
-						else
-							pass[$j]=${args[$i]}
-							j=$(($j+1))
-						fi
-					fi
-				fi
+		echo "checking NUM_BRANCHES ...."
+		if [ $BUILD -eq 0 ]; then
+			# rebuild if NUM_BRANCHES is not set correctly
+			echo $pmaCOMMAND -a $PARTCOUNT
+			$pmaCOMMAND -a $PARTCOUNT
+			if [ $? -eq 1 ]; then
+				echo "NUM_BRANCHES not specified correctly, you should rebuild!"
+#				BUILD=1
 			fi
 		fi
 	fi
-i=$(($i+1))
+
+	# if build is specified or no binary was found
+	if [[ $BUILD -eq 1 ]]; then
+		cd $pmaFOLDER
+		# get NUM_BRANCHES out of axml.h
+		curr=`grep "#define NUM_BRANCHES\s*\([[:digit:]]*\)" axml.h|grep -o "[[:digit:]]*"`
+		if ! [[ $curr -eq $PARTCOUNT ]]; then
+			# && [ $HEURISTIC = "NAIVE" ]; then
+			echo "replacing former NUM_BRANCHES definition of $curr with $PARTCOUNT"
+			sed "s/#define NUM_BRANCHES\s*\([[:digit:]]*\)/#define NUM_BRANCHES     $PARTCOUNT/" $AXMLH > tmp
+			mv tmp $AXMLH
+		fi
+		make -f $pmaMAKE -j
+		cp -f $pmaBINARY $current_dir/$pmaBINARY
+		pmaCOMMAND=$current_dir/$pmaBINARY
+	fi
+	
+	echo "using raxml binary: $pmaCOMMAND"
+	cd $current_dir
+}
+
+
+# run greedy modelassignment algorithm
+function greedy {
+	i=1
+	p=""
+	n=""
+	nminus=""
+	time1=`date +%s`
+	origpart=$PARTF
+
+	if [ $SORTED -eq 1 ]; then
+		echo "will sort in advance"
+		$phymod "sort $PARTF $DATAF"
+		DATAF="sorted.phy"
+		PARTF="sorted.part"
+	fi
+
+	while [ $i -le $PARTCOUNT ]; do
+		n=$NAME"_run_"$i
+		nminus=$NAME"_run_"$((i-1))
+		p="$p"$((i-1))","
+
+		$phymod EXTRACT -p $p -n $n $PARTF $DATAF
+
+		if [ $i -eq 1 ]; then
+			$pmaCOMMAND -T $CORES -t $TREEF -s $n.phy -n $n -m $MODEL -l GREEDY
+		else
+			echo $phymod ASSIGN $n.part RAxML_modelResult.$nminus
+			$phymod ASSIGN $n.part RAxML_modelResult.$nminus
+			rm $n.part
+			mv RAxML_modelResult.$nminus.part $n.part
+			echo "running: $pmaCOMMAND -T $CORES -t $TREEF -q $n.part -s $n.phy -n $n -m $MODEL -l GREEDY"
+			$pmaCOMMAND -T $CORES -t $TREEF -q $n.part -s $n.phy -n $n -m $MODEL -l GREEDY
+		fi
+
+		i=$((i+1))
+	done
+
+	cp RAxML_modelResult.$n RAxML_modelResult.$NAME
+	cp RAxML_info.$n RAxML_info.$NAME
+	cp RAxML_pmaInfo.$n RAxML_pmaInfo.$NAME
+
+	if ! [[ $DEBUG -eq 1 ]]; then
+		rm *_run_*
+		rm RAxML_modelResult.$NAME.sorted
+	fi
+
+	if [ $SORTED -eq 1 ]; then
+		$phymod ASSIGN -s $origpart RAxML_modelResult.$NAME
+		mv RAxML_modelResult.$NAME RAxML_modelResult.$NAME".sorted"
+		if ! [[ $DEBUG -eq 1 ]]; then	
+			rm sorted.*
+		fi
+		sed -e "s/,.*//g" RAxML_modelResult.$NAME.part > RAxML_modelResult.$NAME 
+		# create real RAxML_modelResult.$NAME
+	else
+		$phymod ASSIGN $PARTF RAxML_modelResult.$NAME
+	fi
+
+	time2=`date +%s`
+	echo "Greedy execution took "$((time2-time1))" seconds"
+	echo "Greedy execution took "$((time2-time1))" seconds" >> RAxML_info.$NAME
+	echo "Greedy_time: "$((time2-time1)) >> RAxML_pmaInfo.$NAME
+}
+
+
+# predefine some common values, will be overwritten if specified
+host=`hostname`
+if [ $host == "hitssv109" ];then
+	CORES=$((`cat /proc/cpuinfo | grep processor | wc -l` * 8 / 10))
+elif [ $host == "magny-login" ];then
+	CORES=8
+else
+	CORES=`cat /proc/cpuinfo | grep processor | wc -l`
+fi
+MODEL="PROTGAMMAWAGF"
+
+# necessary parameters
+HEURISTIC=
+NAME=
+PARTF=
+TREEF=
+DATAF=
+ADDITIONAL=""
+BUILDONLY=0
+GREEDYSEED=0
+
+while getopts "T:t:m:q:s:n:l:L:bMvdW" OPTION
+do
+	case $OPTION in
+	m)
+		MODEL=$OPTARG;;
+	T)
+		CORES=$OPTARG;;
+	t)
+		[[ -e $current_dir/$OPTARG ]] && TREEF=$current_dir/$OPTARG;;
+	q)
+		[[ -e $OPTARG ]] && PARTF=$OPTARG;;
+	s)
+		[[ -e $OPTARG ]] && DATAF=$OPTARG;;
+	n)
+		NAME=$OPTARG;;
+	l)
+		match=$(echo "${H[@]:0} " | grep -o "$OPTARG ")
+		! [[ -z $match ]] && HEURISTIC=$OPTARG;;
+	b)
+		BUILD=1;;
+	M)
+		ADDITIONAL="$ADDITIONAL -M";;
+	L)  
+		echo $OPTARG
+		ADDITIONAL="$ADDITIONAL -L $OPTARG";;
+#		if seeding with greedy is specified, the compute the greedy result first
+#		echo " $OPTARG " | grep "[[:space:]|,]*seed=1[[:space:]|,]"
+#		if [ $? -eq 0 ]; then
+#			GREEDYSEED=1
+#		fi;;
+	v)	
+		ADDITIONAL="$ADDITIONAL -v";;
+	d) 
+		DEBUG=1;;
+	W)
+		BUILDONLY=1;;
+	?)
+		exit 1;;
+	esac
 done
 
-params=""
-for p in ${pass[@]}; do
-	params="$params $p"
-done
 
-makeNew $PARTF
+if [ $BUILDONLY -eq 1 ] && ! [[ -z $PARTF ]]; then
+        BUILD=1
+        PARTCOUNT=`sed '/^$/d' $PARTF | wc -l`
+        getBinary $PARTF
+        echo "just compiled..."
+        exit 0
+fi
 
-#run RAxML
-if [ $g = "1" ] ; then
+# if not provided Name will be heuristic_YYYY-MM-DD-HH-mm
+[[ -z $NAME ]] && NAME=$HEURISTIC_`date +"%F-%H-%M"`
+
+# if not provided create parsimony starting tree
+if [ -z $TREEF ]; then
+	getTree
+	if [ -e $current_dir"/"$treeFile ]; then
+		echo "using Treefile available in current dirctory"
+	elif ! [[ -z $PARTF ]] && ! [[ -z $DATAF ]]; then
+		echo "creating new starting Tree"
+		$raxmlHPC -y -n START -p $RANDOM -s $DATAF -q $PARTF -m $MODEL -T $CORES
+	fi
+	TREEF=$current_dir"/"$treeFile
+fi
+
+getDump
+
+if [[ -z $NAME ]] || [[ -z $CORES ]] || [[ -z $MODEL ]] || [[ -z $PARTF ]] || [[ -z $TREEF ]] || [[ -z $DATAF ]] || [[ -z $HEURISTIC ]]; then
+	echo "Argument problem. The following is specified: $NAME $CORES $MODEL $PARTF $TREEF $DATAF $HEURISTIC"
+	exit 1
+fi
+
+#count number of lines given in partition file (empty lines will be ignored)
+PARTCOUNT=`sed '/^$/d' $PARTF | wc -l`
+
+getBinary $PARTF
+
+#run PMA stuff
+if [ $HEURISTIC = "GREEDY" ]; then
 	greedy
-else 
-	$HOMEF/$RAXMLCOMMAND -t $TREEF -q $PARTF -s $DATAF -n $NAME -m $MODEL $params
+elif [ $HEURISTIC = "SGREEDY" ]; then
+	SORTED=1
+	greedy
+elif [ $HEURISTIC = "CHECK" ]; then
+	$pmaCOMMAND -T $CORES -t $TREEF -q $PARTF -s $DATAF -n $NAME -m $MODEL -l $HEURISTIC$ADDITIONAL
+elif [[ $HEURISTIC = "TREE" ]];then
+	echo "created parsimony tree only"
+else
+	echo "greedy seed is $GREEDYSEED"
+	if [ $GREEDYSEED -eq 1 ]; then
+			SORTED=1
+			initialname=$NAME
+			initialdata=$DATAF
+			NAME=$initialname"_greedy"
+			greedy
+			PARTF="RAxML_modelResult."$initialname"_greedy.part"
+			NAME=$initialname
+			DATAF=$initialdata
+	fi
+
+	echo "running: $pmaCOMMAND -T $CORES -t $TREEF -q $PARTF -s $DATAF -n $NAME -m $MODEL -l $HEURISTIC$ADDITIONAL"
+	$pmaCOMMAND -T $CORES -t $TREEF -q $PARTF -s $DATAF -n $NAME -m $MODEL -l $HEURISTIC$ADDITIONAL
+	# create partitionfile that can be passed to RAxML directly
+	if [ -e "RAxML_modelResult.$NAME" ]; then
+		echo "$phymod ASSIGN $PARTF RAxML_modelResult.$NAME"
+		$phymod ASSIGN $PARTF RAxML_modelResult.$NAME
+	fi
+
+	datcount=`ls -l *.$NAME.dat|wc -l`
+
+	if [ $datcount -gt 0 ]; then
+		if [ -e $NAME ]; then
+			rm -r $NAME
+		fi
+		mkdir $NAME
+
+		for i in `ls *.$NAME.dat`; do
+			mv $i $NAME
+		done
+
+		cd $NAME
+		plotDat $NAME.ps
+		mv $NAME.ps ..
+		cd ..
+	fi
+
 fi
 
 exit 0
-

@@ -74,6 +74,7 @@
 #include "axml.h"
 #include "globalVariables.h"
 
+extern int verbose;
 
 #define _PORTABLE_PTHREADS
 
@@ -92,6 +93,18 @@ void printAssignment(assignment *opt, int m) {
 		printf("%11s %12f", protModels[opt->partitionModel[model]], opt->partitionLH[model]);
 	}
 	printf("   %12f\n", opt->overallLH);
+}
+
+void printModels(assignment *opt, int m) {
+	int model;
+
+	for (model = 0; model < m; model++) {;
+	if(protEmpiricalFreqs)
+		printf("%10sF", protModels[opt->partitionModel[model]]);
+	else
+		printf("%11s", protModels[opt->partitionModel[model]]);
+	}
+	printf("\n");
 }
 
 void printSearch(mtest *l, mtest *r) {
@@ -131,12 +144,16 @@ void printModelTest(mtest *r) {
 	free(bestLikelihoods);
 }
 
-
-void printAssignmentFile(assignment *opt, int m) {
+//RAxML_modelResult...
+void printAssignmentFile(assignment *opt, int m, char *name) {
 	int model;
-	FILE *o, *tmp;
-	tmp = stdout;
-	o = fopen(proteinModelTestResult, "w");
+	char fname[1024] = "";
+
+	strcat(fname, proteinModelTestResult);
+	strcat(fname, name);
+
+	FILE *tmp = stdout;
+	FILE *o = fopen(fname, "w");
 	stdout = o;
 
 	if(protEmpiricalFreqs)
@@ -145,11 +162,12 @@ void printAssignmentFile(assignment *opt, int m) {
 	else
 		for (model = 0; model < m; model++)
 			printf("%s\n", protModels[opt->partitionModel[model]]);
+
 	fclose(o);
 	stdout = tmp;
 }
 
-
+// RAxML_modelTest...
 void printModelTestFile(mtest *r, char *name) {
 	FILE *tmp = stdout;
 	char fname[1024] = "";
@@ -161,7 +179,6 @@ void printModelTestFile(mtest *r, char *name) {
 	fclose(o);
 	stdout = tmp;
 }
-
 
 void myBinFwrite(const void *ptr, size_t size, size_t nmemb)
 { 
@@ -262,6 +279,22 @@ static void printBoth(FILE *f, const char* format, ... )
 void printBothOpen(const char* format, ... )
 {
   FILE *f = myfopen(infoFileName, "ab");
+
+  va_list args;
+  va_start(args, format);
+  vfprintf(f, format, args );
+  va_end(args);
+
+  va_start(args, format);
+  vprintf(format, args );
+  va_end(args);
+
+  fclose(f);
+}
+
+void printPMAOpen(const char* format, ... )
+{
+  FILE *f = myfopen(pmaInfoFile, "ab");
 
   va_list args;
   va_start(args, format);
@@ -3595,7 +3628,10 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
     modelSearch[2048] = "",
     secondaryModel[2048] = "",
     multiStateModel[2048] = "",
-    modelChar;
+    modelChar,
+    command[2048] = "",
+	*result = NULL,
+	*cmd;
 
   double 
     likelihoodEpsilon,    
@@ -3605,6 +3641,7 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
   int  
     optind = 1,        
     c,
+	i, count=0,
     nameSet = 0,
     alignmentSet = 0,
     multipleRuns = 0,
@@ -3612,7 +3649,8 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
     treeSet = 0,
     groupSet = 0,
     modelSet = 0,
-    treesSet  = 0;
+    treesSet  = 0,
+    numParams;
 
   boolean
     bSeedSet = FALSE,
@@ -3658,14 +3696,13 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 #endif
   
   /********* tr inits end*************/
-
 #if (defined(_USE_PTHREADS) || (_FINE_GRAIN_MPI))
   while(!bad_opt &&
-	// [JH] add switch to choose model selection strategy here
-	((c = mygetopt(argc,argv,"T:P:R:e:c:f:i:m:l:t:w:s:n:o:q:G:vhMSDBQX", &optind, &optarg))!=-1))
+	// [JH] added some options (l,L,a)
+	((c = mygetopt(argc,argv,"T:P:R:e:c:f:i:m:t:w:s:n:o:q:G:l:L:a:vhMSDBQX", &optind, &optarg))!=-1))
 #else
     while(!bad_opt &&
-	  ((c = mygetopt(argc,argv,"T:P:R:e:c:f:i:m:l:t:w:s:n:o:q:G:vhMSDBX", &optind, &optarg))!=-1))
+	  ((c = mygetopt(argc,argv,"T:P:R:e:c:f:i:m:l:L:t:w:s:n:o:q:G:vhMSDBX", &optind, &optarg))!=-1))
 #endif
     {
     switch(c)
@@ -3738,9 +3775,11 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 	adef->useMultipleModel = TRUE;
         break;
       
+    // [JH] immediately plot search progress
       case 'v':
-	printVersionInfo();
-	errorExit(0);
+    	  verbose = 1;
+//	printVersionInfo();
+//	errorExit(0);
 	break;
       
       case 'h':
@@ -3816,7 +3855,7 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 	  modelSet = 1;
 	break;
 
-	// [JH] temporarily added to switch between model search strategies
+	// [JH] switch between PMA heuristics
 	case 'l':
 		if(!strcmp("EXHAUSTIVE", optarg))
 			tr->modelAssignment = EXHAUSTIVE;
@@ -3832,7 +3871,73 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 			tr->modelAssignment = NAIVE;
 		else if(!strcmp("RANDOM", optarg))
 			tr->modelAssignment = RANDOM;
+		else if(!strcmp("RANDDUPL", optarg))
+			tr->modelAssignment = RANDDUPL;
+		else if(!strcmp("RANDWALK", optarg))
+			tr->modelAssignment = RANDWALK;
+		else if(!strcmp("CLASSIC", optarg))
+			tr->modelAssignment = CLASSIC;
+		else if(!strcmp("CHECK", optarg))
+			tr->modelAssignment = CHECK;
 		break;
+	// [JH] pass parameters to PMA heuristics
+	case 'L':
+		printf("parsing heuristic arguments\n");
+		for(i = 0; optarg[i] != '\0' ; ++i )
+			if( optarg[i] == ',') ++count;
+
+		numParams = count+1;
+		strcpy(command, optarg);
+
+		cmd = strtok(command, ",=");
+
+		for(i = 0; i < numParams; i++) {
+			result = strtok(NULL, ",=");
+
+			if(strcmp(cmd, "seed") == 0)
+				seed = atoi(result);
+			else if(strcmp(cmd,"loops") == 0)
+				loops = atoi(result);
+			else if(!strcmp(cmd,"steepest"))
+				steepest = atoi(result);
+			else if(!strcmp(cmd,"prune"))
+				prune = atoi(result);
+			else if(!strcmp(cmd,"temp"))
+				temp = atoi(result);
+			else if(!strcmp(cmd,"tt"))
+				tt = atof(result);
+			else if(!strcmp(cmd,"popsize"))
+				popsize = atoi(result);
+			else if(!strcmp(cmd,"alpha"))
+				alpha = atof(result);
+			else if(!strcmp(cmd,"archive"))
+				archive = atoi(result);
+			else if(!strcmp(cmd,"fullopt"))
+				fullopt = atof(result);
+			else if(!strcmp(cmd,"mutrate"))
+				mutrate = atof(result);
+			else if(!strcmp(cmd,"crossrate"))
+				crossrate = atof(result);
+			else if(!strcmp(cmd,"randomseed"))
+				randseed = atoi(result);
+			else if(!strcmp(cmd,"window"))
+				window = atoi(result);
+			else if(!strcmp(cmd,"neighborhood"))
+				neighborhood = atoi(result);
+			else {
+				printf("something is wrong with the arguments\n");
+				exit(-1);
+			}
+
+			cmd = strtok(NULL, ",=");
+		}
+
+		break;
+	// check if NUM_BREANCHES definition matches
+	case 'a':
+		if(atoi(optarg) != NUM_BRANCHES) {
+			exit(1);
+		} else exit(0);
 
       default:
 		errorExit(-1);
@@ -4016,6 +4121,7 @@ static void makeFileNames(void)
 	strcat(proteinModelInfoFile, "RAxML_modelTest.");
 	strcat(proteinModelTestResult, "RAxML_modelResult.");
 	strcat(proteinModelSearch, "RAxML_modelSearch.");
+	strcat(pmaInfoFile, "RAxML_pmaInfo.");
 
   strcat(permFileName,         run_id);
   strcat(resultFileName,       run_id);
@@ -4035,6 +4141,7 @@ static void makeFileNames(void)
   strcat(proteinModelInfoFile, run_id);
   strcat(proteinModelTestResult, run_id);
   strcat(proteinModelSearch, run_id);
+  strcat(pmaInfoFile, run_id);
 
   
 
@@ -4969,6 +5076,7 @@ static void finalizeInfoFile(tree *tr, analdef *adef)
 
 	  printModelParams(tr, adef);
 
+
 	  printBothOpen("Final tree written to:                 %s\n", resultFileName);
 	  printBothOpen("Execution Log File written to:         %s\n", logFileName);
 	 
@@ -5026,6 +5134,19 @@ static void finalizeInfoFile(tree *tr, analdef *adef)
 		  printBothOpen("Likelihood   : %f\n", tr->likelihood);
 		  printBothOpen("\n\n");
 
+		  //[JH]
+		  printBothOpen("############################################################################################\n");
+		  if(naiveLH < 0)
+			  printBothOpen("Model testing results: (diff is: %f)\n", heuristicLH - naiveLH);
+		  else printBothOpen("Model testing results\n");
+		  if(naiveLH < 0)
+			  printBothOpen("Naive, opt+JBL:  %12f\n", naiveLH);
+		  printBothOpen("Heuristic:       %12f\n", heuristicLH);
+		  printBothOpen("%d assignments evaluated (%d were visited with JBL).\n", numLHcomputations, numAssignments);
+		  printBothOpen("Average time for LH computation per assignment is ~%f seconds (overall %f s)\n", (float) LHcomp_time/numLHcomputations, LHcomp_time);
+		  printBothOpen("Searching archive took %f seconds (Number of HITS is %d)\n", archiveSearch_time, cacheHits);
+		  printBothOpen("############################################################################################\n\n");
+
 		  if(adef->checkpoints)
 		  printBothOpen("Checkpoints written to:                %s.*\n", checkpointFileName);
 		  if(!adef->restart)
@@ -5035,9 +5156,25 @@ static void finalizeInfoFile(tree *tr, analdef *adef)
 		      else
 			printBothOpen("Parsimony starting tree written to:    %s\n", permFileName);
 		    }
-		  printBothOpen("Final tree written to:                 %s\n", resultFileName);
-		  printBothOpen("Execution Log File written to:         %s\n", logFileName);
-		  printBothOpen("Execution information file written to: %s\n",infoFileName);
+//		  printBothOpen("Final tree written to:                 %s\n", resultFileName);
+//		  printBothOpen("Execution Log File written to:         %s\n", logFileName);
+		  printBothOpen("Execution information file written to: %s\n\n",infoFileName);
+
+		  FILE *f = myfopen(pmaInfoFile, "w"); fclose(f);
+		  printPMAOpen("%s\n", pmaTest->method);
+		  printPMAOpen("Evaluation_time: %f\n", t);
+		  printPMAOpen("Assignments_visited_JBL: %d\n", numAssignments);
+		  printPMAOpen("Assignments_evaluated: %d\n", numEvaluated);
+		  printPMAOpen("LHcompTime: %f\n", LHcomp_time);
+		  printPMAOpen("archiveTime: %f\n", archiveSearch_time);
+		  printPMAOpen("cache_hits: %d\n", cacheHits);
+		  printPMAOpen("best_LH_score: %f\n", pmaTest->result->overallLH);
+		  printPMAOpen("best_under_IBL: %f\n", heuristicLHIBL);
+		  printPMAOpen("IBL_optimum_under_JBL: %f\n", naiveLH);
+		  printPMAOpen("IBL_optimum: %f\n", naiveLH);
+		  printPMAOpen("prune: %d\nrandomseed: %d\nwindow: %d\nneighborhood: %d\n", prune, randseed, window, neighborhood);
+		  printPMAOpen("ga_online_performance: %f\n", ga_online);
+		  printPMAOpen("ga_offline_performance: %f\n", ga_offline);
 		}
 	    }
 
@@ -6000,8 +6137,8 @@ void masterBarrier(int jobType, tree *tr)
 static void pinToCore(int tid)
 {
   cpu_set_t cpuset;
-         
-  CPU_ZERO(&cpuset);    
+
+  CPU_ZERO(&cpuset);
   CPU_SET(tid, &cpuset);
 
   if(pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset) != 0)
@@ -6012,7 +6149,6 @@ static void pinToCore(int tid)
       assert(0);
     }
 }
-
 #endif
 
 static void *likelihoodThread(void *tData)
@@ -6292,7 +6428,7 @@ int main (int argc, char *argv[])
       checkOutgroups(tr, adef);
       makeFileNames();  
 
-      makeweights(adef, rdta, cdta, tr);     
+      makeweights(adef, rdta, cdta, tr);
 
       makevalues(rdta, cdta, tr, adef);      
       

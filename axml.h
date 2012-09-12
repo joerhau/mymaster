@@ -32,6 +32,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <float.h>
+#include <time.h>
 
 #ifdef __AVX
 #define BYTE_ALIGNMENT 32
@@ -95,7 +96,7 @@
 
 #define badRear         -1
 
-#define NUM_BRANCHES     3
+#define NUM_BRANCHES     20
 
 #define TRUE             1
 #define FALSE            0
@@ -185,7 +186,7 @@ extern double exp_approx (double x);
 #define PointGamma(prob,alpha,beta)  PointChi2(prob,2.0*(alpha))/(2.0*(beta))
 
 #define programName        "RAxML-Light"
-#define programVersion     "1.0.5"
+#define programVersion     "1.0.5 MyFork"
 #define programDate        "June 2011"
 
 // [JH] model search options
@@ -196,6 +197,10 @@ extern double exp_approx (double x);
 #define GA				4
 #define NAIVE			5
 #define RANDOM			6
+#define CLASSIC			7
+#define CHECK			8
+#define RANDWALK		9
+#define RANDDUPL		10
 
 #define  TREE_EVALUATION            0
 #define  BIG_RAPID_MODE             1
@@ -362,19 +367,25 @@ typedef struct {
 	double overallLH;
 	int* partitionModel;
 	double* partitionLH;
-	int chosen;
+//	int chosen;
+	int evaluated;
 } assignment;
 
 //[JH] contains all intermediate results of a model search
 typedef struct {
-	char *method;
+	char* method;
 	int nrRuns;
 	int nrModels;
-	assignment** run;
-	assignment* result;
+	int maxSize;
+	assignment **run;
+	assignment *result;
 } mtest;
 
-
+typedef struct {
+//	long seconds, useconds;
+	struct timeval start, end;
+	float val;
+} stopwatch;
 
 
 struct ent
@@ -1012,6 +1023,7 @@ typedef  struct  {
   // [JH]
   int modelAssignment;
 
+
 } tree;
 
 
@@ -1215,6 +1227,7 @@ extern boolean whitechar ( int ch );
 extern void errorExit ( int e );
 //[JH] print modeltest results
 extern void printAssignment(assignment *opt, int m);
+extern void printModels(assignment *opt, int m);
 extern void printModelTestFile(mtest *r, char *name);
 extern void printModelTest(mtest *r);
 
@@ -1352,6 +1365,7 @@ extern void myBinFread(void *ptr, size_t size, size_t nmemb);
 
 #ifdef _JOERG
 extern void modOptJoerg(tree *tr, analdef *adef, rawdata* rdta);
+linkageList* initLinkageList(int *linkList, tree *tr);
 #endif
 
 extern void makenewzIterative(tree *);

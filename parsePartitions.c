@@ -92,7 +92,7 @@ static void skipWhites(char **ch)
     *ch = *ch + 1;
 }
 
-static void analyzeIdentifier(char **ch, int modelNumber, tree *tr)
+static void analyzeIdentifier(char **ch, int modelNumber, tree *tr, analdef *adef)
 {
   char ident[2048] = "";
   char model[128] = "";  
@@ -155,7 +155,10 @@ static void analyzeIdentifier(char **ch, int modelNumber, tree *tr)
 	      tr->initialPartitionData[modelNumber].protFreqs  = 1;
 	      tr->initialPartitionData[modelNumber].dataType   = AA_DATA;
 	      found = TRUE;
-	    }	  	 	  
+	    }
+
+	  // [JH] overwrite base freqs specified in partition file with parameter passed
+	  tr->initialPartitionData[modelNumber].protFreqs = adef->protEmpiricalFreqs;
 	}
       
       if(!found)
@@ -375,7 +378,7 @@ void parsePartitions(analdef *adef, rawdata *rdta, tree *tr)
 	  exit(-1);
 	}
       
-      analyzeIdentifier(&ch, i, tr);
+      analyzeIdentifier(&ch, i, tr, adef);
       ch++;
             
     numberPairs:

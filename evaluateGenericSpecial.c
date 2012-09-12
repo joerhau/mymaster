@@ -333,14 +333,9 @@ static double evaluateGTRGAMMAPROT (int *ex1, int *ex2, int *wptr,
 	  if(term < 0.0) {
 		  assertionError = 1;
 		  problemCount++;
-//		  printf("term negative again (%d times), i was %d, n was %d\n", problemCount, i, n);
 		  printf("tipX1 i=%d, term=%E\n", i, term);
 		term = fabs(term);
 	  }
-//	  else if(assertionError) {
-//		  printf("term negative again (%d times), i was %d, n was %d\n", problemCount, i, n);
-//		  printf("term=%1.80f\n", term);
-//	  }
 
 	  if(fastScaling)
 	    term = LOG(0.25 * term);
@@ -348,8 +343,6 @@ static double evaluateGTRGAMMAPROT (int *ex1, int *ex2, int *wptr,
 	    term = LOG(0.25 * term) + (ex2[i] * LOG(minlikelihood));
 
 	  sum += wptr[i] * term;
-//	  if(i == n - 1 && assertionError)
-//	  		  printf("sum=%1.80f\n", sum);
 	}    	        
     }              
   else
@@ -377,14 +370,9 @@ static double evaluateGTRGAMMAPROT (int *ex1, int *ex2, int *wptr,
 	  	  if(term < 0.0) {
 	  		  assertionError = 1;
 	  		  problemCount++;
-//	  		  printf("term negative again (%d times), i was %d, n was %d\n", problemCount, i, n);
 	  		  printf("nontip term=%E\n", term);
 	  		term = fabs(term);
 	  	  }
-//	  	  else if(assertionError) {
-//	  		  printf("term negative again (%d times), i was %d, n was %d\n", problemCount, i, n);
-//	  		  printf("term=%1.80f\n", term);
-//	  	  }
 
 	  if(fastScaling)
 	    term = LOG(0.25 * term);
@@ -392,8 +380,6 @@ static double evaluateGTRGAMMAPROT (int *ex1, int *ex2, int *wptr,
 	    term = LOG(0.25 * term) + ((ex1[i] + ex2[i])*LOG(minlikelihood));
 	  
 	  sum += wptr[i] * term;
-//	  if(i == n - 1 && assertionError)
-//	  		  printf("sum=%1.80f\n", sum);
 	}
     }
        
@@ -1278,11 +1264,11 @@ double evaluateIterative(tree *tr,  boolean writeVector)
 //			}
 //			if(!(partitionLikelihood < 0.0))
 //				printf("partition: %d lh: %E\n", model, partitionLikelihood);
-		  if(assertionError) {
-			  printf("partition %d, model %d, LH %f\n", model, tr->partitionData[model].protModels, partitionLikelihood);
+//		  if(assertionError) {
+//			  printf("partition %d, model %d, LH %f\n", model, tr->partitionData[model].protModels, partitionLikelihood);
 //			  printf("LH is %1.80f\n", partitionLikelihood);
-			  assertionError = 0;
-		  }
+//			  assertionError = 0;
+//		  }
 	      assert(partitionLikelihood < 0.0);
 	  	     		      
 	      partitionLikelihood += (tr->partitionData[model].globalScaler[pNumber] + tr->partitionData[model].globalScaler[qNumber]) * LOG(minlikelihood);

@@ -1,5 +1,8 @@
 *.o
 raxmlLight-PTHREADS
+raxmlPMA-PTHREADS
+raxmlLight-PTHREADS-1.0.6
+pmaNaiveDump
 raxmlLight
 *.swp
 work_dir

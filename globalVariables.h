@@ -29,10 +29,6 @@
  */
 
 
-
-
-
-
 #ifdef _FINE_GRAIN_MPI
 int processes;
 double *globalResult;
@@ -46,6 +42,8 @@ FILE *byteFile;
 int Thorough = 0;
 
 checkPointState ckp;
+
+int a, b, c;
 
 int assertionError = 0;
 
@@ -78,7 +76,21 @@ char run_id[128] = "",
 // [JH] file to write model test results to
 proteinModelInfoFile[1024] = "",
 proteinModelTestResult[1024] = "",
-proteinModelSearch[1024] = "";
+proteinModelSearch[1024] = "",
+pmaInfoFile[1024] = "";
+
+char
+	pmaplot_IBL_best[128] = "pmaplot_IBL_best",
+	pmaplot_JBL_best[128] = "pmaplot_JBL_best",
+	pmaplot_IBL_curr[128] = "pmaplot_IBL_curr",
+	pmaplot_JBL_curr[128] = "pmaplot_JBL_curr",
+	pmaplot_IBL_mean[128] = "pmaplot_IBL_mean",
+	pmaplot_IBL_opt[128] = "pmaplot_IBL_opt",
+	pmaplot_IBL_cumAverage[128] = "pmaplot_IBL_cumAverage",
+	pmaplot_IBL_movingAverage[128] = "pmaplot_IBL_movingAverage",
+	pmaplot_xgrid[128] = "pmaplot_xgrid",
+	pmaplot_ygrid[128] = "pmaplot_ygrid";
+
 
 
 char *protModels[NUM_PROT_MODELS] = {"DAYHOFF", "DCMUT", "JTT", "MTREV", "WAG", "RTREV", "CPREV", "VT", "BLOSUM62", "MTMAM", "LG", "MTART", "MTZOA", "PMB", 
@@ -159,8 +171,29 @@ double accumulatedTime;
 int partCount = 0;
 int optimizeRateCategoryInvocations = 1;
 
+// [JH]
+double naiveLH = 1.0;
+double naiveIBL = 1.0;
+double heuristicLH = 1.0;
+double heuristicLHIBL = 1.0;
+double ga_offline = 1.0;
+double ga_online = 1.0;
+mtest *pmaTest;
+int numEvaluated = 0;
+int numAssignments = 0;
+int numLHcomputations = 0;
+int verbose = 0;
 
+// assignment seeding for heuristics, number of maximum assignments, do steepest hill instead of next ascent, SA starting temperature, GA population size
+int seed = 0, prune = 0, loops = 0, steepest = 0, temp = 0, popsize = 50, randseed = 1, window = 20, neighborhood = 0, archive = 1, fullopt = 0;
+// alpha parameter cooling schedule SA, mutationrate and crossoverrate of GA
+float alpha = .99, mutrate = .05, crossrate = .95, tt = 1;
 
+float archiveSearch_time = 0, LHcomp_time = 0;
+
+int cacheHits = 0;
+
+unsigned long *tested;
 
 
 partitionLengths pLengths[MAX_MODEL] = {
